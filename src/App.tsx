@@ -10,29 +10,10 @@ import { ToastContainer } from "react-toastify";
 import LoginPage from "./pages/LoginPage";
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 function App() {
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route>
-        <Route path="/" element={<Navigate to="login" replace />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-      </Route>
-    )
-  );
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeButton={false}
-        rtl={false}
-        pauseOnHover
-        draggable
-      />
-      <Suspense fallback={<h1>Loading...</h1>}>
-        <RouterProvider router={router} />
-      </Suspense>
+      <h1 className="text-lg text-green-500">Hello World</h1>
+      <p>This is the paragraph section</p>
     </>
   );
 }

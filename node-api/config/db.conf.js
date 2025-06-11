@@ -1,6 +1,6 @@
 // src/db.ts
 import dotenv from 'dotenv';
-import { Pool } from 'pg';
+import mysql from 'mysql/promise';
 
 dotenv.config();
 
