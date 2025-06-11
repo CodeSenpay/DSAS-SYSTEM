@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET; // In production, use env variable
 
-async function loginModel(payload, req, res) {
+// The model should NOT use req or res. It should only return data or throw errors.
+async function loginModel(payload) {
     try {
         // The stored procedure name is fixed as 'login'
         const sp_name = payload.sp_name;
@@ -22,7 +23,10 @@ async function loginModel(payload, req, res) {
         const user = result && result[0] && result[0][0];
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials or user not found' });
+            // Instead of using res, throw an error to be handled by the controller
+            const error = new Error('Invalid credentials or user not found');
+            error.status = 401;
+            throw error;
         }
 
         // Generate JWT token
@@ -33,13 +37,19 @@ async function loginModel(payload, req, res) {
         };
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
 
-        return res.status(200).json({
+        // Return the data (controller will handle the response)
+        return {
             message: 'Login successful',
             token,
             user: tokenPayload
-        });
+        };
     } catch (error) {
-        return res.status(500).json({ error: 'Login failed', details: error.message });
+        // Attach a status if not present (for controller to handle)
+        if (!error.status) {
+            error.status = 500;
+        }
+        error.details = error.message;
+        throw error;
     }
 }
 
