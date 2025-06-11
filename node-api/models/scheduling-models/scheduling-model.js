@@ -4,7 +4,7 @@ async function schedulingModel(payload, req, res) {
     // Example: Use the database connection from db.conf.js
     try {
         // Fetch all users from the users table
-        const result = await pool.query('SELECT * FROM "Users"');
+        const result = await pool.query('SELECT * FROM users_tbl');
         return {
             message: "Fetched users successfully",
             users: result.rows,
