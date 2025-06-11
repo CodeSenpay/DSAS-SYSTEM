@@ -1,29 +1,30 @@
-// controllers/mainController.js
-import { samplesp, otherFunction } from '../controllers/subsidy/sampleController.js'; // Use ES module import
+// This directly calls models
+import { schedulingModel } from '../models/scheduling-models/scheduling-model.js';
 
-// Map modules to controller objects
-const controllers = {
-    sampleController: samplesp,
+// Map model to models objects
+const models = {
+    schedulingModel: { schedulingModel },
 };
 
 //Fix the routing of the controllers
 async function handle(req, res) {
     try {
-        const { controller, sp_name, payload } = req.body;
+        const { model, sp_name, payload } = req.body;
 
-        if (!controller || !sp_name) {
-            return res.status(400).json({ error: 'Missing controller or sp_name' });
+        if (!model || !sp_name) {
+            return res.status(400).json({ error: 'Missing model or sp_name' });
         }
 
-        const ctrl = controllers[controller];
+        // Check if the controller exists
+        const ctrl = models[model];
         if (!ctrl) {
-            return res.status(404).json({ error: `Controller "${controller}" not found` });
+            return res.status(404).json({ error: `Model "${model}" not found` });
         }
 
-        // Check if the sp_name exists in the controller
+        // Check if the controller has the sp_name as a function
         const fn = ctrl[sp_name];
         if (typeof fn !== 'function') {
-            return res.status(404).json({ error: `Function "${sp_name}" not found in controller "${controller}"` });
+            return res.status(404).json({ error: `Function "${sp_name}" not found in model "${model}"` });
         }
 
         // Call the controller function
