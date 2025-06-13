@@ -1,9 +1,9 @@
 // This directly calls models
-import { schedulingModel } from '../models/scheduling-models/scheduling-model.js';
+import { addSchedule } from '../models/reporting-models/reporting-model.js';
 
 // Map model to models objects
 const models = {
-    schedulingModel: { schedulingModel },
+    reportModel: { addSchedule },
 };
 
 //Fix the routing of the controllers
