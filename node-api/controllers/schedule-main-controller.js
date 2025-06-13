@@ -1,8 +1,8 @@
-import { addSchedule, getTransaction } from '../models/scheduling-models/scheduling-model.js';
+import { addSchedule, getAvailability } from '../models/scheduling-models/scheduling-model.js';
 
 // Map model to models objects
 const models = {
-    schedulingModel: { addSchedule, getTransaction },
+    schedulingModel: { addSchedule, getAvailability },
 };
 
 // Utility for better error responses
