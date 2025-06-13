@@ -1,8 +1,31 @@
 import pool from '../../config/db.conf.js';
 
 async function addSchedule(payload, req, res) {
+    // Required fields
+    const requiredFields = [
+        'transaction_id',
+        'start_date',
+        'end_date',
+        'capacity_per_day',
+        'created_by',
+        'created_at',
+        'start_time',
+        'end_time'
+    ];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter(field => !(field in payload));
+    if (missingFields.length > 0) {
+        return {
+            message: "Missing required fields",
+            missingFields,
+            receivedPayload: payload
+        };
+    }
+
     try {
         const jsondata = JSON.stringify(payload);
+        console.log(payload);
 
         const [rows] = await pool.query(`CALL update_availability(?)`, [jsondata]);
         // The result from a CALL is usually an array of arrays; return the first result set
@@ -35,7 +58,7 @@ async function addTransaction(payload, req, res) {
     }
 }
 
-async function getTransaction(payload, req, res) {
+async function getAvailability(payload, req, res) {
     try {
         // Extract searchkey from payload
         let searchkey = '';
@@ -61,4 +84,4 @@ async function getTransaction(payload, req, res) {
     }
 }
 
-export { addSchedule, getTransaction };
+export { addSchedule, getAvailability };
