@@ -1,21 +1,36 @@
-import { Button } from "@mui/material";
-
+import { useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar";
 export default function DashboardPage() {
+  const navigate = useNavigate();
   return (
     <div className="max-w-screen h-screen bg-[#f0f2f5] flex flex-col gap-4 items-center justify-start">
-      <div className="w-full h-70 flex flex-col items-center justify-center gap-2">
-        <img
-          src="../../public/LogoPNG.png"
-          alt="logo"
-          className=" h-35 w-35 mt-50"
-        />
+      <NavBar />
 
-        <h1 className="text-3xl">Welcome User!</h1>
-      </div>
-      <div className=" w-full flex justify-center items-start">
-        <Button variant="contained" color="success" className="w-1/3">
-          SCHEDULE HERE
-        </Button>
+      <div
+        className=" w-full h-screen flex flex-col md:flex-row justify-center gap-3"
+        style={{ padding: "10px" }}
+      >
+        <div
+          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          style={{ padding: "10px" }}
+          onClick={() => navigate("/calendar")}
+        >
+          <p>Subsidy payout</p>
+        </div>
+        <div
+          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          style={{ padding: "10px" }}
+          onClick={() => navigate("/calendar")}
+        >
+          <p>Schedule for clearance</p>
+        </div>
+        <div
+          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          style={{ padding: "10px" }}
+          onClick={() => navigate("/calendar")}
+        >
+          <p>Claiming of school ID schedule</p>
+        </div>
       </div>
     </div>
   );
