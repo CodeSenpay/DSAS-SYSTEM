@@ -7,6 +7,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import Loading from "./components/Loading";
 import LoginPage from "./pages/LoginPage";
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 function App() {
@@ -30,7 +31,7 @@ function App() {
         pauseOnHover
         draggable
       />
-      <Suspense fallback={<h1>Loading...</h1>}>
+      <Suspense fallback={<Loading />}>
         <RouterProvider router={router} />
       </Suspense>
     </>
