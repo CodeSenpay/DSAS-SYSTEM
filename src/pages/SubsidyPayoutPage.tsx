@@ -2,7 +2,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button } from "@mui/material";
 import NavBar from "../components/NavBar";
 function SubsidyPayoutPage() {
-  const transactions = [{}, {}];
+  //   const transactions = [{}, {}];
 
   return (
     <>
