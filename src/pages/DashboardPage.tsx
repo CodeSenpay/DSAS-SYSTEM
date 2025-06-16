@@ -13,21 +13,21 @@ export default function DashboardPage() {
         <div
           className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
-          onClick={() => navigate("/calendar")}
+          onClick={() => navigate("/subsidy-payout")}
         >
           <p>Subsidy payout</p>
         </div>
         <div
           className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
-          onClick={() => navigate("/calendar")}
+          onClick={() => navigate("/clearance-validation")}
         >
           <p>Schedule for clearance</p>
         </div>
         <div
           className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
-          onClick={() => navigate("/calendar")}
+          onClick={() => navigate("/school-id")}
         >
           <p>Claiming of school ID schedule</p>
         </div>

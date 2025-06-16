@@ -14,6 +14,9 @@ const CalendarPage = lazy(() => import("./pages/Calendar"));
 const VMGOPage = lazy(() => import("./pages/VMGOPage"));
 const AboutUsPage = lazy(() => import("./pages/AboutUsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const SubsidyPayoutPage = lazy(() => import("./pages/SubsidyPayoutPage"));
+const ClearanceValidationPage = lazy(() => import("./pages/SubsidyPayoutPage"));
+const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -25,6 +28,12 @@ function App() {
         <Route path="vmgo" element={<VMGOPage />} />
         <Route path="about-us" element={<AboutUsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="subsidy-payout" element={<SubsidyPayoutPage />} />
+        <Route
+          path="clearance-validation"
+          element={<ClearanceValidationPage />}
+        />
+        <Route path="school-id" element={<ClaimingOfIDPage />} />
       </Route>
     )
   );

@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 
-const pages = ["VMGO", "About Us"];
+const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
 function NavBar() {
@@ -63,6 +63,9 @@ function NavBar() {
         break;
       case "ABOUT US":
         navigate("/about-us");
+        break;
+      case "DASHBOARD":
+        navigate("/dashboard");
         break;
       default:
         break;

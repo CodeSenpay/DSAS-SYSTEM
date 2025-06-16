@@ -37,6 +37,10 @@ function LoginPage() {
           >
             Login
           </Button>
+
+          <p className="text-md text-blue-600">
+            <i>Develop By:</i> Robert Mayo/Marklan
+          </p>
         </form>
       </div>
     </div>
