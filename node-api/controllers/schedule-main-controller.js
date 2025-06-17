@@ -1,8 +1,16 @@
-import { insert_availability, update_availability, getAvailability, getAppointment } from '../models/scheduling-models/scheduling-model.js';
-
+import schedulingModel from '../models/scheduling-model.js';
 // Map model to models objects
 const models = {
-    schedulingModel: { insert_availability, update_availability, getAvailability, getAppointment },
+    schedulingModel: {
+        insert_availability: schedulingModel.insert_availability,
+        update_availability: schedulingModel.update_availability,
+        get_availability: schedulingModel.getAvailability,
+        get_appointment: schedulingModel.getAppointment,
+        insert_appointment: schedulingModel.insert_appointment,
+        approve_appointment: schedulingModel.approveAppointment,
+        insert_transactionType: schedulingModel.insertTransactionType,
+        get_transactionType: schedulingModel.getTransactionType
+    },
 };
 
 // Utility for better error responses
