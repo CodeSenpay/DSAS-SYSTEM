@@ -1,8 +1,8 @@
-import { insert_availability, update_availability, getAvailability } from '../models/scheduling-models/scheduling-model.js';
+import { insert_availability, update_availability, getAvailability, getAppointment } from '../models/scheduling-models/scheduling-model.js';
 
 // Map model to models objects
 const models = {
-    schedulingModel: { insert_availability, update_availability, getAvailability },
+    schedulingModel: { insert_availability, update_availability, getAvailability, getAppointment },
 };
 
 // Utility for better error responses
