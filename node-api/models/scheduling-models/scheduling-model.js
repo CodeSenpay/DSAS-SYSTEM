@@ -1,6 +1,6 @@
 import pool from '../../config/db.conf.js';
 
-async function addSchedule(payload, req, res) {
+async function insert_availability(payload, req, res) {
     // Required fields
     const requiredFields = [
         'transaction_id',
@@ -9,8 +9,45 @@ async function addSchedule(payload, req, res) {
         'capacity_per_day',
         'created_by',
         'created_at',
-        'start_time',
-        'end_time'
+        'timewindows',
+    ];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter(field => !(field in payload));
+    if (missingFields.length > 0) {
+        return {
+            message: "Missing required fields",
+            missingFields,
+            receivedPayload: payload
+        };
+    }
+
+    try {
+        const jsondata = JSON.stringify(payload);
+        console.log(payload);
+
+        const [rows] = await pool.query(`CALL insert_availability(?)`, [jsondata]);
+        // The result from a CALL is usually an array of arrays; return the first result set
+        return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+        return {
+            message: "Stored procedure execution failed",
+            error: error.message,
+            receivedPayload: payload
+        };
+    }
+}
+async function update_availability(payload, req, res) {
+    // Required fields
+    const requiredFields = [
+        'availability_id',
+        'transaction_id',
+        'start_date',
+        'end_date',
+        'capacity_per_day',
+        'created_by',
+        'created_at',
+        'timewindows',
     ];
 
     // Check for missing fields
@@ -38,6 +75,7 @@ async function addSchedule(payload, req, res) {
         };
     }
 }
+
 async function addTransaction(payload, req, res) {
     try {
 
@@ -84,4 +122,4 @@ async function getAvailability(payload, req, res) {
     }
 }
 
-export { addSchedule, getAvailability };
+export { insert_availability, update_availability, getAvailability };
