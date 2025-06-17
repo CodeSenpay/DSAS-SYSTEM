@@ -24,18 +24,18 @@ function App() {
     createRoutesFromElements(
       <Route>
         <Route path="/" element={<Navigate to="login" replace />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="calendar" element={<CalendarPage />} />
-        <Route path="vmgo" element={<VMGOPage />} />
-        <Route path="about-us" element={<AboutUsPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="subsidy-payout" element={<SubsidyPayoutPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/vmgo" element={<VMGOPage />} />
+        <Route path="/about-us" element={<AboutUsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/subsidy-payout" element={<SubsidyPayoutPage />} />
         <Route
-          path="clearance-validation"
+          path="/clearance-validation"
           element={<ClearanceValidationPage />}
         />
-        <Route path="school-id" element={<ClaimingOfIDPage />} />
+        <Route path="/school-id" element={<ClaimingOfIDPage />} />
       </Route>
     )
   );
