@@ -43,9 +43,7 @@ function Calendar({ transactionType }: calendarProps) {
         <></>
       )}
 
-      <h1 className="text-2xl font-semibold" style={{ marginTop: "30px" }}>
-        Select a Date
-      </h1>
+      <h1 className="text-xl font-semibold">Select a Date</h1>
       <p>{transactionType}</p>
       <DayPicker
         animate

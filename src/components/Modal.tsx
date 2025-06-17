@@ -15,14 +15,13 @@ function CustomModal({
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-end",
-    gap: "5px",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
     bgcolor: "background.paper",
-    border: "2px solid #000",
     boxShadow: 24,
+    borderRadius: 5,
     p: 1,
   };
 
@@ -30,7 +29,7 @@ function CustomModal({
     <Modal open={isOpen} onClose={handleClose}>
       <Box sx={style}>
         <CancelIcon onClick={handleClose} className="hover:cursor-pointer" />
-        <Box sx={{ p: 4 }} className="bg-amber-50 w-full">
+        <Box sx={{ p: 4 }} className="w-full">
           {children}
         </Box>
       </Box>
