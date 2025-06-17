@@ -15,7 +15,9 @@ const VMGOPage = lazy(() => import("./pages/VMGOPage"));
 const AboutUsPage = lazy(() => import("./pages/AboutUsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SubsidyPayoutPage = lazy(() => import("./pages/SubsidyPayoutPage"));
-const ClearanceValidationPage = lazy(() => import("./pages/SubsidyPayoutPage"));
+const ClearanceValidationPage = lazy(
+  () => import("./pages/ClearanceValidationPage")
+);
 const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
 function App() {
   const router = createBrowserRouter(

@@ -11,21 +11,21 @@ export default function DashboardPage() {
         style={{ padding: "10px" }}
       >
         <div
-          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          className="w-full max-w-2xl flex-1 h-50 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
           onClick={() => navigate("/subsidy-payout")}
         >
           <p>Subsidy payout</p>
         </div>
         <div
-          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          className="w-full max-w-2xl flex-1 h-50 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
           onClick={() => navigate("/clearance-validation")}
         >
           <p>Schedule for clearance</p>
         </div>
         <div
-          className="w-full max-w-2xl flex-1 h-40 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
+          className="w-full max-w-2xl flex-1 h-50 rounded-2xl bg-amber-400 hover:cursor-pointer hover:bg-amber-500"
           style={{ padding: "10px" }}
           onClick={() => navigate("/school-id")}
         >

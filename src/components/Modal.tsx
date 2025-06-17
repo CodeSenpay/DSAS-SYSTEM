@@ -30,7 +30,7 @@ function CustomModal({
     <Modal open={isOpen} onClose={handleClose}>
       <Box sx={style}>
         <CancelIcon onClick={handleClose} className="hover:cursor-pointer" />
-        <Box sx={{ p: 4 }} className="bg-amber-500 w-full">
+        <Box sx={{ p: 4 }} className="bg-amber-50 w-full">
           {children}
         </Box>
       </Box>
