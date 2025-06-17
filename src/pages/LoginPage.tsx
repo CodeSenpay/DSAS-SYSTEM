@@ -10,11 +10,7 @@ function LoginPage() {
           className="flex flex-col justify-center items-center gap-4"
           style={{ padding: "30px" }}
         >
-          <img
-            src="../../public/LogoPNG.png"
-            alt="logo"
-            className="w-20 h-20"
-          />
+          <img src="/LogoPNG.png" alt="logo" className="w-20 h-20" />
           <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
           <TextField
             label="Student ID"

@@ -77,11 +77,7 @@ function NavBar() {
       <AppBar position="static">
         <Container>
           <Toolbar disableGutters>
-            <img
-              src="../../public/LogoPNG.png"
-              className="max-w-10 md:w-30"
-              alt="logo"
-            />
+            <img src="/LogoPNG.png" className="max-w-10 md:w-30" alt="logo" />
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
               <IconButton
@@ -132,7 +128,7 @@ function NavBar() {
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src="../../public/profile.png" />
+                  <Avatar alt="Remy Sharp" src="/profile.png" />
                 </IconButton>
               </Tooltip>
               <Menu
