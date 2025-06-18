@@ -2,7 +2,7 @@ import pool from "../config/db.conf.js";
 
 async function logger(payload, req, res) {
   // Required fields
-  const requiredFields = ["action", "details", "timestamp"];
+  const requiredFields = ["action", "user_id", "details", "timestamp"];
 
   // Check for missing fields
   const missingFields = requiredFields.filter((field) => !(field in payload));
@@ -16,7 +16,6 @@ async function logger(payload, req, res) {
 
   try {
     const jsondata = JSON.stringify(payload);
-    console.log(payload);
 
     const [rows] = await pool.query(`CALL insert_log_entry(?)`, [jsondata]);
     // The result from a CALL is usually an array of arrays; return the first result set
