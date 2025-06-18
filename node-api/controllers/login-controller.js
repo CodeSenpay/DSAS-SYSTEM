@@ -1,3 +1,5 @@
+import { loginModel } from "../models/login-model.js";
+
 async function login(req, res) {
   if (!req.body || Object.keys(req.body).length === 0) {
     res.json({ success: false, message: "No Data has given." });

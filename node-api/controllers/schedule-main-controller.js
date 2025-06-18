@@ -1,4 +1,4 @@
-import schedulingModel from '../models/scheduling-model.js';
+import schedulingModel from '../models/scheduling-models/scheduling-model.js';
 // Map model to models objects
 const models = {
     schedulingModel: {
