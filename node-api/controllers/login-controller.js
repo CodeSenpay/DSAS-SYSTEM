@@ -5,9 +5,8 @@ async function login(req, res) {
     res.json({ success: false, message: "No Data has given." });
   } else {
     try {
-      // const data = await loginModel(req.body);
-
-      res.json(req.body);
+      const response = await loginModel(req.body);
+      console.log(response);
       // if (data && data.token) {
       //   res.cookie("token", data.token, {
       //     httpOnly: true,

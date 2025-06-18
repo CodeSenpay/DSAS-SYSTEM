@@ -1,4 +1,4 @@
-import pool from '../../config/db.conf.js';
+import pool from "../../config/db.conf.js";
 
 class SchedulingModel {
     
@@ -15,31 +15,34 @@ class SchedulingModel {
             'timewindows',
         ];
 
-        // Check for missing fields
-        const missingFields = requiredFields.filter(field => !(field in payload));
-        if (missingFields.length > 0) {
-            return {
-                message: "Missing required fields",
-                missingFields,
-                receivedPayload: payload
-            };
-        }
 
-        try {
-            const jsondata = JSON.stringify(payload);
-            console.log(payload);
-
-            const [rows] = await pool.query(`CALL insert_availability(?)`, [jsondata]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
     }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+      console.log(payload);
+
+      const [rows] = await pool.query(`CALL insert_availability(?)`, [
+        jsondata,
+      ]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
 
     async updateAvailability(payload, req, res) {
         // Required fields
@@ -54,57 +57,59 @@ class SchedulingModel {
             'timewindows',
         ];
 
-        // Check for missing fields
-        const missingFields = requiredFields.filter(field => !(field in payload));
-        if (missingFields.length > 0) {
-            return {
-                message: "Missing required fields",
-                missingFields,
-                receivedPayload: payload
-            };
-        }
-
-        try {
-            const jsondata = JSON.stringify(payload);
-            console.log(payload);
-
-            const [rows] = await pool.query(`CALL update_availability(?)`, [jsondata]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
     }
 
-    async getAvailability(payload, req, res) {
-        try {
-            // Extract searchkey from payload
-            let searchkey = '';
-            if (typeof payload === 'object' && payload !== null) {
-                if ('searchkey' in payload) {
-                    searchkey = payload.searchkey;
-                } else if (Array.isArray(payload) && payload.length > 0) {
-                    searchkey = payload[0];
-                }
-            } else if (typeof payload === 'string') {
-                searchkey = payload;
-            }
+    try {
+      const jsondata = JSON.stringify(payload);
+      console.log(payload);
 
-            const [rows] = await pool.query(`CALL get_availability(?)`, [searchkey]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+      const [rows] = await pool.query(`CALL update_availability(?)`, [
+        jsondata,
+      ]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
     }
+  }
+
+  async getAvailability(payload, req, res) {
+    try {
+      // Extract searchkey from payload
+      let searchkey = "";
+      if (typeof payload === "object" && payload !== null) {
+        if ("searchkey" in payload) {
+          searchkey = payload.searchkey;
+        } else if (Array.isArray(payload) && payload.length > 0) {
+          searchkey = payload[0];
+        }
+      } else if (typeof payload === "string") {
+        searchkey = payload;
+      }
+
+      const [rows] = await pool.query(`CALL get_availability(?)`, [searchkey]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
 
     // ========================================================== Appointment Functions ==========================================================
     async insertAppointment(payload, req, res) {
@@ -118,92 +123,96 @@ class SchedulingModel {
             'created_at',
         ];
 
-        // Check for missing fields
-        const missingFields = requiredFields.filter(field => !(field in payload));
-        if (missingFields.length > 0) {
-            return {
-                message: "Missing required fields",
-                missingFields,
-                receivedPayload: payload
-            };
-        }
-
-        try {
-            const jsondata = JSON.stringify(payload);
-            console.log(payload);
-
-            const [rows] = await pool.query(`CALL insert_availability(?)`, [jsondata]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
     }
 
-    async getAppointment(payload, req, res) {
-        try {
-            // Extract searchkey from payload
-            let searchkey = '';
-            if (typeof payload === 'object' && payload !== null) {
-                if ('searchkey' in payload) {
-                    searchkey = payload.searchkey;
-                } else if (Array.isArray(payload) && payload.length > 0) {
-                    searchkey = payload[0];
-                }
-            } else if (typeof payload === 'string') {
-                searchkey = payload;
-            }
+    try {
+      const jsondata = JSON.stringify(payload);
+      console.log(payload);
 
-            const [rows] = await pool.query(`CALL get_appointment(?)`, [searchkey]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
+      const [rows] = await pool.query(`CALL insert_availability(?)`, [
+        jsondata,
+      ]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
+  async getAppointment(payload, req, res) {
+    try {
+      // Extract searchkey from payload
+      let searchkey = "";
+      if (typeof payload === "object" && payload !== null) {
+        if ("searchkey" in payload) {
+          searchkey = payload.searchkey;
+        } else if (Array.isArray(payload) && payload.length > 0) {
+          searchkey = payload[0];
         }
+      } else if (typeof payload === "string") {
+        searchkey = payload;
+      }
+
+      const [rows] = await pool.query(`CALL get_appointment(?)`, [searchkey]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
+  async approveAppointment(payload, req, res) {
+    // Required fields
+    const requiredFields = [
+      "appointment_id",
+      "user_id",
+      "status",
+      "date_approved",
+    ];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
     }
 
-    async approveAppointment(payload, req, res) {
-        // Required fields
-        const requiredFields = [
-            'appointment_id',
-            'user_id',
-            'status',
-            'date_approved',
-        ];
+    try {
+      const jsondata = JSON.stringify(payload);
+      console.log(payload);
 
-        // Check for missing fields
-        const missingFields = requiredFields.filter(field => !(field in payload));
-        if (missingFields.length > 0) {
-            return {
-                message: "Missing required fields",
-                missingFields,
-                receivedPayload: payload
-            };
-        }
-
-        try {
-            const jsondata = JSON.stringify(payload);
-            console.log(payload);
-
-            const [rows] = await pool.query(`CALL approve_appointment(?)`, [jsondata]);
-            // The result from a CALL is usually an array of arrays; return the first result set
-            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
+        jsondata,
+      ]);
+      // The result from a CALL is usually an array of arrays; return the first result set
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
     }
+  }
 
     // ========================================================== Transaction Type Functions ==========================================================
     async insertTransactionType(payload, req, res) {
@@ -213,33 +222,34 @@ class SchedulingModel {
             'transaction_detail',
         ];
 
-        // Check for missing fields
-        const missingFields = requiredFields.filter(field => !(field in payload));
-        if (missingFields.length > 0) {
-            return {
-                message: "Missing required fields",
-                missingFields,
-                receivedPayload: payload
-            };
-        }
 
-        try {
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
 
-            const jsondata = JSON.stringify(payload);
+    try {
+      const jsondata = JSON.stringify(payload);
 
-            const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [jsondata]);
-            return {
-                message: "Stored procedure executed successfully",
-                result: rows,
-                receivedPayload: payload
-            };
-        } catch (error) {
-            return {
-                message: "Stored procedure execution failed",
-                error: error.message,
-                receivedPayload: payload
-            };
-        }
+      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [
+        jsondata,
+      ]);
+      return {
+        message: "Stored procedure executed successfully",
+        result: rows,
+        receivedPayload: payload,
+      };
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
     }
 
     async getTransactionType() {
@@ -253,8 +263,9 @@ class SchedulingModel {
                 error: error.message
             };
         }
-    }
 
+    }
+  }
 }
 
 // Export an instance of the class or its methods as needed
