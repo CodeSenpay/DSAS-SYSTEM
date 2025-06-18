@@ -223,35 +223,36 @@ class SchedulingModel {
         ];
 
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
-    if (missingFields.length > 0) {
-      return {
-        message: "Missing required fields",
-        missingFields,
-        receivedPayload: payload,
-      };
+        // Check for missing fields
+        const missingFields = requiredFields.filter((field) => !(field in payload));
+        if (missingFields.length > 0) {
+        return {
+            message: "Missing required fields",
+            missingFields,
+            receivedPayload: payload,
+        };
+        }
+
+        try {
+        const jsondata = JSON.stringify(payload);
+
+        const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [
+            jsondata,
+        ]);
+        return {
+            message: "Stored procedure executed successfully",
+            result: rows,
+            receivedPayload: payload,
+        };
+        } catch (error) {
+        return {
+            message: "Stored procedure execution failed",
+            error: error.message,
+            receivedPayload: payload,
+        };
+        }
     }
-
-    try {
-      const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [
-        jsondata,
-      ]);
-      return {
-        message: "Stored procedure executed successfully",
-        result: rows,
-        receivedPayload: payload,
-      };
-    } catch (error) {
-      return {
-        message: "Stored procedure execution failed",
-        error: error.message,
-        receivedPayload: payload,
-      };
-    }
-
+    
     async getTransactionType() {
         try {
             const [rows] = await pool.query(`CALL get_transaction_type()`);
@@ -266,7 +267,6 @@ class SchedulingModel {
 
     }
   }
-}
 
 // Export an instance of the class or its methods as needed
 export default SchedulingModel;
