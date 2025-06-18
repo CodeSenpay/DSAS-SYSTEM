@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import schedulingModel from "../models/scheduling-model.js";
 // // Map model to models objects
 // const models = {
@@ -12,6 +13,22 @@
 //     get_transactionType: schedulingModel.getTransactionType,
 //   },
 // };
+=======
+import schedulingModel from '../models/scheduling-models/scheduling-model.js';
+// Map model to models objects
+const models = {
+    schedulingModel: {
+        insert_availability: schedulingModel.insert_availability,
+        update_availability: schedulingModel.update_availability,
+        get_availability: schedulingModel.getAvailability,
+        get_appointment: schedulingModel.getAppointment,
+        insert_appointment: schedulingModel.insert_appointment,
+        approve_appointment: schedulingModel.approveAppointment,
+        insert_transactionType: schedulingModel.insertTransactionType,
+        get_transactionType: schedulingModel.getTransactionType
+    },
+};
+>>>>>>> ca38d58fe6376f00bfa1a29d35de15611c46b347
 
 // Utility for better error responses
 function errorResponse(res, status, message, details = null) {

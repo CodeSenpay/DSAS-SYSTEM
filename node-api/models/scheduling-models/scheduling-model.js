@@ -255,14 +255,4 @@ class SchedulingModel {
 }
 
 // Export an instance of the class or its methods as needed
-const schedulingModel = new SchedulingModel();
-export const {
-    insert_availability,
-    update_availability,
-    getAvailability,
-    getAppointment,
-    insert_appointment,
-    approveAppointment,
-    insertTransactionType,
-    getTransactionType
-} = schedulingModel;
+export default SchedulingModel;
