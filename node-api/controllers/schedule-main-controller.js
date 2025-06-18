@@ -2,14 +2,14 @@ import schedulingModel from "../models/scheduling-models/scheduling-model.js";
 // Map model to models objects
 const models = {
   schedulingModel: {
-    insert_availability: schedulingModel.insert_availability,
-    update_availability: schedulingModel.update_availability,
-    get_availability: schedulingModel.getAvailability,
-    get_appointment: schedulingModel.getAppointment,
-    insert_appointment: schedulingModel.insert_appointment,
-    approve_appointment: schedulingModel.approveAppointment,
-    insert_transactionType: schedulingModel.insertTransactionType,
-    get_transactionType: schedulingModel.getTransactionType,
+    insertAvailability: schedulingModel.insert_availability,
+    updateAvailability: schedulingModel.update_availability,
+    getAvailability: schedulingModel.getAvailability,
+    getAppointment: schedulingModel.getAppointment,
+    insertAppointment: schedulingModel.insert_appointment,
+    approveAppointment: schedulingModel.approveAppointment,
+    insertAransactionType: schedulingModel.insertTransactionType,
+    getAransactionType: schedulingModel.getTransactionType,
   },
 };
 
