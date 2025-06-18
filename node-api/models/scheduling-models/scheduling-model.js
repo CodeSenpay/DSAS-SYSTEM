@@ -1,18 +1,20 @@
 import pool from "../../config/db.conf.js";
 
 class SchedulingModel {
-  // ========================================================== Availability Functions ==========================================================
-  async insertAvailability(payload, req, res) {
-    // Required fields
-    const requiredFields = [
-      "transaction_id",
-      "start_date",
-      "end_date",
-      "capacity_per_day",
-      "created_by",
-      "created_at",
-      "timewindows",
-    ];
+    
+    // ========================================================== Availability Functions ==========================================================
+    async insertAvailability(payload, req, res) {
+        // Required fields
+        const requiredFields = [
+            'transaction_id',
+            'start_date',
+            'end_date',
+            'capacity_per_day',
+            'created_by',
+            'created_at',
+            'timewindows',
+        ];
+
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
@@ -42,18 +44,18 @@ class SchedulingModel {
     }
   }
 
-  async updateAvailability(payload, req, res) {
-    // Required fields
-    const requiredFields = [
-      "availability_id",
-      "transaction_id",
-      "start_date",
-      "end_date",
-      "capacity_per_day",
-      "created_by",
-      "created_at",
-      "timewindows",
-    ];
+    async updateAvailability(payload, req, res) {
+        // Required fields
+        const requiredFields = [
+            'availability_id',
+            'transaction_id',
+            'start_date',
+            'end_date',
+            'capacity_per_day',
+            'created_by',
+            'created_at',
+            'timewindows',
+        ];
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
@@ -109,17 +111,17 @@ class SchedulingModel {
     }
   }
 
-  // ========================================================== Appointment Functions ==========================================================
-  async insertAppointment(payload, req, res) {
-    // Required fields
-    const requiredFields = [
-      "appointment_id",
-      "transaction_type_id",
-      "user_id",
-      "appointment_date",
-      "time_window_id",
-      "created_at",
-    ];
+    // ========================================================== Appointment Functions ==========================================================
+    async insertAppointment(payload, req, res) {
+        // Required fields
+        const requiredFields = [
+            'appointment_id',
+            'transaction_type_id',
+            'user_id',
+            'appointment_date',
+            'time_window_id',
+            'created_at',
+        ];
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
@@ -212,9 +214,14 @@ class SchedulingModel {
     }
   }
 
-  async insertTransactionType(payload, req, res) {
-    // Required fields
-    const requiredFields = ["transaction_title", "transaction_detail"];
+    // ========================================================== Transaction Type Functions ==========================================================
+    async insertTransactionType(payload, req, res) {
+        // Required fields
+        const requiredFields = [
+            'transaction_title',
+            'transaction_detail',
+        ];
+
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
@@ -244,17 +251,19 @@ class SchedulingModel {
         receivedPayload: payload,
       };
     }
-  }
-  async getTransactionType() {
-    try {
-      const [rows] = await pool.query(`CALL get_transaction_type()`);
-      // The result from a CALL is usually an array of arrays; return the first result set
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-    } catch (error) {
-      return {
-        message: "Stored procedure execution failed",
-        error: error.message,
-      };
+
+    async getTransactionType() {
+        try {
+            const [rows] = await pool.query(`CALL get_transaction_type()`);
+            // The result from a CALL is usually an array of arrays; return the first result set
+            return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+        } catch (error) {
+            return {
+                message: "Stored procedure execution failed",
+                error: error.message
+            };
+        }
+
     }
   }
 }
