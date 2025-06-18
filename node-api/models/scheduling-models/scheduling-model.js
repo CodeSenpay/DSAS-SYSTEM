@@ -1,8 +1,9 @@
 import pool from '../../config/db.conf.js';
 
 class SchedulingModel {
+    
     // ========================================================== Availability Functions ==========================================================
-    async insert_availability(payload, req, res) {
+    async insertAvailability(payload, req, res) {
         // Required fields
         const requiredFields = [
             'transaction_id',
@@ -40,7 +41,7 @@ class SchedulingModel {
         }
     }
 
-    async update_availability(payload, req, res) {
+    async updateAvailability(payload, req, res) {
         // Required fields
         const requiredFields = [
             'availability_id',
@@ -106,7 +107,7 @@ class SchedulingModel {
     }
 
     // ========================================================== Appointment Functions ==========================================================
-    async insert_appointment(payload, req, res) {
+    async insertAppointment(payload, req, res) {
         // Required fields
         const requiredFields = [
             'appointment_id',
@@ -204,6 +205,7 @@ class SchedulingModel {
         }
     }
 
+    // ========================================================== Transaction Type Functions ==========================================================
     async insertTransactionType(payload, req, res) {
         // Required fields
         const requiredFields = [
@@ -239,6 +241,7 @@ class SchedulingModel {
             };
         }
     }
+
     async getTransactionType() {
         try {
             const [rows] = await pool.query(`CALL get_transaction_type()`);
