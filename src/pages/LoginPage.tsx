@@ -17,9 +17,8 @@ function LoginPage() {
   } = useForm<dataProps>();
 
   const navigate = useNavigate();
-  const handleLogin: SubmitHandler<dataProps> = async (data) => {
-    console.log(data);
 
+  const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/login",

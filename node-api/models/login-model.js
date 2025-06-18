@@ -1,19 +1,14 @@
+// const JWT_SECRET = process.env.JWT_SECRET;
 import pool from "../config/db.conf.js";
-
-const JWT_SECRET = process.env.JWT_SECRET; // In production, use env variable
-
-// The model should NOT use req or res. It should only return data or throw errors.
-async function loginModel(payload) {
+async function loginModel(data) {
   try {
-    const sql = `CALL login_user(?)`;
+    const { email } = data;
+    console.log(`EMAIL: ${email}`);
+    const [result] = await pool.query(`CALL login_user(?)`, [
+      JSON.stringify({ email }),
+    ]);
 
-    // The result of a CALL is an array: [ [rows], ... ]
-    const [result] = await pool.query(sql, [payload.email]);
-
-    return result;
-    // The SP returns a user row if valid, otherwise empty
-    // const user = result && result[0] && result[0][0];
-
+    return result[0][0];
     // if (!user) {
     //   // Instead of using res, throw an error to be handled by the controller
     //   const error = new Error("Invalid credentials or user not found");

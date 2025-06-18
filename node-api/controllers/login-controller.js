@@ -7,7 +7,6 @@ async function login(req, res) {
     try {
       const response = await loginModel(req.body);
       res.json(response);
-      console.log(response);
     } catch (error) {
       console.error("Login error:", error);
 
