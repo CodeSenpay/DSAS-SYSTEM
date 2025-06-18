@@ -6,23 +6,8 @@ async function login(req, res) {
   } else {
     try {
       const response = await loginModel(req.body);
+      res.json(response);
       console.log(response);
-      // if (data && data.token) {
-      //   res.cookie("token", data.token, {
-      //     httpOnly: true,
-      //     maxAge: 24 * 60 * 60 * 1000, // 1 day
-      //     sameSite: "lax",
-      //   });
-      // }
-
-      // if (res.headersSent) {
-      //   return;
-      // }
-
-      // return res.json({
-      //   ...data,
-      //   token: data?.token,
-      // });
     } catch (error) {
       console.error("Login error:", error);
 
