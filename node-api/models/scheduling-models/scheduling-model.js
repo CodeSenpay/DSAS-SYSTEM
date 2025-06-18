@@ -1,9 +1,9 @@
 import pool from "../../config/db.conf.js";
 
-class SchedulingModel {
+export class SchedulingModel {
     
     // ========================================================== Availability Functions ==========================================================
-    async insertAvailability(payload, req, res) {
+    static async insertAvailability(payload, req, res) {
         // Required fields
         const requiredFields = [
             'transaction_id',
@@ -44,7 +44,7 @@ class SchedulingModel {
     }
   }
 
-    async updateAvailability(payload, req, res) {
+    static async updateAvailability(payload, req, res) {
         // Required fields
         const requiredFields = [
             'availability_id',
@@ -85,7 +85,7 @@ class SchedulingModel {
     }
   }
 
-  async getAvailability(payload, req, res) {
+  static async getAvailability(payload, req, res) {
     try {
       // Extract searchkey from payload
       let searchkey = "";
@@ -112,7 +112,7 @@ class SchedulingModel {
   }
 
     // ========================================================== Appointment Functions ==========================================================
-    async insertAppointment(payload, req, res) {
+   static async insertAppointment(payload, req, res) {
         // Required fields
         const requiredFields = [
             'appointment_id',
@@ -151,7 +151,7 @@ class SchedulingModel {
     }
   }
 
-  async getAppointment(payload, req, res) {
+  static async getAppointment(payload, req, res) {
     try {
       // Extract searchkey from payload
       let searchkey = "";
@@ -177,7 +177,7 @@ class SchedulingModel {
     }
   }
 
-  async approveAppointment(payload, req, res) {
+  static async approveAppointment(payload, req, res) {
     // Required fields
     const requiredFields = [
       "appointment_id",
@@ -215,7 +215,7 @@ class SchedulingModel {
   }
 
     // ========================================================== Transaction Type Functions ==========================================================
-    async insertTransactionType(payload, req, res) {
+    static async insertTransactionType(payload, req, res) {
         // Required fields
         const requiredFields = [
             'transaction_title',
@@ -252,8 +252,8 @@ class SchedulingModel {
         };
         }
     }
-    
-    async getTransactionType() {
+
+    static async getTransactionType() {
         try {
             const [rows] = await pool.query(`CALL get_transaction_type()`);
             // The result from a CALL is usually an array of arrays; return the first result set
@@ -268,5 +268,3 @@ class SchedulingModel {
     }
   }
 
-// Export an instance of the class or its methods as needed
-export default SchedulingModel;
