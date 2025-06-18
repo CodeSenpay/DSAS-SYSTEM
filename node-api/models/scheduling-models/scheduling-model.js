@@ -152,20 +152,32 @@ export class SchedulingModel {
   }
 
   static async getAppointment(payload, req, res) {
-    try {
-      // Extract searchkey from payload
-      let searchkey = "";
-      if (typeof payload === "object" && payload !== null) {
-        if ("searchkey" in payload) {
-          searchkey = payload.searchkey;
-        } else if (Array.isArray(payload) && payload.length > 0) {
-          searchkey = payload[0];
-        }
-      } else if (typeof payload === "string") {
-        searchkey = payload;
-      }
+     // Required fields
+        const requiredFields = [
+            'appointment_id',
+            'transaction_title',
+            'user_id',
+            'appointment_date',
+            
+        ];
 
-      const [rows] = await pool.query(`CALL get_appointment(?)`, [searchkey]);
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+      console.log(payload);
+
+      const [rows] = await pool.query(`CALL get_appointment(?)`, [
+        jsondata,
+      ]);
       // The result from a CALL is usually an array of arrays; return the first result set
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
