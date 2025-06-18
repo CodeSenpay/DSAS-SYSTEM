@@ -1,17 +1,9 @@
-import schedulingModel from "../models/scheduling-models/scheduling-model.js";
-// Map model to models objects
+import { SchedulingModel } from '../models/scheduling-models/scheduling-model.js';
+
 const models = {
-    schedulingModel: {
-        insertAvailability: schedulingModel.insertAvailability,
-        updateAvailability: schedulingModel.updateAvailability,
-        getAvailability: schedulingModel.getAvailability,
-        getAppointment: schedulingModel.getAppointment,
-        insertAppointment: schedulingModel.insertAppointment,
-        approveAppointment: schedulingModel.approveAppointment,
-        insertTransactionType: schedulingModel.insertTransactionType,
-        getTransactionType: schedulingModel.getTransactionType
-    },
+    schedulesModel: SchedulingModel
 };
+
 
 // Utility for better error responses
 function errorResponse(res, status, message, details = null) {
@@ -23,14 +15,14 @@ function errorResponse(res, status, message, details = null) {
 // Enhanced controller
 async function handle_schedule(req, res) {
   try {
-    const { model, sp_name, payload } = req.body;
+    const { model, function_name, payload } = req.body;
 
     // Validate input
-    if (!model || !sp_name) {
-      return errorResponse(res, 400, "Missing model or sp_name");
+    if (!model || !function_name) {
+      return errorResponse(res, 400, "Missing model or function_name");
     }
-    if (typeof model !== "string" || typeof sp_name !== "string") {
-      return errorResponse(res, 400, "model and sp_name must be strings");
+    if (typeof model !== "string" || typeof function_name !== "string") {
+      return errorResponse(res, 400, "model and function_name must be strings");
     }
 
     // Check if the model exists
@@ -40,12 +32,12 @@ async function handle_schedule(req, res) {
     }
 
     // Check if the function exists in the model
-    const fn = ctrl[sp_name];
+    const fn = ctrl[function_name];
     if (typeof fn !== "function") {
       return errorResponse(
-        res,
-        404,
-        `Function "${sp_name}" not found in model "${model}"`
+      res,
+      404,
+      `Function "${function_name}" not found in model "${model}"`
       );
     }
 
