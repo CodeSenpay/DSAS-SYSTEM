@@ -1,37 +1,34 @@
-// const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 import pool from "../config/db.conf.js";
+
 async function loginModel(data) {
   try {
     const { email } = data;
-    console.log(`EMAIL: ${email}`);
+    console.log(`email: ${email}`);
     const [result] = await pool.query(`CALL login_user(?)`, [
       JSON.stringify({ email }),
     ]);
 
-    return result[0][0];
-    // if (!user) {
-    //   // Instead of using res, throw an error to be handled by the controller
-    //   const error = new Error("Invalid credentials or user not found");
-    //   error.status = 401;
-    //   throw error;
-    // }
+    console.log("Result from stored procedure:", result[0]);
 
-    // // Generate JWT token
-    // const tokenPayload = {
-    //   id: user.user_id,
-    //   username: user.user_name,
-    //   email: user.email,
-    // };
-    // const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "1d" });
+    if (!result || result.length === 0) {
+      const error = new Error("Invalid credentials or user not found");
+      error.status = 401;
+      throw error;
+    }
 
-    // // Return the data (controller will handle the response)
-    // return {
-    //   message: "Login successful",
-    //   token,
-    //   user: tokenPayload,
-    // };
+    // Return the user data (no JWT generation)
+    return {
+      success: true,
+      message: "Login successful",
+      user: {
+        id: result[0][0].user_id,
+        username: result[0][0].username,
+        email: result[0][0].email,
+        user_level: result[0][0].user_level,
+      },
+    };
   } catch (error) {
-    // Attach a status if not present (for controller to handle)
     if (!error.status) {
       error.status = 500;
     }
