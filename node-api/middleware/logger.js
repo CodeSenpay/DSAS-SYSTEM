@@ -1,10 +1,9 @@
 import pool from "../config/db.conf.js";
 
 async function logger(payload, req, res) {
-  // Required fields
   const requiredFields = ["action", "user_id", "details", "timestamp"];
+  console.log("Logger middleware called with payload:", payload);
 
-  // Check for missing fields
   const missingFields = requiredFields.filter((field) => !(field in payload));
   if (missingFields.length > 0) {
     return {
@@ -15,11 +14,18 @@ async function logger(payload, req, res) {
   }
 
   try {
-    const jsondata = JSON.stringify(payload);
+    // Ensure timestamp is a string or empty
+    if (typeof payload.timestamp !== "string") {
+      payload.timestamp = "";
+    }
 
+    const jsondata = JSON.stringify(payload);
     const [rows] = await pool.query(`CALL insert_log_entry(?)`, [jsondata]);
-    // The result from a CALL is usually an array of arrays; return the first result set
-    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    // rows[0] contains the SELECT result from the SP
+    const result = rows && Array.isArray(rows) && rows.length > 0 ? rows[0][0] : rows;
+    console.log("Response from insert_log_entry:", result);
+
+    return result;
   } catch (error) {
     return {
       message: "Stored procedure execution failed",

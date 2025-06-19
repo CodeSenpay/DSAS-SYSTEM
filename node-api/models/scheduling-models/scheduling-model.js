@@ -10,7 +10,7 @@ export class SchedulingModel {
       "start_date",
       "end_date",
       "capacity_per_day",
-      "created_by",
+      "user_id",
       "created_at",
       "timewindows",
     ];
@@ -21,9 +21,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -44,9 +44,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: "Availability inserted successfully",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -56,9 +56,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -79,7 +79,7 @@ export class SchedulingModel {
       "start_date",
       "end_date",
       "capacity_per_day",
-      "created_by",
+      "user_id",
       "created_at",
       "timewindows",
     ];
@@ -90,9 +90,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "updateAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -113,9 +113,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "updateAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: "Availability updated successfully",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -125,9 +125,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "updateAvailability",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -187,7 +187,7 @@ export class SchedulingModel {
           action: "insertAppointment",
           user_id: payload.user_id || null,
           details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -210,7 +210,7 @@ export class SchedulingModel {
           action: "insertAppointment",
           user_id: payload.user_id || null,
           details: "Appointment inserted successfully",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -222,7 +222,7 @@ export class SchedulingModel {
           action: "insertAppointment",
           user_id: payload.user_id || null,
           details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -286,7 +286,7 @@ export class SchedulingModel {
           action: "approveAppointment",
           user_id: payload.user_id || null,
           details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -309,7 +309,7 @@ export class SchedulingModel {
           action: "approveAppointment",
           user_id: payload.user_id || null,
           details: "Appointment approved successfully",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -321,7 +321,7 @@ export class SchedulingModel {
           action: "approveAppointment",
           user_id: payload.user_id || null,
           details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -345,9 +345,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertTransactionType",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -368,9 +368,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertTransactionType",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: "Transaction type inserted successfully",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
@@ -384,9 +384,9 @@ export class SchedulingModel {
       await logger(
         {
           action: "insertTransactionType",
-          user_id: payload.created_by || null,
+          user_id: payload.user_id || null,
           details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
         },
         req,
         res
