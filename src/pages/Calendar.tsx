@@ -145,7 +145,7 @@ function Calendar({ transaction_title }: calendarProps) {
         onSelect={handleDateSelection}
         modifiers={{ available: parsedAvailableDates }}
         modifiersClassNames={{
-          available: "text-blue-500",
+          available: "text-black",
         }}
         disabled={(date) =>
           !parsedAvailableDates.some(
