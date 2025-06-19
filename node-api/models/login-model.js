@@ -1,9 +1,10 @@
 const JWT_SECRET = process.env.JWT_SECRET;
 import pool from "../config/db.conf.js";
+import crypto from "crypto";
 
 async function loginModel(data) {
   try {
-    const { email } = data;
+    const { email, password } = data;
     console.log(`email: ${email}`);
     const [result] = await pool.query(`CALL login_user(?)`, [
       JSON.stringify({ email }),
@@ -16,24 +17,56 @@ async function loginModel(data) {
       error.status = 401;
       throw error;
     }
+    console.log("Result from database: ", result[0][0]["result"].status);
 
-    // Return the user data (no JWT generation)
-    return {
+    // Check password
+    const storedPassword = result[0][0].password;
+    const isMatch = await comparePassword(password, storedPassword);
+    if (!isMatch) {
+      return {
+        success: false,
+        message: "Invalid credentials",
+      };
+    }
+
+    let response = {
       success: true,
       message: "Login successful",
       user: {
         id: result[0][0].user_id,
         username: result[0][0].username,
         email: result[0][0].email,
+        password: result[0][0].password,
         user_level: result[0][0].user_level,
       },
     };
+    if (!result || result[0][0]["result"].status !== 200) {
+      response = {
+        success: false,
+        message: result[0][0]["result"].message || "Login failed",
+      };
+    }
+
+    return response;
+
   } catch (error) {
     if (!error.status) {
       error.status = 500;
     }
     error.details = error.message;
     throw error;
+  }
+}
+
+async function comparePassword(inputPassword, storedPassword) {
+  const hash = crypto.createHmac("sha256", process.env.SECRET_KEY)
+    .update(inputPassword)
+    .digest("hex");
+
+  if(hash === storedPassword){
+    return true;
+  }else{
+    return false;
   }
 }
 
