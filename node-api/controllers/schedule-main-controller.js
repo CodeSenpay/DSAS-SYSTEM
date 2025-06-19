@@ -1,9 +1,8 @@
-import { SchedulingModel } from '../models/scheduling-models/scheduling-model.js';
+import { SchedulingModel } from "../models/scheduling-models/scheduling-model.js";
 
 const models = {
-    schedulesModel: SchedulingModel
+  schedulesModel: SchedulingModel,
 };
-
 
 // Utility for better error responses
 function errorResponse(res, status, message, details = null) {
@@ -35,9 +34,9 @@ async function handle_schedule(req, res) {
     const fn = ctrl[function_name];
     if (typeof fn !== "function") {
       return errorResponse(
-      res,
-      404,
-      `Function "${function_name}" not found in model "${model}"`
+        res,
+        404,
+        `Function "${function_name}" not found in model "${model}"`
       );
     }
 
