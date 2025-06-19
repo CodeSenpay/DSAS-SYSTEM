@@ -22,6 +22,7 @@ function CustomModal({
     bgcolor: "background.paper",
     boxShadow: 24,
     borderRadius: 5,
+    backgroundColor: "transparent",
     p: 1,
   };
 

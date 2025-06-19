@@ -5,9 +5,19 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import Calendar from "./Calendar";
+
+type appointmentProps = {
+  appointment_id: string;
+  transaction_title: string;
+  appointment_date: string;
+  appointment_status: string;
+  start_time: string;
+  end_time: string;
+};
+
 function ClearanceValidationPage() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [appointments, setAppointments] = useState<any>();
+  const [appointments, setAppointments] = useState<appointmentProps[]>([]);
 
   const handleClosingOfModal = () => {
     setIsOpen(false);
@@ -67,7 +77,7 @@ function ClearanceValidationPage() {
         </Button>
         <h1>Schedule Your Clearance Now!</h1>
         <div className="w-screen flex flex-col justify-center items-center bg-amber-700">
-          {Array.isArray(appointments) ? (
+          {appointments.length != 0 ? (
             appointments.map((appointment) => (
               <div key={appointment.appointment_id} className="flex-1">
                 <h1>Transaction: {appointment.transaction_title}</h1>

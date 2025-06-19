@@ -4,6 +4,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
+import { notifyError } from "../components/ToastUtils";
 import Calendar from "./Calendar";
 
 type appointmentProps = {
@@ -46,8 +47,12 @@ function SubsidyPayoutPage() {
         data,
         { headers: { "Content-Type": "application/json" } }
       );
-      setAppointments(response.data.data);
-      console.log(response.data.data);
+      if (response.data.success) {
+        setAppointments(response.data.data);
+        console.log(response.data.data);
+      } else {
+        notifyError("Can't Fetch Appointments");
+      }
     } catch (err) {
       console.log(err);
     }
@@ -62,7 +67,7 @@ function SubsidyPayoutPage() {
       <NavBar />
       {isOpen ? (
         <Modal isOpen={isOpen} handleClose={handleClosingOfModal}>
-          <Calendar />
+          <Calendar transaction_title={appointments[0].transaction_title} />
         </Modal>
       ) : (
         ""

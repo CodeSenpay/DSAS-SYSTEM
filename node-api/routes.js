@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { handle_schedule } from "./controllers/schedule-main-controller.js";
 import cookieParser from "cookie-parser";
+import { Router } from "express";
 import { login } from "./controllers/login-controller.js";
+import { handle_schedule } from "./controllers/schedule-main-controller.js";
 import { authenticate } from "./middleware/middleware.js";
 
 const router = Router();
