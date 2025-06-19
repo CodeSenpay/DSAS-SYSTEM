@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export function authenticate(req, res, next) {
-  const token = req.cookies.jwt;
+  const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: 'No token' });
 
   try {
@@ -9,7 +9,7 @@ export function authenticate(req, res, next) {
     req.user = decoded;
     next();
   } catch (err) {
-    res.clearCookie('jwt');
+    res.clearCookie('token');
     return res.status(403).json({ error: 'Invalid token' });
   }
 }
