@@ -6,13 +6,13 @@ export class SchedulingModel {
   static async insertAvailability(payload, req, res) {
     // Required fields
     const requiredFields = [
-      "transaction_id",
+      "transaction_type_id",
       "start_date",
       "end_date",
       "capacity_per_day",
-      "user_id",
+      "created_by",
       "created_at",
-      "timewindows",
+      "time_windows",
     ];
 
     // Check for missing fields

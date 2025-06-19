@@ -12,6 +12,7 @@ async function login(req, res) {
 
   try {
     const response = await loginModel(req.body);
+    console.log("Login_Controller response:", response);
 
     if (!response.success) {
       return res

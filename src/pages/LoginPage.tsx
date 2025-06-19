@@ -23,7 +23,7 @@ function LoginPage() {
       const response = await axios.post(
         "http://localhost:5000/api/login",
         data,
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json" }, withCredentials: true}
       );
       console.log(response.data);
       notifySuccess(JSON.stringify(response.data));
