@@ -8,7 +8,7 @@ const router = Router();
 
 router.use(cookieParser());
 router.post("/api/scheduling-system/admin", authenticate, handle_schedule);
-router.post("/api/scheduling-system/user", handle_schedule);
+router.post("/api/scheduling-system/user", handle_schedule); //temporary
 router.get("/api/reporting-system", authenticate, handle_schedule);
 router.post("/api/login", login);
 

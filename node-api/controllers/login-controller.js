@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { loginModel } from "../models/login-model.js";
+import logger from "../middleware/logger.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -13,6 +14,18 @@ async function login(req, res) {
   try {
     const response = await loginModel(req.body);
     console.log("Login_Controller response:", response);
+
+    logger(
+      {
+        action: "login_attempt",
+        user_id: response.user?.id || "none",
+        details: `User login attempt: ${response.message}`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+
+      },
+      req,
+      res
+    );
 
     if (!response.success) {
       return res
