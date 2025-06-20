@@ -2,7 +2,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 import pool from "../config/db.conf.js";
 import crypto from "crypto";
 
-async function loginModel(data) {
+async function loginUser(data) {
   try {
     const { email, password } = data;
     console.log(`email: ${email}`);
@@ -58,6 +58,22 @@ async function loginModel(data) {
   }
 }
 
+async function logoutUser(req, res){
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    return res.json({ success: true, message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  }
+}
+
 async function comparePassword(inputPassword, storedPassword) {
   const hash = crypto.createHmac("sha256", process.env.SECRET_KEY)
     .update(inputPassword)
@@ -70,4 +86,4 @@ async function comparePassword(inputPassword, storedPassword) {
   }
 }
 
-export { loginModel };
+export { loginUser, logoutUser };
