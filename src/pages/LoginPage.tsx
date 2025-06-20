@@ -48,6 +48,7 @@ function LoginPage() {
             label="Student ID"
             variant="outlined"
             type="text"
+            required
             className="w-full max-w-sm"
             {...register("email")}
           />
@@ -55,6 +56,7 @@ function LoginPage() {
             label="Password"
             variant="outlined"
             type="password"
+            required
             className="w-full max-w-sm"
             {...register("password")}
           />

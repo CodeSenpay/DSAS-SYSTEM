@@ -40,11 +40,9 @@ function ClaimingOfIDPage() {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system",
-        data,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await axios.post("", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       setAppointments(response.data.data);
     } catch (err) {

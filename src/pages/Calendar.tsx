@@ -1,3 +1,4 @@
+import { Button } from "@mui/material";
 import axios from "axios";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import { notifyError } from "../components/ToastUtils";
 
 type calendarProps = {
   transaction_title?: string;
+  alreadySelectedDates?: string[];
 };
 
 type timewindowProps = {
@@ -31,21 +33,16 @@ type availableDatesProps = {
   transaction_title: string;
 };
 
-function Calendar({ transaction_title }: calendarProps) {
+function Calendar({
+  transaction_title,
+  alreadySelectedDates = [],
+}: calendarProps) {
   const [selected, setSelected] = useState<Date | undefined>();
   const [formattedDate, setFormattedDate] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [availableDates, setAvailableDates] = useState<availableDatesProps[]>(
-    []
-  );
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>();
 
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
-
-  const fullyBooked = [
-    new Date(2025, 5, 15),
-    new Date(2025, 5, 20),
-    new Date(2025, 5, 16),
-  ];
 
   const handleClose = () => {
     setIsOpen(false);
@@ -86,22 +83,22 @@ function Calendar({ transaction_title }: calendarProps) {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system",
+        "http://localhost:5000/api/scheduling-system/user",
         data,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         }
       );
 
       if (response.data.success) {
         console.log("Response:");
         console.log(response.data.data);
-        setAvailableDates(response.data);
 
         if (response.data.data.length != 0) {
           const mappedTime: timewindowProps[][] = response.data.data.map(
             (item: availableDatesProps) =>
-              item.transaction_title.toLowerCase() === "subsidy"
+              item.transaction_title.toLowerCase() ===
+              transaction_title?.toLowerCase()
                 ? item.time_windows
                 : []
           );
@@ -118,6 +115,9 @@ function Calendar({ transaction_title }: calendarProps) {
     }
   };
 
+  const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTimeFrame(e.target.value);
+  };
   useEffect(() => {
     console.log("Calendar is Starting....");
     handleFetchingAvailableDates();
@@ -128,6 +128,25 @@ function Calendar({ transaction_title }: calendarProps) {
       {isOpen ? (
         <Modal isOpen={isOpen} handleClose={handleClose}>
           <h3>{formattedDate}</h3>
+          <div className="flex flex-col gap-2 mb-4 w-full">
+            <label
+              htmlFor="am-pm-select"
+              className="text-sm font-medium text-gray-700"
+            >
+              Select Time
+            </label>
+            <select
+              value={selectedTimeFrame}
+              onChange={handleSelectedTimeFrame}
+              id="am-pm-select"
+              className="px-6 py-3 rounded-lg border h-10 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-gray-800 text-base font-semibold w-full"
+            >
+              <option value="">--Select an option--</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+          <Button variant="contained"> CREATE APPOINTMENT</Button>
         </Modal>
       ) : (
         <></>
@@ -150,6 +169,9 @@ function Calendar({ transaction_title }: calendarProps) {
         disabled={(date) =>
           !parsedAvailableDates.some(
             (d) => d.toDateString() === date.toDateString()
+          ) ||
+          alreadySelectedDates.some(
+            (d) => new Date(d).toDateString() === date.toDateString()
           )
         }
         footer={

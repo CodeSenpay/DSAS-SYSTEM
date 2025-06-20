@@ -43,7 +43,7 @@ function SubsidyPayoutPage() {
     };
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system",
+        "http://localhost:5000/api/scheduling-system/admin",
         data,
         {
           headers: { "Content-Type": "application/json" },

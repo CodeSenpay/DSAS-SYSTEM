@@ -2,10 +2,12 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 function CustomModal({
+  backgroundColor,
   isOpen,
   handleClose,
   children,
 }: {
+  backgroundColor?: string;
   isOpen: boolean;
   handleClose: () => void;
   children: React.ReactNode;
@@ -19,10 +21,10 @@ function CustomModal({
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
-    bgcolor: "background.paper",
+    bgcolor: backgroundColor ? backgroundColor : "white",
     boxShadow: 24,
     borderRadius: 5,
-    backgroundColor: "transparent",
+
     p: 1,
   };
 
@@ -30,7 +32,7 @@ function CustomModal({
     <Modal open={isOpen} onClose={handleClose}>
       <Box sx={style}>
         <CancelIcon onClick={handleClose} className="hover:cursor-pointer" />
-        <Box sx={{ p: 4 }} className="w-full">
+        <Box sx={{ p: 4 }} className="w-full flex flex-col gap-y-4">
           {children}
         </Box>
       </Box>
