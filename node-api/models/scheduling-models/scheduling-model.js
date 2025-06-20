@@ -189,12 +189,10 @@ export class SchedulingModel {
   static async insertAppointment(payload, req, res) {
     // Required fields
     const requiredFields = [
-      "appointment_id",
       "transaction_type_id",
       "user_id",
       "appointment_date",
-      "time_window_id",
-      "created_at",
+      "time_frame",
     ];
 
     // Check for missing fields
@@ -223,7 +221,7 @@ export class SchedulingModel {
     try {
       const jsondata = JSON.stringify(payload);
 
-      const [rows] = await pool.query(`CALL insert_availability(?)`, [
+      const [rows] = await pool.query(`CALL insert_appointment(?)`, [
         jsondata,
       ]);
       await logger(

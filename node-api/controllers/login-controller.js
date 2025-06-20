@@ -56,7 +56,18 @@ async function login(req, res) {
 
 async function logout(req, res) {
   try {
-    await logoutUser(req, res);
+    const response = await logoutUser(req, res);
+    logger(
+      {
+        action: "logout",
+        user_id: response.user?.id || "none",
+        details: `User logout attempt: ${response.message}`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+
+      },
+      req,
+      res
+    );
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {
