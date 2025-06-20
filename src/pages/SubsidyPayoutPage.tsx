@@ -20,6 +20,7 @@ function SubsidyPayoutPage() {
   //   const transactions = [{}, {}];
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
+  const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
 
   const handleClosingOfModal = () => {
     setIsOpen(false);
@@ -27,6 +28,14 @@ function SubsidyPayoutPage() {
 
   const handleAddingOfSchedule = () => {
     setIsOpen(true);
+  };
+
+  const getAppointmentDates = (appointments: appointmentProps[]) => {
+    const appointmentDates = appointments.map(
+      (appointment) => appointment.appointment_date
+    );
+
+    setAppointmentDates(appointmentDates);
   };
 
   const fetchTransactionsByType = async () => {
@@ -43,7 +52,7 @@ function SubsidyPayoutPage() {
     };
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
+        "http://localhost:5000/api/scheduling-system/user",
         data,
         {
           headers: { "Content-Type": "application/json" },
@@ -52,6 +61,8 @@ function SubsidyPayoutPage() {
       );
       if (response.data.success) {
         setAppointments(response.data.data);
+
+        getAppointmentDates(response.data.data);
         console.log(response.data.data);
       } else {
         notifyError("Can't Fetch Appointments");
@@ -69,36 +80,71 @@ function SubsidyPayoutPage() {
     <>
       <NavBar />
       {isOpen ? (
-        <Modal isOpen={isOpen} handleClose={handleClosingOfModal}>
-          <Calendar transaction_title={appointments[0].transaction_title} />
+        <Modal
+          isOpen={isOpen}
+          handleClose={handleClosingOfModal}
+          backgroundColor="transparent"
+        >
+          <Calendar
+            transaction_title={appointments[0].transaction_title}
+            alreadySelectedDates={appointmentDates}
+          />
         </Modal>
       ) : (
         ""
       )}
-      <div className="flex flex-col justify-center items-center h-[88.5%] w-screen absolute">
+      <div className="flex flex-col justify-center items-center h-[88.5%] w-full gap-10 absolute ">
         <Button
           variant="contained"
           startIcon={<AddCircleIcon />}
           onClick={handleAddingOfSchedule}
+          disabled={appointments.some((appointment) =>
+            appointment.appointment_status.toLowerCase() === "approved"
+              ? true
+              : false
+          )}
         >
           ADD SCHEDULE
         </Button>
-        <h1>Subsidy Payout Page</h1>
 
-        <div className="w-screen flex flex-col justify-center items-center bg-amber-700">
-          {appointments.length != 0 ? (
+        <div className="w-screen flex flex-col justify-center items-center">
+          {appointments.length !== 0 ? (
             appointments.map((appointment) => (
-              <div key={appointment.appointment_id} className="flex-1">
-                <h1>Transaction: {appointment.transaction_title}</h1>
-                <p>Appointment Date: {appointment.appointment_date}</p>
-                <p>Status: {appointment.appointment_status}</p>
-                <p>
-                  Time: {appointment.start_time} - {appointment.end_time}
-                </p>
+              <div
+                key={appointment.appointment_id}
+                className="flex flex-col gap-3 p-6 m-3 bg-white rounded-xl shadow-lg w-full max-w-md transition-transform hover:scale-105 hover:cursor-pointer"
+                style={{ padding: "20px" }}
+              >
+                <h2 className="text-xl font-bold text-amber-800 mb-2">
+                  {appointment.transaction_title}
+                </h2>
+                <div className="text-gray-800 space-y-1">
+                  <p>
+                    <span className="font-semibold">Date:</span>{" "}
+                    {appointment.appointment_date}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Status:</span>{" "}
+                    <span
+                      className={
+                        appointment.appointment_status.toLowerCase() ===
+                        "approved"
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }
+                    >
+                      {appointment.appointment_status}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span>{" "}
+                    {appointment.start_time} - {appointment.end_time}
+                  </p>
+                </div>
               </div>
             ))
           ) : (
-            <h1>No Appointments Yet</h1>
+            <h1 className="text-gray-500 text-xl mt-6">No Appointments Yet</h1>
           )}
         </div>
       </div>
