@@ -2,7 +2,7 @@ import { Button, TextField } from "@mui/material";
 import axios from "axios";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { notifySuccess } from "../components/ToastUtils";
+import { notifySuccess, notifyError } from "../components/ToastUtils";
 
 function LoginPage() {
   type dataProps = {
@@ -23,12 +23,19 @@ function LoginPage() {
       const response = await axios.post(
         "http://localhost:5000/api/login",
         data,
-        { headers: { "Content-Type": "application/json" }, withCredentials: true}
+        { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
       console.log(response.data);
-      notifySuccess(JSON.stringify(response.data));
-    } catch (err) {
+      notifySuccess("Login successful!");
+      navigate("/dashboard");
+
+    } catch (err: any) {
       console.log(err);
+      notifyError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Login failed. Please try again."
+      );
     }
   };
   return (
@@ -45,6 +52,7 @@ function LoginPage() {
             label="Student ID"
             variant="outlined"
             type="text"
+            required
             className="w-full max-w-sm"
             {...register("email")}
           />
@@ -52,6 +60,7 @@ function LoginPage() {
             label="Password"
             variant="outlined"
             type="password"
+            required
             className="w-full max-w-sm"
             {...register("password")}
           />
