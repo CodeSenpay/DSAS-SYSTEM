@@ -11,12 +11,38 @@ import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { notifySuccess, notifyError } from "./ToastUtils";
+import { log } from "console";
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
+
 function NavBar() {
+
+const LogoutUser = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/logout",
+        {},
+        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+      );
+      console.log(response.data);
+      notifySuccess("Logout successful!");
+      navigate("/login");
+
+    } catch (err: any) {
+      console.log(err);
+      notifyError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Logout failed. Please try again."
+      );
+    }
+  };
+
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -43,6 +69,7 @@ function NavBar() {
   const handleSettings = (setting: string) => {
     switch (setting.toLocaleUpperCase()) {
       case "LOGOUT":
+        LogoutUser();
         navigate("/login");
         break;
       case "PROFILE":

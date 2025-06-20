@@ -86,10 +86,10 @@ function Calendar({ transaction_title }: calendarProps) {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system",
+        "http://localhost:5000/api/scheduling-system/user",
         data,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         }
       );
 

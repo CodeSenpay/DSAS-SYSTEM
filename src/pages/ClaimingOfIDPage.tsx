@@ -41,7 +41,7 @@ function ClaimingOfIDPage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system",
+        "",
         data,
         { headers: { "Content-Type": "application/json" } }
       );
