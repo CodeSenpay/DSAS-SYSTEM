@@ -189,12 +189,10 @@ export class SchedulingModel {
   static async insertAppointment(payload, req, res) {
     // Required fields
     const requiredFields = [
-      "appointment_id",
       "transaction_type_id",
       "user_id",
       "appointment_date",
-      "time_window_id",
-      "created_at",
+      "time_frame",
     ];
 
     // Check for missing fields
