@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { loginModel } from "../models/login-model.js";
+import { loginUser, logoutUser } from "../models/login-model.js";
 import logger from "../middleware/logger.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -12,7 +12,7 @@ async function login(req, res) {
   }
 
   try {
-    const response = await loginModel(req.body);
+    const response = await loginUser(req.body);
     console.log("Login_Controller response:", response);
 
     logger(
@@ -54,4 +54,15 @@ async function login(req, res) {
   }
 }
 
-export { login };
+async function logout(req, res) {
+  try {
+    await logoutUser(req, res);
+  } catch (error) {
+    console.error("Logout error:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  }
+}
+
+export { login, logout };
