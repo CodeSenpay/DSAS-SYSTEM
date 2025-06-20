@@ -223,7 +223,7 @@ export class SchedulingModel {
     try {
       const jsondata = JSON.stringify(payload);
 
-      const [rows] = await pool.query(`CALL insert_availability(?)`, [
+      const [rows] = await pool.query(`CALL insert_appointment(?)`, [
         jsondata,
       ]);
       await logger(
