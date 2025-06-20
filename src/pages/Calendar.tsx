@@ -41,7 +41,7 @@ function Calendar({
   const [formattedDate, setFormattedDate] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>();
-
+  const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
 
   const handleClose = () => {
@@ -53,7 +53,7 @@ function Calendar({
       setIsOpen(true);
       setSelected(date);
       selected
-        ? setFormattedDate(format(selected, "yyyy-MM-dd"))
+        ? setFormattedDate(format(date, "yyyy-MM-dd"))
         : setFormattedDate("");
     }
   };
@@ -77,7 +77,7 @@ function Calendar({
       model: "schedulesModel",
       function_name: "getAvailability",
       payload: {
-        searchKey: "",
+        searchkey: transaction_title,
       },
     };
 
@@ -86,14 +86,14 @@ function Calendar({
         "http://localhost:5000/api/scheduling-system/user",
         data,
         {
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
 
       if (response.data.success) {
         console.log("Response:");
         console.log(response.data.data);
-
+        setTransactionTypeID(response.data.data[0].transaction_type_id);
         if (response.data.data.length != 0) {
           const mappedTime: timewindowProps[][] = response.data.data.map(
             (item: availableDatesProps) =>
@@ -113,6 +113,34 @@ function Calendar({
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const handleCreateAppointment = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "insertAppointment",
+      payload: {
+        time_frame: selectedTimeFrame,
+        transaction_type_id: transactionTypeID,
+        user_id: "21-A-01760",
+        appointment_date: formattedDate,
+      },
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/user",
+        data,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+
+    console.log("APPOINTMENT DATA:");
+    console.log(data);
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -146,7 +174,9 @@ function Calendar({
               <option value="PM">PM</option>
             </select>
           </div>
-          <Button variant="contained"> CREATE APPOINTMENT</Button>
+          <Button variant="contained" onClick={handleCreateAppointment}>
+            CREATE APPOINTMENT
+          </Button>
         </Modal>
       ) : (
         <></>

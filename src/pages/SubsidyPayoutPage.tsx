@@ -83,10 +83,10 @@ function SubsidyPayoutPage() {
         <Modal
           isOpen={isOpen}
           handleClose={handleClosingOfModal}
-          backgroundColor="transparent"
+          backgroundColor=""
         >
           <Calendar
-            transaction_title={appointments[0].transaction_title}
+            transaction_title="Subsidy"
             alreadySelectedDates={appointmentDates}
           />
         </Modal>
@@ -107,7 +107,7 @@ function SubsidyPayoutPage() {
           ADD SCHEDULE
         </Button>
 
-        <div className="w-screen flex flex-col justify-center items-center">
+        <div className="w-screen flex flex-col justify-center items-center gap-5">
           {appointments.length !== 0 ? (
             appointments.map((appointment) => (
               <div

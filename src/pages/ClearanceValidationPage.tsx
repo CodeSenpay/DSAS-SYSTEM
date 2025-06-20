@@ -92,11 +92,16 @@ function ClearanceValidationPage() {
           variant="contained"
           startIcon={<AddCircleIcon />}
           onClick={handleAddingOfSchedule}
+          disabled={appointments.some((appointment) =>
+            appointment.appointment_status.toLowerCase() === "approved"
+              ? true
+              : false
+          )}
         >
           ADD SCHEDULE
         </Button>
 
-        <div className="w-screen flex flex-col justify-center items-center">
+        <div className="w-screen flex flex-col gap-5 justify-center items-center">
           {appointments.length !== 0 ? (
             appointments.map((appointment) => (
               <div
