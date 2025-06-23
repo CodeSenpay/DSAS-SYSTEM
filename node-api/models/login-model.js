@@ -6,22 +6,16 @@ async function loginUser(data) {
   try {
     const { email, password } = data;
     console.log(`email: ${email}`);
-    const [result] = await pool.query(`CALL login_user(?)`, [
-      JSON.stringify({ email }),
-    ]);
+    const payload = JSON.stringify({ email });
+    const [result] = await pool.query(`CALL login_user(?)`, [payload]);
 
     console.log("Result from stored procedure:", result[0]);
 
-    if (!result || result.length === 0) {
-      const error = new Error("Invalid credentials or user not found");
-      error.status = 401;
-      throw error;
-    }
-    console.log("Result from database: ", result[0][0]["result"].status);
-
     // Check password
-    const storedPassword = result[0][0].password;
+    const storedPassword = result[0][0].result.user_data.password;
+    console.log(result[0][0].result.user_data.password);
     const isMatch = await comparePassword(password, storedPassword);
+    console.log(`Password match: ${isMatch}, storedPassword: ${storedPassword}`);
     if (!isMatch) {
       return {
         success: false,
@@ -33,11 +27,14 @@ async function loginUser(data) {
       success: true,
       message: "Login successful",
       user: {
-        id: result[0][0].user_id,
-        username: result[0][0].username,
-        email: result[0][0].email,
-        password: result[0][0].password,
-        user_level: result[0][0].user_level,
+        id: result[0][0].result.user_data.user_id,
+        first_name: result[0][0].result.user_data.first_name,
+        middle_name: result[0][0].result.user_data.middle_name,
+        last_name: result[0][0].result.user_data.last_name,
+        email: result[0][0].result.user_data.email,
+        password: result[0][0].result.user_data.password,
+        mobile_number: result[0][0].result.user_data.mobile_number,
+        user_level: result[0][0].result.user_data.user_level,
       },
     };
     if (!result || result[0][0]["result"].status !== 200) {
