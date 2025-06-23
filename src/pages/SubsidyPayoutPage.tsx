@@ -93,7 +93,7 @@ function SubsidyPayoutPage() {
       ) : (
         ""
       )}
-      <div className="flex flex-col justify-center items-center h-[88.5%] w-full gap-10 absolute ">
+      <div className="flex flex-col justify-center items-center h-[100%] w-full gap-5 absolute ">
         <Button
           variant="contained"
           startIcon={<AddCircleIcon />}
@@ -107,7 +107,7 @@ function SubsidyPayoutPage() {
           ADD SCHEDULE
         </Button>
 
-        <div className="w-screen flex flex-col justify-center items-center gap-5">
+        <div className="w-screen flex flex-col justify-center items-center gap-5 overflow-y-auto px-4 md:px-16 lg:px-32">
           {appointments.length !== 0 ? (
             appointments.map((appointment) => (
               <div

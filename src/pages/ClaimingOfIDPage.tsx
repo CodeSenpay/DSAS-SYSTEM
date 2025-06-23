@@ -79,7 +79,7 @@ function ClaimingOfIDPage() {
       {isOpen ? (
         <Modal isOpen={isOpen} handleClose={handleClosingOfModal}>
           <Calendar
-            transaction_title={appointments[0].transaction_title}
+            transaction_title="Claiming of ID"
             alreadySelectedDates={appointmentDates}
           />
         </Modal>

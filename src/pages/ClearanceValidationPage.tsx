@@ -80,7 +80,7 @@ function ClearanceValidationPage() {
       {isOpen ? (
         <Modal isOpen={isOpen} handleClose={handleClosingOfModal}>
           <Calendar
-            transaction_title={appointments[0].transaction_title}
+            transaction_title="Clearance"
             alreadySelectedDates={appointmentDates}
           />
         </Modal>
