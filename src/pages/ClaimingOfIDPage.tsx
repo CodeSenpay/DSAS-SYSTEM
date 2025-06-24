@@ -16,16 +16,16 @@ type appointmentProps = {
   end_time: string;
 };
 function ClaimingOfIDPage() {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
 
   const handleClosingOfModal = () => {
-    setIsOpen(false);
+    setIsOpenCalendar(false);
   };
 
   const handleAddingOfSchedule = () => {
-    setIsOpen(true);
+    setIsOpenCalendar(true);
   };
 
   const getAppointmentDates = (appointments: appointmentProps[]) => {
@@ -71,16 +71,17 @@ function ClaimingOfIDPage() {
 
   useEffect(() => {
     fetchTransactionsByType();
-  }, []);
+  }, [isOpenCalendar]);
 
   return (
     <>
       <NavBar />
-      {isOpen ? (
-        <Modal isOpen={isOpen} handleClose={handleClosingOfModal}>
+      {isOpenCalendar ? (
+        <Modal isOpen={isOpenCalendar} handleClose={handleClosingOfModal}>
           <Calendar
             transaction_title="Claiming of ID"
             alreadySelectedDates={appointmentDates}
+            setIsOpenCalendar={setIsOpenCalendar}
           />
         </Modal>
       ) : (

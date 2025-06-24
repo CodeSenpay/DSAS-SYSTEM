@@ -27,7 +27,10 @@ function App() {
         <Route path="/" element={<Navigate to="login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
+        <Route
+          path="/calendar"
+          element={<CalendarPage setIsOpenCalendar={() => {}} />}
+        />
         <Route path="/vmgo" element={<VMGOPage />} />
         <Route path="/about-us" element={<AboutUsPage />} />
         <Route path="/profile" element={<ProfilePage />} />

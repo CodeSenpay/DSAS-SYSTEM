@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import axios from "axios";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import Loading from "../components/Loading";
@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "../components/ToastUtils";
 type calendarProps = {
   transaction_title?: string;
   alreadySelectedDates?: string[];
+  setIsOpenCalendar: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type timewindowProps = {
@@ -37,11 +38,12 @@ type availableDatesProps = {
 function Calendar({
   transaction_title,
   alreadySelectedDates = [],
+  setIsOpenCalendar,
 }: calendarProps) {
   const [selected, setSelected] = useState<Date | undefined>();
   const [formattedDate, setFormattedDate] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>();
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>("");
   const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -118,6 +120,11 @@ function Calendar({
   };
 
   const handleCreateAppointment = async () => {
+    if (selectedTimeFrame === "") {
+      notifyError("Please select Either AM or PM");
+      return;
+    }
+
     const data = {
       model: "schedulesModel",
       function_name: "insertAppointment",
@@ -149,11 +156,14 @@ function Calendar({
     } catch (err) {
       console.log(err);
     } finally {
+      setIsOpenCalendar(false);
+      setIsOpen(false);
       setIsLoading(false);
     }
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log(e.target.value);
     setSelectedTimeFrame(e.target.value);
   };
   useEffect(() => {
@@ -179,6 +189,7 @@ function Calendar({
               onChange={handleSelectedTimeFrame}
               id="am-pm-select"
               className="px-6 py-3 rounded-lg border h-10 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-gray-800 text-base font-semibold w-full"
+              required
             >
               <option value="">--Select an option--</option>
               <option value="AM">AM</option>

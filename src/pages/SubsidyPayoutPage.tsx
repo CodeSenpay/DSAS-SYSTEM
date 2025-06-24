@@ -18,16 +18,16 @@ type appointmentProps = {
 
 function SubsidyPayoutPage() {
   //   const transactions = [{}, {}];
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
 
   const handleClosingOfModal = () => {
-    setIsOpen(false);
+    setIsOpenCalendar(false);
   };
 
   const handleAddingOfSchedule = () => {
-    setIsOpen(true);
+    setIsOpenCalendar(true);
   };
 
   const getAppointmentDates = (appointments: appointmentProps[]) => {
@@ -74,20 +74,21 @@ function SubsidyPayoutPage() {
 
   useEffect(() => {
     fetchTransactionsByType();
-  }, []);
+  }, [isOpenCalendar]);
 
   return (
     <>
       <NavBar />
-      {isOpen ? (
+      {isOpenCalendar ? (
         <Modal
-          isOpen={isOpen}
+          isOpen={isOpenCalendar}
           handleClose={handleClosingOfModal}
           backgroundColor=""
         >
           <Calendar
             transaction_title="Subsidy"
             alreadySelectedDates={appointmentDates}
+            setIsOpenCalendar={setIsOpenCalendar}
           />
         </Modal>
       ) : (

@@ -1,10 +1,7 @@
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import AddIcon from "@mui/icons-material/Add";
 import ArticleIcon from "@mui/icons-material/Article";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
-import FactCheckIcon from "@mui/icons-material/FactCheck";
-import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import { createTheme } from "@mui/material/styles";
 import type { Navigation, Router } from "@toolpad/core/AppProvider";
 import { AppProvider } from "@toolpad/core/AppProvider";
@@ -43,23 +40,6 @@ const NAVIGATION: Navigation = [
     segment: "approve-transactions",
     title: "Approve Transactions",
     icon: <EventAvailableIcon />,
-    children: [
-      {
-        segment: "subsidy",
-        title: "Subsidy Program",
-        icon: <LocalAtmIcon />,
-      },
-      {
-        segment: "clearance",
-        title: "Clearance Validation",
-        icon: <FactCheckIcon />,
-      },
-      {
-        segment: "school-id",
-        title: "Claiming of School ID",
-        icon: <AccountBoxIcon />,
-      },
-    ],
   },
   {
     segment: "report-page",
@@ -105,7 +85,7 @@ function renderCurrentPage(pathname: string) {
       return <AdminDashboard />;
     case "/add-availability":
       return <AddAvailability />;
-    case "/approve-transactions/subsidy":
+    case "/approve-transactions":
       return <ApproveTransactionPage />;
     case "/report-page":
       return <ReportPage />;
