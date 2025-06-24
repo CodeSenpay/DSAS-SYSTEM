@@ -1,15 +1,18 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { notifyError, notifySuccess } from "../components/ToastUtils";
 
-const transactionTypes = [
-  "Subsidy",
-  "",
-  "Document Request",
-  // Add more types as needed
-];
+type transactionTypeProps = {
+  transaction_type_id: number;
+  transaction_title: string;
+  transaction_details: string;
+};
 
 function AddAvailability() {
   const [transactionType, setTransactionType] = useState("");
+  const [transactionTypes, setTransactionTypes] = useState<
+    transactionTypeProps[]
+  >([]);
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
     end: "",
@@ -24,16 +27,8 @@ function AddAvailability() {
       pmEnd: string;
     }[]
   >([]);
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Dummy mapping for transaction type to id
-  const transactionTypeMap: Record<string, number> = {
-    Subsidy: 1,
-    "Document Request": 2,
-    // Add more as needed
-  };
+  const [loading, setLoading] = useState(false);
 
   // Generate dates in range
   const getDatesInRange = (start: string, end: string) => {
@@ -50,8 +45,6 @@ function AddAvailability() {
   const handleDateRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDateRange({ ...dateRange, [e.target.name]: e.target.value });
     setTimeRanges([]); // Reset time ranges when date range changes
-    setSuccess(false);
-    setError(null);
   };
 
   const handleSetTimeRanges = () => {
@@ -60,14 +53,12 @@ function AddAvailability() {
       setTimeRanges(
         dates.map((date) => ({
           date,
-          amStart: "",
-          amEnd: "",
-          pmStart: "",
-          pmEnd: "",
+          amStart: "08:00",
+          amEnd: "12:00",
+          pmStart: "13:00",
+          pmEnd: "17:00",
         }))
       );
-      setSuccess(false);
-      setError(null);
     }
   };
 
@@ -79,20 +70,15 @@ function AddAvailability() {
     setTimeRanges((prev) =>
       prev.map((tr, i) => (i === idx ? { ...tr, [field]: value } : tr))
     );
-    setSuccess(false);
-    setError(null);
   };
 
   const handleCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCapacity(Number(e.target.value));
-    setSuccess(false);
-    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       // Prepare payload
@@ -100,7 +86,7 @@ function AddAvailability() {
         model: "schedulesModel",
         function_name: "insertAvailability",
         payload: {
-          transaction_type_id: transactionTypeMap[transactionType] || 1,
+          transaction_type_id: transactionType,
           start_date: dateRange.start,
           end_date: dateRange.end,
           capacity_per_day: capacity,
@@ -123,18 +109,46 @@ function AddAvailability() {
         "http://localhost:5000/api/scheduling-system/admin",
         payload,
         {
-          headers: { "Content-Type": "application-json" },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
         }
       );
       console.log(response.data);
-      //   setSuccess(true);
-      //   setLoading(false);
     } catch (err: any) {
-      setError("Failed to save availability.");
+      notifyError("Failed to set schedule");
+      setLoading(false);
+    } finally {
+      notifySuccess("Schedule is set successfully");
       setLoading(false);
     }
   };
+
+  const getTransactionType = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getTransactionType",
+      payload: {},
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      setTransactionTypes(response.data.data);
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    getTransactionType();
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center py-10">
@@ -191,8 +205,15 @@ function AddAvailability() {
             required
           >
             <option value="">Select Type</option>
-            {transactionTypes.map((type) =>
-              type ? <option key={type}>{type}</option> : null
+            {transactionTypes.map((type: transactionTypeProps) =>
+              type ? (
+                <option
+                  key={type.transaction_type_id}
+                  value={type.transaction_type_id}
+                >
+                  {type.transaction_title}
+                </option>
+              ) : null
             )}
           </select>
         </div>
@@ -335,16 +356,6 @@ function AddAvailability() {
             >
               {loading ? "Saving..." : "Save Availability"}
             </button>
-          </div>
-        )}
-        {success && (
-          <div className="mt-6 text-green-600 font-semibold text-center">
-            Availability saved successfully!
-          </div>
-        )}
-        {error && (
-          <div className="mt-6 text-red-600 font-semibold text-center">
-            {error}
           </div>
         )}
       </form>

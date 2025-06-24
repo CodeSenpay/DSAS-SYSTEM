@@ -4,8 +4,9 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
+import Loading from "../components/Loading";
 import Modal from "../components/Modal";
-import { notifyError } from "../components/ToastUtils";
+import { notifyError, notifySuccess } from "../components/ToastUtils";
 
 type calendarProps = {
   transaction_title?: string;
@@ -43,6 +44,7 @@ function Calendar({
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>();
   const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -50,9 +52,9 @@ function Calendar({
 
   const handleDateSelection = (date: Date | undefined) => {
     if (date) {
-      setIsOpen(true);
       setSelected(date);
-      selected
+      setIsOpen(true);
+      date
         ? setFormattedDate(format(date, "yyyy-MM-dd"))
         : setFormattedDate("");
     }
@@ -126,21 +128,29 @@ function Calendar({
         appointment_date: formattedDate,
       },
     };
+    console.log(data);
+
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/user",
         data,
-        { headers: { "Content-Type": "application/json" } }
+        {
+          headers: { "Content-Type": "application/json" },
+        }
       );
 
-      console.log(response);
+      if (response.data.data[0].result.success) {
+        notifySuccess("Appointment Set Successfully");
+      } else {
+        notifyError("Appointment Set Failed");
+      }
     } catch (err) {
       console.log(err);
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("APPOINTMENT DATA:");
-    console.log(data);
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -153,6 +163,7 @@ function Calendar({
 
   return (
     <>
+      {isLoading && <Loading />}
       {isOpen ? (
         <Modal isOpen={isOpen} handleClose={handleClose}>
           <h3>{formattedDate}</h3>
