@@ -47,6 +47,9 @@ function Calendar({
   const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [availableDateInfo, setAvailableDateInfo] = useState<
+    timewindowProps[][]
+  >([]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -72,8 +75,6 @@ function Calendar({
       )
       .flat();
     setParsedAvailableDates(availableDates);
-    console.log("available dates:");
-    console.log(availableDates);
   };
 
   const handleFetchingAvailableDates = async () => {
@@ -106,7 +107,7 @@ function Calendar({
                 ? item.time_windows
                 : []
           );
-
+          setAvailableDateInfo(mappedTime);
           parsedDates(mappedTime);
         } else {
           notifyError("Can't Parse Dates");
@@ -162,6 +163,14 @@ function Calendar({
     }
   };
 
+  const practiceFunction = () => {
+    const practiceResponse = availableDateInfo.filter(
+      (item) => item.length > 0
+    );
+
+    console.log(practiceResponse);
+  };
+
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
     console.log(e.target.value);
     setSelectedTimeFrame(e.target.value);
@@ -198,6 +207,9 @@ function Calendar({
           </div>
           <Button variant="contained" onClick={handleCreateAppointment}>
             CREATE APPOINTMENT
+          </Button>
+          <Button variant="contained" onClick={practiceFunction}>
+            PRACTICE BUTTON
           </Button>
         </Modal>
       ) : (

@@ -88,15 +88,71 @@ function ClaimingOfIDPage() {
         ""
       )}
       <div className="flex flex-col justify-center items-center h-[88.5%] gap-10 w-screen absolute">
+        {appointments.length > 0 ? (
+          appointments[0].appointment_status.toLowerCase() === "approved" ? (
+            <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-green-200 animate-fade-in">
+              <div className="flex items-center justify-center mb-2">
+                <svg
+                  className="w-10 h-10 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill="white"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 12l2 2 4-4"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-green-700 mb-1 text-center">
+                Appointment Approved!
+              </h1>
+              <p className="text-gray-700 text-center">
+                Your claiming of school ID appointment has been approved.
+                <br />
+                Please check the details below and arrive on time.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-amber-200">
+              <AddCircleIcon
+                className="text-amber-500 mb-2"
+                style={{ fontSize: 40 }}
+              />
+              <h1 className="text-lg font-semibold text-amber-800 mb-1 text-center">
+                Appointment Already Set
+              </h1>
+              <p className="text-gray-600 text-center">
+                Please wait for your appointment to be approved.
+              </p>
+            </div>
+          )
+        ) : (
+          ""
+        )}
         <Button
           variant="contained"
           startIcon={<AddCircleIcon />}
           onClick={handleAddingOfSchedule}
-          disabled={appointments.some((appointment) =>
-            appointment.appointment_status.toLowerCase() === "approved"
-              ? true
-              : false
-          )}
+          disabled={
+            appointments.length > 0 ||
+            appointments.some((appointment) =>
+              appointment.appointment_status.toLowerCase() === "approved"
+                ? true
+                : false
+            )
+          }
         >
           ADD SCHEDULE
         </Button>

@@ -15,35 +15,6 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
-const dummyAppointments = [
-  {
-    id: 1,
-    type: "enrollment",
-    date: "2025-06-10",
-    day: "Monday",
-    name: "John Doe",
-    details: "Enrollment for Math 101",
-    status: "pending",
-  },
-  {
-    id: 2,
-    type: "payment",
-    date: "2025-06-11",
-    day: "Tuesday",
-    name: "Jane Smith",
-    details: "Payment for Tuition",
-    status: "pending",
-  },
-  {
-    id: 3,
-    type: "consultation",
-    date: "2025-06-10",
-    day: "Monday",
-    name: "Alice Brown",
-    details: "Consultation with Advisor",
-    status: "pending",
-  },
-];
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -54,8 +25,7 @@ type transactionTypeProps = {
 function ApproveTransactionPage() {
   const [selectedType, setSelectedType] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
-  const [appointments, setAppointments] = useState(dummyAppointments);
-  const [transactionType, setTransactionType] = useState("");
+  const [appointments, setAppointments] = useState([]);
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
@@ -64,33 +34,41 @@ function ApproveTransactionPage() {
   const [searchType, setSearchType] = useState("all");
   const [searchDate, setSearchDate] = useState("");
 
-  const handleApprove = (id: number) => {
-    setAppointments((prev) =>
-      prev.map((appt) =>
-        appt.id === id ? { ...appt, status: "approved" } : appt
-      )
-    );
-  };
+  const handleApprove = (id: number) => {};
 
-  const handleDecline = (id: number) => {
-    setAppointments((prev) =>
-      prev.map((appt) =>
-        appt.id === id ? { ...appt, status: "declined" } : appt
-      )
-    );
-  };
+  const handleDecline = (id: number) => {};
 
   // Only filter when Search is clicked
   const [filteredAppointments, setFilteredAppointments] =
     useState(appointments);
 
-  const handleSearch = () => {
-    const filtered = appointments.filter((appt) => {
-      const matchType = searchType === "all" || appt.type === searchType;
-      const matchDate = !searchDate || appt.date === searchDate;
-      return matchType && matchDate;
-    });
-    setFilteredAppointments(filtered);
+  const handleSearch = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getAppointment",
+      payload: {
+        appointment_id: "",
+        appointment_status: "Pending",
+        appointment_date: selectedDate || "",
+        transaction_title: selectedType || "",
+        user_id: "",
+      },
+    };
+    console.log(data);
+    // try {
+    //   const response = await axios.post(
+    //     "http://localhost:5000/api/scheduling-system/admin",
+    //     data,
+    //     {
+    //       headers: { "Content-Type": "application/json" },
+    //       withCredentials: true,
+    //     }
+    //   );
+    //   console.log(response.data);
+    //   // setAppointments();
+    // } catch (err) {
+    //   console.log(err);
+    // }
   };
 
   // Keep search fields in sync with filter fields
@@ -132,14 +110,21 @@ function ApproveTransactionPage() {
   // eslint-disable-next-line
   useEffect(() => {
     getTransactionTypes();
-    handleSearch();
+
     // eslint-disable-next-line
-  }, [appointments]);
+  }, []);
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
-      <Paper elevation={3} className="p-8 rounded-xl bg-white shadow-lg">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">
+      <Paper
+        elevation={3}
+        className="p-8 rounded-xl bg-white shadow-lg"
+        style={{ padding: "20px" }}
+      >
+        <h1
+          className="text-3xl font-bold text-gray-800"
+          style={{ marginBottom: "20px" }}
+        >
           Approve Appointments
         </h1>
         <div className="flex flex-col md:flex-row gap-4 mb-8 items-end">
@@ -201,33 +186,33 @@ function ApproveTransactionPage() {
                 </TableRow>
               ) : (
                 filteredAppointments.map((appt) => (
-                  <TableRow key={appt.id}>
-                    <TableCell className="capitalize">{appt.type}</TableCell>
-                    <TableCell>{appt.date}</TableCell>
-                    <TableCell>{appt.name}</TableCell>
-                    <TableCell>{appt.details}</TableCell>
+                  <TableRow key={appt}>
+                    <TableCell className="capitalize">{appt}</TableCell>
+                    <TableCell>{appt}</TableCell>
+                    <TableCell>{appt}</TableCell>
+                    <TableCell>{appt}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          appt.status === "pending"
+                          appt === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : appt.status === "approved"
+                            : appt === "approved"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {appt.status}
+                        {appt}
                       </span>
                     </TableCell>
                     <TableCell>
-                      {appt.status === "pending" ? (
+                      {appt ? (
                         <div className="flex gap-2">
                           <Button
                             variant="contained"
                             color="success"
                             size="small"
                             startIcon={<Check />}
-                            onClick={() => handleApprove(appt.id)}
+                            onClick={() => handleApprove(appt)}
                           >
                             Approve
                           </Button>
@@ -236,7 +221,7 @@ function ApproveTransactionPage() {
                             color="error"
                             size="small"
                             startIcon={<Close />}
-                            onClick={() => handleDecline(appt.id)}
+                            onClick={() => handleDecline(appt)}
                           >
                             Decline
                           </Button>

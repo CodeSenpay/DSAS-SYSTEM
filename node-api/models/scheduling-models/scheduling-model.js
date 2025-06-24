@@ -9,7 +9,6 @@ export class SchedulingModel {
       "transaction_type_id",
       "start_date",
       "end_date",
-      "capacity_per_day",
       "created_by",
       "created_at",
       "time_windows",

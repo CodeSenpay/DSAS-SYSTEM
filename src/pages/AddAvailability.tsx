@@ -89,10 +89,10 @@ function AddAvailability() {
           transaction_type_id: transactionType,
           start_date: dateRange.start,
           end_date: dateRange.end,
-          capacity_per_day: capacity,
           created_by: 1, // Replace with actual user id if available
           created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
           time_windows: timeRanges.map((tr) => ({
+            capacity_per_day: capacity,
             availability_date: tr.date,
             start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
             end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
@@ -114,6 +114,16 @@ function AddAvailability() {
         }
       );
       console.log(response.data);
+      if (response.data.success) {
+        setTimeRanges([]);
+        setDateRange({
+          start: "",
+          end: "",
+        });
+        setTransactionType("");
+      } else {
+        notifyError("Failed to set schedule");
+      }
     } catch (err: any) {
       notifyError("Failed to set schedule");
       setLoading(false);
