@@ -15,17 +15,7 @@ async function login(req, res) {
     const { email, password } = req.body;
     const response = await loginUser({ email, password });
 
-    logger(
-      {
-        action: "login_attempt",
-        user_id: response.user?.id || "none",
-        details: `User login attempt: ${response.message}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
-
+    console.log("Login Response:", response);
     if (!response.success) {
       return res
         .status(response.status || 401)

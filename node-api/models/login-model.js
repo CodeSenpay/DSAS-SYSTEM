@@ -3,16 +3,31 @@ import pool from "../config/db.conf.js";
 import crypto from "crypto";
 import transporter from "../middleware/mailer.js";
 import { console } from "inspector";
+import logger from "../middleware/logger.js";
 
-async function loginUser(data) {
+async function loginUser(data, req, res) {
   try {
     const { email, password } = data;
     const payload = JSON.stringify({ email });
     const [result] = await pool.query(`CALL login_user(?)`, [payload]);
-    
+
     const userResult = result?.[0]?.[0]?.result;
 
     if (!userResult || userResult.status !== 200) {
+      // Log failed login attempt
+      await logger(
+        {
+          action: "login_attempt",
+          user_id: email || null,
+          details: `Failed login for email: ${email}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
       return {
         success: false,
         status: userResult?.status || 500,
@@ -24,11 +39,41 @@ async function loginUser(data) {
     const isMatch = await comparePassword(password, storedPassword);
 
     if (!isMatch) {
+      // Log invalid credentials
+      await logger(
+        {
+          action: "login_attempt",
+          user_id: email || null,
+          details: `Invalid password for email: ${email}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
       return {
         success: false,
+        status: 409,
         message: "Invalid credentials",
       };
     }
+
+    // Log successful login
+    await logger(
+      {
+        action: "login_success",
+        user_id: email || null,
+        details: `User logged in: ${email}`,
+        timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+      },
+      req,
+      res
+    );
 
     return {
       success: true,
@@ -36,6 +81,20 @@ async function loginUser(data) {
       user: userResult.user_data,
     };
   } catch (error) {
+    // Log error
+    await logger(
+      {
+        action: "login_error",
+        user_id: data?.email || null,
+        details: `Login error for email: ${data?.email || "unknown"} - ${error.message}`,
+        timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+      },
+      req,
+      res
+    );
     throw {
       status: error.status || 500,
       message: "Internal server error",
@@ -44,7 +103,7 @@ async function loginUser(data) {
   }
 }
 
-async function logoutUser(req, res){
+async function logoutUser(req, res) {
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -55,19 +114,22 @@ async function logoutUser(req, res){
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {
-      return res.status(500).json({ success: false, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
 }
 
 async function comparePassword(inputPassword, storedPassword) {
-  const hash = crypto.createHmac("sha256", process.env.SECRET_KEY)
+  const hash = crypto
+    .createHmac("sha256", process.env.SECRET_KEY)
     .update(inputPassword)
     .digest("hex");
 
-  if(hash === storedPassword){
+  if (hash === storedPassword) {
     return true;
-  }else{
+  } else {
     return false;
   }
 }
@@ -85,7 +147,10 @@ async function sendOtpToEmail(email) {
     const mailResult = await transporter.sendMail(mailOptions);
     const insertResult = await insertOtpToDB(email, otp);
 
-    if (insertResult[0][0].result.status === 200 && mailResult.accepted.length > 0) {
+    if (
+      insertResult[0][0].result.status === 200 &&
+      mailResult.accepted.length > 0
+    ) {
       return { success: true, message: "OTP sent to email", mailResult };
     } else if (insertResult[0][0].result.status !== 200) {
       return { success: false, message: "Failed to insert OTP" };
@@ -93,7 +158,11 @@ async function sendOtpToEmail(email) {
       return { success: false, message: "Failed to send OTP email" };
     }
   } catch (error) {
-    return { success: false, message: "Failed to send OTP", error: error.message };
+    return {
+      success: false,
+      message: "Failed to send OTP",
+      error: error.message,
+    };
   }
 }
 
