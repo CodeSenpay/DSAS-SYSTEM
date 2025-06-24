@@ -24,7 +24,6 @@ async function logger(payload, req, res) {
     // rows[0] contains the SELECT result from the SP
     const result =
       rows && Array.isArray(rows) && rows.length > 0 ? rows[0][0] : rows;
-    // console.log("Response from insert_log_entry:", result);
 
     return result;
   } catch (error) {
