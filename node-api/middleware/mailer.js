@@ -1,11 +1,17 @@
-// config/email.js
-const nodemailer = require('nodemailer');
-module.exports = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: +process.env.SMTP_PORT,
-  secure: true, // or false for 587
+import 'dotenv/config';
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  }
+    pass: process.env.SMTP_PASSWORD,
+  },
 });
+
+
+transporter.verify()
+  .then(() => console.log('SMTP verified ✅'))
+  .catch(err => console.error('Verification failed:', err));
+
+export default transporter;
