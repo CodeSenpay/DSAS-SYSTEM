@@ -14,6 +14,7 @@ function errorResponse(res, status, message, details = null) {
 // Enhanced controller
 async function handle_schedule(req, res) {
   try {
+    console.log("Schedule Controller Request Body:", req.body);
     const { model, function_name, payload } = req.body;
 
     // Validate input
