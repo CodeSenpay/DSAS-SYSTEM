@@ -14,7 +14,6 @@ import * as React from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { notifySuccess, notifyError } from "./ToastUtils";
-import { log } from "console";
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
@@ -22,7 +21,7 @@ const settings = ["Profile", "Dashboard", "Logout"];
 
 function NavBar() {
 
-const LogoutUser = async () => {
+  const LogoutUser = async () => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/logout",
@@ -30,6 +29,7 @@ const LogoutUser = async () => {
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
       console.log(response.data);
+      sessionStorage.removeItem('user');
       notifySuccess("Logout successful!");
       navigate("/login");
 

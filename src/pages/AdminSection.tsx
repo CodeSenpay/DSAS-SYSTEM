@@ -13,6 +13,8 @@ import AddAvailability from "./AddAvailability";
 import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
 import ReportPage from "./ReportPage";
+import React from "react";
+import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 
 const NAVIGATION: Navigation = [
   {
@@ -94,6 +96,17 @@ function renderCurrentPage(pathname: string) {
   }
 }
 
+function CustomToolbarActions() {
+  return (
+    <React.Fragment>
+
+      {/* Add your custom button */}
+      <AccountCustomSlotProps />
+
+    </React.Fragment>
+  );
+}
+
 export default function AdminDashboardPage() {
   const router = useDemoRouter("/admin-dashboard");
 
@@ -109,7 +122,9 @@ export default function AdminDashboardPage() {
         title: "JRMSU DSASADMIN",
       }}
     >
-      <DashboardLayout>
+      <DashboardLayout
+        slots={{ toolbarActions: CustomToolbarActions }}
+      >
         <PageContainer title="" breadcrumbs={[]}>
           {renderCurrentPage(router.pathname)}
         </PageContainer>
