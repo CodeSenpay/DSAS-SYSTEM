@@ -50,6 +50,31 @@ function LoginPage() {
     }
   };
 
+  /**
+   * Extracts only safe user data for session storage (no password).
+   */
+  function extractSafeUserData(user: any) {
+    if (!user) return {};
+    const {
+      email,
+      user_id,
+      last_name,
+      first_name,
+      user_level,
+      middle_name,
+      mobile_number,
+    } = user;
+    return {
+      email,
+      user_id,
+      last_name,
+      first_name,
+      user_level,
+      middle_name,
+      mobile_number,
+    };
+  }
+
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
       const response = await axios.post(
@@ -59,6 +84,8 @@ function LoginPage() {
       );
       console.log(response.data);
       notifySuccess("Login successful!");
+
+      sessionStorage.setItem("user", JSON.stringify(extractSafeUserData(response.data.user)));
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
@@ -161,9 +188,9 @@ function LoginPage() {
                 try {
                   // Send both OTP and email as JSON payload
                   const res = await axios.post(
-                  "http://localhost:5000/api/verify-otp",
-                  { otp, email },
-                  { headers: { "Content-Type": "application/json" }, withCredentials: true }
+                    "http://localhost:5000/api/verify-otp",
+                    { otp, email },
+                    { headers: { "Content-Type": "application/json" }, withCredentials: true }
                   );
                   notifySuccess("OTP verified!");
                   closeModal();

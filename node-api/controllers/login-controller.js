@@ -15,7 +15,7 @@ async function login(req, res) {
     const { email, password } = req.body;
     const response = await loginUser({ email, password });
 
-    console.log("Login Response:", response);
+    // console.log("Login Response:", response);
     if (!response.success) {
       return res
         .status(response.status || 401)
@@ -26,7 +26,7 @@ async function login(req, res) {
     }
 
     const userId = response.user?.id || response.user?._id;
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "8h" });
 
     res.cookie("token", token, {
       httpOnly: true,
