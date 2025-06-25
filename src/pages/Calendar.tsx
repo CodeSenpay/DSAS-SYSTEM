@@ -21,6 +21,8 @@ type timewindowProps = {
   start_time_pm: string;
   time_window_id: number;
   availability_date: string;
+  capacity_per_day: number;
+  total_slots_left: number;
 };
 
 type availableDatesProps = {
@@ -47,9 +49,9 @@ function Calendar({
   const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [availableDateInfo, setAvailableDateInfo] = useState<
-    timewindowProps[][]
-  >([]);
+  const [availableDateInfo, setAvailableDateInfo] = useState<timewindowProps[]>(
+    []
+  );
 
   const handleClose = () => {
     setIsOpen(false);
@@ -65,14 +67,11 @@ function Calendar({
     }
   };
 
-  const parsedDates = async (mappedTime: timewindowProps[][]) => {
+  const parsedDates = async (mappedTime: timewindowProps[]) => {
     console.log("Mapped Data:");
     console.log(mappedTime);
     const availableDates: Date[] = mappedTime
-      .filter((item) => item.length > 0)
-      .map((innerArray) =>
-        innerArray.map((date) => new Date(date.availability_date))
-      )
+      .map((date) => new Date(date.availability_date))
       .flat();
     setParsedAvailableDates(availableDates);
   };
@@ -100,15 +99,16 @@ function Calendar({
         console.log(response.data.data);
         setTransactionTypeID(response.data.data[0].transaction_type_id);
         if (response.data.data.length != 0) {
-          const mappedTime: timewindowProps[][] = response.data.data.map(
-            (item: availableDatesProps) =>
+          const mappedTime: timewindowProps[] = response.data.data
+            .map((item: availableDatesProps) =>
               item.transaction_title.toLowerCase() ===
               transaction_title?.toLowerCase()
                 ? item.time_windows
                 : []
-          );
-          setAvailableDateInfo(mappedTime);
-          parsedDates(mappedTime);
+            )
+            .flat();
+          setAvailableDateInfo(mappedTime); // use for checking the fullybook dates
+          parsedDates(mappedTime); //use to filter dates
         } else {
           notifyError("Can't Parse Dates");
         }
@@ -164,11 +164,7 @@ function Calendar({
   };
 
   const practiceFunction = () => {
-    const practiceResponse = availableDateInfo.filter(
-      (item) => item.length > 0
-    );
-
-    console.log(practiceResponse);
+    console.log(availableDateInfo);
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -231,6 +227,12 @@ function Calendar({
           available: "text-black",
         }}
         disabled={(date) =>
+          availableDateInfo.some(
+            (d) =>
+              d.total_slots_left === 0 &&
+              new Date(d.availability_date).toDateString() ===
+                date.toDateString()
+          ) ||
           !parsedAvailableDates.some(
             (d) => d.toDateString() === date.toDateString()
           ) ||

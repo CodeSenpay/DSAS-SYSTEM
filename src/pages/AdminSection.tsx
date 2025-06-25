@@ -1,7 +1,10 @@
 import AddIcon from "@mui/icons-material/Add";
 import ArticleIcon from "@mui/icons-material/Article";
+import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import EditIcon from "@mui/icons-material/Edit";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import { createTheme } from "@mui/material/styles";
 import type { Navigation, Router } from "@toolpad/core/AppProvider";
 import { AppProvider } from "@toolpad/core/AppProvider";
@@ -9,13 +12,14 @@ import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
 import { useMemo, useState } from "react";
 
+import React from "react";
+import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 import AddAvailability from "./AddAvailability";
+import AdjustAvailability from "./AdjustAvailability";
 import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
 import ReportPage from "./ReportPage";
-import React from "react";
-import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
-
+import ViewAvailability from "./ViewAvailability";
 const NAVIGATION: Navigation = [
   {
     kind: "header",
@@ -27,9 +31,26 @@ const NAVIGATION: Navigation = [
     icon: <DashboardIcon />,
   },
   {
-    segment: "add-availability",
+    segment: "manage-availability",
     title: "Add Availability",
-    icon: <AddIcon />,
+    icon: <ManageSearchIcon />,
+    children: [
+      {
+        segment: "add-availability",
+        title: "Add Availability",
+        icon: <AddIcon />,
+      },
+      {
+        segment: "adjust-availability",
+        title: "Adjust Availability",
+        icon: <EditIcon />,
+      },
+      {
+        segment: "view-availability",
+        title: "View Availability",
+        icon: <CalendarViewDayIcon />,
+      },
+    ],
   },
   {
     kind: "divider",
@@ -85,8 +106,12 @@ function renderCurrentPage(pathname: string) {
   switch (pathname) {
     case "/admin-dashboard":
       return <AdminDashboard />;
-    case "/add-availability":
+    case "/manage-availability/add-availability":
       return <AddAvailability />;
+    case "/manage-availability/adjust-availability":
+      return <AdjustAvailability />;
+    case "/manage-availability/view-availability":
+      return <ViewAvailability />;
     case "/approve-transactions":
       return <ApproveTransactionPage />;
     case "/report-page":
@@ -99,10 +124,8 @@ function renderCurrentPage(pathname: string) {
 function CustomToolbarActions() {
   return (
     <React.Fragment>
-
       {/* Add your custom button */}
       <AccountCustomSlotProps />
-
     </React.Fragment>
   );
 }
@@ -122,9 +145,7 @@ export default function AdminDashboardPage() {
         title: "JRMSU DSASADMIN",
       }}
     >
-      <DashboardLayout
-        slots={{ toolbarActions: CustomToolbarActions }}
-      >
+      <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
         <PageContainer title="" breadcrumbs={[]}>
           {renderCurrentPage(router.pathname)}
         </PageContainer>
