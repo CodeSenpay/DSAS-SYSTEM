@@ -326,7 +326,7 @@ export class SchedulingModel {
     const requiredFields = [
       "appointment_id",
       "user_id",
-      "status",
+      "appoitnment_status",
       "date_approved",
     ];
 
