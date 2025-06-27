@@ -314,7 +314,7 @@ function AddAvailability() {
 
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid>
+            <Grid width={"200px"}>
               <FormControl fullWidth>
                 <InputLabel>Transaction Type</InputLabel>
                 <Select
@@ -339,7 +339,7 @@ function AddAvailability() {
             </Grid>
 
             {mode === "edit" && transactionType && (
-              <Grid>
+              <Grid width={"200px"}>
                 <FormControl fullWidth>
                   <InputLabel>Existing Availability</InputLabel>
                   <Select
