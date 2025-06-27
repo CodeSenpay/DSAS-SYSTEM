@@ -90,7 +90,7 @@ export class SchedulingModel {
       "time_windows",
     ];
 
-    console.log("Update availability: ", payload)
+    console.log("Update availability: ", payload);
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
     if (missingFields.length > 0) {
@@ -120,7 +120,6 @@ export class SchedulingModel {
       const [rows] = await pool.query(`CALL update_availability(?)`, [
         jsondata,
       ]);
-
 
       await logger(
         {

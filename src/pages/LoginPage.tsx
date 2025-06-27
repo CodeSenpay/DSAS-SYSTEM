@@ -1,53 +1,59 @@
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, TextField } from "@mui/material";
 import axios from "axios";
+import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { notifySuccess, notifyError, notifyInfo } from "../components/ToastUtils";
 import CustomModal from "../components/Modal.tsx";
-import { useState } from "react";
+import {
+  notifyError,
+  notifyInfo,
+  notifySuccess,
+} from "../components/ToastUtils";
 
+import { IconButton, InputAdornment } from "@mui/material";
 function LoginPage() {
   type dataProps = {
     email: string;
     password: string;
   };
 
-  const {
-    register,
-    handleSubmit,
-  } = useForm<dataProps>();
+  const { register, handleSubmit } = useForm<dataProps>();
 
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const sendOtpToEmail: SubmitHandler<dataProps> = async (data) => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/send-otp",
-        data,
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
-      );
+      await axios.post("http://localhost:5000/api/send-otp", data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
     } catch (err: any) {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
       throw err;
     }
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword((prev) => !prev);
   };
 
   /**
@@ -80,12 +86,18 @@ function LoginPage() {
       const response = await axios.post(
         "http://localhost:5000/api/login",
         data,
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
       );
       console.log(response.data);
       notifySuccess("Login successful!");
 
-      sessionStorage.setItem("user", JSON.stringify(extractSafeUserData(response.data.user)));
+      sessionStorage.setItem(
+        "user",
+        JSON.stringify(extractSafeUserData(response.data.user))
+      );
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
@@ -95,22 +107,21 @@ function LoginPage() {
       } else {
         navigate("/dashboard");
       }
-
     } catch (err: any) {
       console.error(err.response?.status);
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         sendOtpToEmail(data);
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -147,10 +158,21 @@ function LoginPage() {
           <TextField
             label="Password"
             variant="outlined"
-            type="password"
+            type={showPassword ? "text" : "password"}
             required
             className="w-full max-w-sm"
             {...register("password")}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={toggleShowPassword}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
           <Button
             variant="contained"
@@ -168,14 +190,19 @@ function LoginPage() {
         <CustomModal
           isOpen={isModalOpen}
           handleClose={closeModal}
-          backgroundColor="white">
+          backgroundColor="white"
+        >
           <div className="p-4">
             <h2 className="text-lg font-semibold mb-2">Login Failed</h2>
             <p className="text-gray-700 mb-4">
               Please check your Email:{" "}
               <span className="font-semibold">
                 {maskEmail(
-                  (document.querySelector('input[name="email"]') as HTMLInputElement)?.value || "your email"
+                  (
+                    document.querySelector(
+                      'input[name="email"]'
+                    ) as HTMLInputElement
+                  )?.value || "your email"
                 )}
               </span>
             </p>
@@ -183,24 +210,40 @@ function LoginPage() {
               className="flex flex-col gap-3"
               onSubmit={async (e) => {
                 e.preventDefault();
-                const otp = (e.currentTarget.elements.namedItem("otp") as HTMLInputElement)?.value;
-                const email = (document.querySelector('input[name="email"]') as HTMLInputElement)?.value;
+                const otp = (
+                  e.currentTarget.elements.namedItem("otp") as HTMLInputElement
+                )?.value;
+                const email = (
+                  document.querySelector(
+                    'input[name="email"]'
+                  ) as HTMLInputElement
+                )?.value;
                 try {
                   // Send both OTP and email as JSON payload
                   const res = await axios.post(
                     "http://localhost:5000/api/verify-otp",
                     { otp, email },
-                    { headers: { "Content-Type": "application/json" }, withCredentials: true }
+                    {
+                      headers: { "Content-Type": "application/json" },
+                      withCredentials: true,
+                    }
                   );
                   notifySuccess("OTP verified!");
                   closeModal();
                   // Automatically log in after OTP verification
-                  await handleLogin({ email, password: (document.querySelector('input[name="password"]') as HTMLInputElement)?.value });
+                  await handleLogin({
+                    email,
+                    password: (
+                      document.querySelector(
+                        'input[name="password"]'
+                      ) as HTMLInputElement
+                    )?.value,
+                  });
                 } catch (err: any) {
                   notifyError(
                     err?.response?.data?.message ||
-                    err?.message ||
-                    "OTP verification failed."
+                      err?.message ||
+                      "OTP verification failed."
                   );
                 }
               }}

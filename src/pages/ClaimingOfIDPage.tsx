@@ -180,7 +180,8 @@ function ClaimingOfIDPage() {
                     <span className="font-semibold">Status:</span>{" "}
                     <span
                       className={
-                        appointment.appointment_status === "Completed"
+                        appointment.appointment_status.toLowerCase() ===
+                        "approved"
                           ? "text-green-600"
                           : "text-yellow-600"
                       }

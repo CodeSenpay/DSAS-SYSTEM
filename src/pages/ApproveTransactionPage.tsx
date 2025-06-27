@@ -83,7 +83,12 @@ function ApproveTransactionPage() {
       });
   };
 
-  const handleDecline = (data: appointmentProps) => {};
+  const handleDecline = (data: appointmentProps) => {
+    try {
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   // Only filter when Search is clicked
   const [filteredAppointments, setFilteredAppointments] = useState<

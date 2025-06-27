@@ -2,7 +2,6 @@ import AddIcon from "@mui/icons-material/Add";
 import ArticleIcon from "@mui/icons-material/Article";
 import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import EditIcon from "@mui/icons-material/Edit";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import { createTheme } from "@mui/material/styles";
@@ -15,7 +14,7 @@ import { useMemo, useState } from "react";
 import React from "react";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 import AddAvailability from "./AddAvailability";
-import AdjustAvailability from "./AdjustAvailability";
+
 import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
 import ReportPage from "./ReportPage";
@@ -39,11 +38,6 @@ const NAVIGATION: Navigation = [
         segment: "add-availability",
         title: "Add Availability",
         icon: <AddIcon />,
-      },
-      {
-        segment: "adjust-availability",
-        title: "Adjust Availability",
-        icon: <EditIcon />,
       },
       {
         segment: "view-availability",
@@ -108,8 +102,6 @@ function renderCurrentPage(pathname: string) {
       return <AdminDashboard />;
     case "/manage-availability/add-availability":
       return <AddAvailability />;
-    case "/manage-availability/adjust-availability":
-      return <AdjustAvailability />;
     case "/manage-availability/view-availability":
       return <ViewAvailability />;
     case "/approve-transactions":
