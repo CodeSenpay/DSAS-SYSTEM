@@ -327,7 +327,6 @@ export class SchedulingModel {
       "appointment_id",
       "user_id",
       "appoitnment_status",
-      "date_approved",
     ];
 
     // Check for missing fields
