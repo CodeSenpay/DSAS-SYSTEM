@@ -1,24 +1,27 @@
-import * as React from 'react';
-import { Account, AccountPreview, SignOutButton } from '@toolpad/core/Account';
-import { AppProvider, type Session } from '@toolpad/core/AppProvider';
-import { ThemeSwitcher } from '@toolpad/core/DashboardLayout';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import { createTheme } from '@mui/material/styles';
-import { notifyError, notifySuccess } from './ToastUtils';
+import { Button } from "@mui/material";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+import { createTheme } from "@mui/material/styles";
+import { Account, AccountPreview, SignOutButton } from "@toolpad/core/Account";
+import { AppProvider, type Session } from "@toolpad/core/AppProvider";
+import { ThemeSwitcher } from "@toolpad/core/DashboardLayout";
+import axios from "axios";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import { notifyError, notifySuccess } from "./ToastUtils";
 
 function getSessionFromStorage(): Session | null {
   try {
-    const userStr = sessionStorage.getItem('user');
+    const userStr = sessionStorage.getItem("user");
     if (!userStr) return null;
     const userData = JSON.parse(userStr);
     return {
       user: {
-        name: `${userData.first_name} ${userData.middle_name ?? ''} ${userData.last_name}`.replace(/\s+/g, ' ').trim(),
+        name: `${userData.first_name} ${userData.middle_name ?? ""} ${userData.last_name}`
+          .replace(/\s+/g, " ")
+          .trim(),
         email: userData.email,
-        image: 'https://avatars.githubusercontent.com/u/19550456', // You can update this if you have user image
+        image: "https://avatars.githubusercontent.com/u/19550456", // You can update this if you have user image
       },
     };
   } catch {
@@ -27,7 +30,9 @@ function getSessionFromStorage(): Session | null {
 }
 
 export default function AccountCustomSlotProps() {
-  const [session, setSession] = React.useState<Session | null>(getSessionFromStorage());
+  const [session, setSession] = React.useState<Session | null>(
+    getSessionFromStorage()
+  );
 
   const authentication = React.useMemo(() => {
     return {
@@ -47,31 +52,36 @@ export default function AccountCustomSlotProps() {
       const response = await axios.post(
         "http://localhost:5000/api/logout",
         {},
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
       );
       console.log(response.data);
       notifySuccess("Logout successful!");
-      sessionStorage.removeItem('user');
+      sessionStorage.removeItem("user");
       setSession(null);
       navigate("/login");
     } catch (err: any) {
       console.log(err);
       notifyError(
         err?.response?.data?.message ||
-        err?.message ||
-        "Logout failed. Please try again."
+          err?.message ||
+          "Logout failed. Please try again."
       );
     }
   };
 
   function CustomPopoverContent() {
     return (
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1 }}>
         <AccountPreview variant="expanded" />
         <Divider />
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <ThemeSwitcher />
         </Box>
+        <Button variant="contained">Register Admin</Button>
+
         <SignOutButton onClick={LogoutUser} />
       </Box>
     );
@@ -94,7 +104,11 @@ export default function AccountCustomSlotProps() {
   });
 
   return (
-    <AppProvider authentication={authentication} session={session} theme={demoTheme}>
+    <AppProvider
+      authentication={authentication}
+      session={session}
+      theme={demoTheme}
+    >
       <Account
         slots={{
           popoverContent: CustomPopoverContent,

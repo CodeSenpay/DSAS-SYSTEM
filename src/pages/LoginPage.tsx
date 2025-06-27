@@ -16,6 +16,7 @@ function LoginPage() {
   type dataProps = {
     email: string;
     password: string;
+    user_level: string;
   };
 
   const { register, handleSubmit } = useForm<dataProps>();
@@ -147,6 +148,15 @@ function LoginPage() {
         >
           <img src="/LogoPNG.png" alt="logo" className="w-20 h-20" />
           <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
+          <select
+            className="w-full max-w-sm mb-2 h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-gray-700"
+            {...register("user_level")}
+            defaultValue="STUDENT"
+            required
+          >
+            <option value="STUDENT">Student</option>
+            <option value="ADMIN">Admin</option>
+          </select>
           <TextField
             label="Student ID"
             variant="outlined"
@@ -237,6 +247,11 @@ function LoginPage() {
                       document.querySelector(
                         'input[name="password"]'
                       ) as HTMLInputElement
+                    )?.value,
+                    user_level: (
+                      document.querySelector(
+                        'select[name="user_level"]'
+                      ) as HTMLSelectElement
                     )?.value,
                   });
                 } catch (err: any) {
