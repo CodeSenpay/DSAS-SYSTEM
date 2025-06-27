@@ -9,7 +9,7 @@ async function register(req, res) {
 
   try {
     const response = await registerUser(req.body);
-    console.log("Register Controller response:", response);
+    // console.log("Register Controller response:", response);
 
     return res.json(response[0].response_json);
   } catch (error) {

@@ -50,7 +50,7 @@ async function registerUser(payload, req, res) {
             };
         }
     }
-    console.log("Payload before DB call:", payload);
+    // console.log("Payload before DB call:", payload);
     try {
       const jsondata = JSON.stringify(payload);
 
