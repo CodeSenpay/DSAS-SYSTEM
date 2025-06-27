@@ -83,15 +83,14 @@ export class SchedulingModel {
     // Required fields
     const requiredFields = [
       "availability_id",
-      "transaction_id",
+      "transaction_type_id",
       "start_date",
       "end_date",
-      "capacity_per_day",
       "user_id",
-      "created_at",
-      "timewindows",
+      "time_windows",
     ];
 
+    console.log("Update availability: ", payload)
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
     if (missingFields.length > 0) {
@@ -121,6 +120,8 @@ export class SchedulingModel {
       const [rows] = await pool.query(`CALL update_availability(?)`, [
         jsondata,
       ]);
+
+
       await logger(
         {
           action: "updateAvailability",
@@ -323,7 +324,7 @@ export class SchedulingModel {
 
   static async approveAppointment(payload, req, res) {
     // Required fields
-    const requiredFields = ["appointment_id", "user_id", "appoitnment_status"];
+    const requiredFields = ["appointment_id", "user_id", "appointment_status"];
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));

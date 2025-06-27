@@ -1,6 +1,31 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
+import {
+  Box,
+  Button,
+  Card,
+  Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  type SelectChangeEvent,
+  TextField,
+  Typography,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Stack,
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import {
+  Event as EventIcon,
+  Today as TodayIcon,
+  AccessTime as TimeIcon,
+  Add as AddIcon,
+  Save as SaveIcon,
+} from "@mui/icons-material";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -8,29 +33,53 @@ type transactionTypeProps = {
   transaction_details: string;
 };
 
+type TimeWindow = {
+  time_window_id: number;
+  availability_date: string;
+  start_time_am: string;
+  end_time_am: string;
+  start_time_pm: string;
+  end_time_pm: string;
+  capacity_per_day: number;
+  total_slots_left: number;
+};
+
+type Availability = {
+  availability_id: number;
+  transaction_title: string;
+  transaction_type_id: number;
+  start_date: string;
+  end_date: string;
+  created_by: number;
+  created_at: string;
+  time_windows: TimeWindow[];
+};
+
+type TimeRange = {
+  date: string;
+  amStart: string;
+  amEnd: string;
+  pmStart: string;
+  pmEnd: string;
+  time_window_id?: number;
+};
+
+const API_URL = "http://localhost:5000/api/scheduling-system/admin";
+
 function AddAvailability() {
+  const [mode, setMode] = useState<"add" | "edit">("add");
   const [transactionType, setTransactionType] = useState("");
-  const [transactionTypes, setTransactionTypes] = useState<
-    transactionTypeProps[]
-  >([]);
+  const [transactionTypes, setTransactionTypes] = useState<transactionTypeProps[]>([]);
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
     end: "",
   });
-  const [capacity, setCapacity] = useState(15); // Default capacity
-  const [timeRanges, setTimeRanges] = useState<
-    {
-      date: string;
-      amStart: string;
-      amEnd: string;
-      pmStart: string;
-      pmEnd: string;
-    }[]
-  >([]);
-
+  const [capacity, setCapacity] = useState(15);
+  const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
+  const [existingAvailabilities, setExistingAvailabilities] = useState<Availability[]>([]);
+  const [selectedAvailability, setSelectedAvailability] = useState<Availability | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Generate dates in range
   const getDatesInRange = (start: string, end: string) => {
     const dates = [];
     let current = new Date(start);
@@ -44,7 +93,7 @@ function AddAvailability() {
 
   const handleDateRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDateRange({ ...dateRange, [e.target.name]: e.target.value });
-    setTimeRanges([]); // Reset time ranges when date range changes
+    setTimeRanges([]);
   };
 
   const handleSetTimeRanges = () => {
@@ -72,63 +121,128 @@ function AddAvailability() {
     );
   };
 
-  const handleCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCapacity(Number(e.target.value));
+  const fetchExistingAvailabilities = async (transactionTypeID: number) => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getAvailability",
+      payload: { searchkey: transactionTypeID },
+    };
+    try {
+      const response = await axios.post(API_URL, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+      if (response.data.success) {
+        setExistingAvailabilities(response.data.data);
+      } else {
+        notifyError("Failed to fetch existing availabilities.");
+      }
+    } catch (err) {
+      console.log(err);
+      notifyError("An error occurred while fetching existing availabilities.");
+    }
   };
+
+  useEffect(() => {
+    if (mode === "edit" && transactionType) {
+      fetchExistingAvailabilities(Number(transactionType));
+    }
+  }, [mode, transactionType]);
+
+  useEffect(() => {
+    if (selectedAvailability) {
+      setDateRange({ start: selectedAvailability.start_date, end: selectedAvailability.end_date });
+      setCapacity(selectedAvailability.time_windows[0].capacity_per_day);
+      setTimeRanges(
+        selectedAvailability.time_windows.map((tw) => ({
+          date: tw.availability_date,
+          amStart: tw.start_time_am.slice(0, 5),
+          amEnd: tw.end_time_am.slice(0, 5),
+          pmStart: tw.start_time_pm.slice(0, 5),
+          pmEnd: tw.end_time_pm.slice(0, 5),
+          time_window_id: tw.time_window_id,
+        }))
+      );
+    }
+  }, [selectedAvailability]);
+
+  useEffect(() => {
+    setTransactionType("");
+    setDateRange({ start: "", end: "" });
+    setCapacity(15);
+    setTimeRanges([]);
+    setExistingAvailabilities([]);
+    setSelectedAvailability(null);
+  }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Prepare payload
-      const payload = {
-        model: "schedulesModel",
-        function_name: "insertAvailability",
-        payload: {
-          transaction_type_id: transactionType,
-          start_date: dateRange.start,
-          end_date: dateRange.end,
-          created_by: 1, // Replace with actual user id if available
-          created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-          time_windows: timeRanges.map((tr) => ({
-            capacity_per_day: capacity,
-            availability_date: tr.date,
-            start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
-            end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
-            start_time_pm: tr.pmStart ? `${tr.pmStart}:00` : "",
-            end_time_pm: tr.pmEnd ? `${tr.pmEnd}:00` : "",
-          })),
-        },
-      };
-
-      console.log(payload);
-
-      // Replace with your API endpoint
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
-      console.log(response.data);
+      const userString = sessionStorage.getItem("user");
+      const user = userString ? JSON.parse(userString) : null;
+    
+      let payload;
+      if (mode === "add") {
+        payload = {
+          model: "schedulesModel",
+          function_name: "insertAvailability",
+          payload: {
+            user_id: user?.user_id,
+            transaction_type_id: transactionType,
+            start_date: dateRange.start,
+            end_date: dateRange.end,
+            created_by: 1,
+            created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+            time_windows: timeRanges.map((tr) => ({
+              capacity_per_day: capacity,
+              availability_date: tr.date,
+              start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
+              end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
+              start_time_pm: tr.pmStart ? `${tr.pmStart}:00` : "",
+              end_time_pm: tr.pmEnd ? `${tr.pmEnd}:00` : "",
+            })),
+          },
+        };
+      } else if (mode === "edit" && selectedAvailability) {
+        payload = {
+          model: "schedulesModel",
+          function_name: "updateAvailability",
+          payload: {
+            user_id: user?.user_id,
+            availability_id: selectedAvailability.availability_id,
+            transaction_type_id: transactionType,
+            start_date: dateRange.start,
+            end_date: dateRange.end,
+            time_windows: timeRanges.map((tr) => ({
+              time_window_id: tr.time_window_id,
+              capacity_per_day: capacity,
+              availability_date: tr.date,
+              start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
+              end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
+              start_time_pm: tr.pmStart ? `${tr.pmStart}:00` : "",
+              end_time_pm: tr.pmEnd ? `${tr.pmEnd}:00` : "",
+            })),
+          },
+        };
+      }
+      const response = await axios.post(API_URL, payload, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
       if (response.data.success) {
         setTimeRanges([]);
-        setDateRange({
-          start: "",
-          end: "",
-        });
+        setDateRange({ start: "", end: "" });
         setTransactionType("");
+        setSelectedAvailability(null);
+        notifySuccess(mode === "add" ? "Availability added successfully" : "Availability updated successfully");
       } else {
-        notifyError("Failed to set schedule");
+        notifyError("Failed to save availability");
       }
-    } catch (err: any) {
-      notifyError("Failed to set schedule");
-      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      notifyError("An error occurred while saving availability");
     } finally {
-      notifySuccess("Schedule is set successfully");
       setLoading(false);
     }
   };
@@ -139,18 +253,12 @@ function AddAvailability() {
       function_name: "getTransactionType",
       payload: {},
     };
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await axios.post(API_URL, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
       setTransactionTypes(response.data.data);
-      console.log(response);
     } catch (err) {
       console.log(err);
     }
@@ -161,215 +269,244 @@ function AddAvailability() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center py-10">
-      <form
-        className="w-full max-w-3xl bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-10 border border-blue-100"
-        style={{ padding: "20px" }}
-        onSubmit={handleSubmit}
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+      bgcolor="background.paper"
+      p={2}
+    >
+      <Card
+        sx={{
+          width: "100%",
+          maxWidth: "900px",
+          p: 4,
+          borderRadius: 2,
+          boxShadow: 2,
+        }}
       >
-        <div className="flex items-center gap-3 mb-8">
-          <div className="bg-blue-600 text-white rounded-full p-3 shadow-lg">
-            <svg
-              width={28}
-              height={28}
-              fill="none"
-              viewBox="0 0 24 24"
-              className="inline"
-            >
-              <rect width="24" height="24" rx="12" fill="#2563eb" />
-              <path
-                d="M7 10V8a5 5 0 0 1 10 0v2"
-                stroke="#fff"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              <rect
-                x="5"
-                y="10"
-                width="14"
-                height="9"
-                rx="2"
-                stroke="#fff"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M9 15h.01M12 15h.01M15 15h.01"
-                stroke="#fff"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-extrabold text-blue-800 tracking-tight">
-            Add Availability
-          </h2>
-        </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Transaction Type
-          </label>
-          <select
-            className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50 text-blue-900 font-medium transition"
-            value={transactionType}
-            onChange={(e) => setTransactionType(e.target.value)}
-            required
+        <Stack direction="row" alignItems="center" spacing={2} mb={4}>
+          <EventIcon color="primary" fontSize="large" />
+          <Typography variant="h5" fontWeight="bold" color="primary">
+            {mode === "add" ? "Add Availability" : "Edit Availability"}
+          </Typography>
+        </Stack>
+
+        <FormControl component="fieldset" sx={{ mb: 3 }}>
+          <RadioGroup
+            row
+            value={mode}
+            onChange={(e) => setMode(e.target.value as "add" | "edit")}
           >
-            <option value="">Select Type</option>
-            {transactionTypes.map((type: transactionTypeProps) =>
-              type ? (
-                <option
-                  key={type.transaction_type_id}
-                  value={type.transaction_type_id}
+            <FormControlLabel
+              value="add"
+              control={<Radio />}
+              label="Add New"
+            />
+            <FormControlLabel
+              value="edit"
+              control={<Radio />}
+              label="Edit Existing"
+            />
+          </RadioGroup>
+        </FormControl>
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid>
+              <FormControl fullWidth>
+                <InputLabel>Transaction Type</InputLabel>
+                <Select
+                  value={transactionType}
+                  onChange={(e: SelectChangeEvent) => setTransactionType(e.target.value)}
+                  label="Transaction Type"
+                  required
                 >
-                  {type.transaction_title}
-                </option>
-              ) : null
+                  <MenuItem value="">Select Type</MenuItem>
+                  {transactionTypes.map((type) =>
+                    type ? (
+                      <MenuItem
+                        key={type.transaction_type_id}
+                        value={type.transaction_type_id}
+                      >
+                        {type.transaction_title}
+                      </MenuItem>
+                    ) : null
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {mode === "edit" && transactionType && (
+              <Grid>
+                <FormControl fullWidth>
+                  <InputLabel>Existing Availability</InputLabel>
+                  <Select
+                    value={selectedAvailability?.availability_id || ""}
+                    onChange={(e) => {
+                      const avail = existingAvailabilities.find(
+                        (a) => a.availability_id === Number(e.target.value)
+                      );
+                      setSelectedAvailability(avail || null);
+                    }}
+                    label="Existing Availability"
+                  >
+                    <MenuItem value="">Select Availability</MenuItem>
+                    {existingAvailabilities.map((a) => (
+                      <MenuItem key={a.availability_id} value={a.availability_id}>
+                        {a.start_date} to {a.end_date}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             )}
-          </select>
-        </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Capacity Per Day
-          </label>
-          <input
-            type="number"
-            min={1}
-            value={capacity}
-            onChange={handleCapacityChange}
-            className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50 text-blue-900 font-medium transition"
-            required
-          />
-        </div>
-        <div className="flex flex-col md:flex-row items-end gap-4 mb-6">
-          <div className="flex-1">
-            <label className="block text-gray-700 font-semibold mb-1">
-              Start Date
-            </label>
-            <input
-              type="date"
-              name="start"
-              value={dateRange.start}
-              onChange={handleDateRangeChange}
-              className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50 text-blue-900 font-medium"
-              required
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-gray-700 font-semibold mb-1">
-              End Date
-            </label>
-            <input
-              type="date"
-              name="end"
-              value={dateRange.end}
-              onChange={handleDateRangeChange}
-              className="w-full px-3 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50 text-blue-900 font-medium"
-              required
-            />
-          </div>
-          <button
-            type="button"
-            className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-blue-600 transition disabled:opacity-50"
-            disabled={!dateRange.start || !dateRange.end}
-            onClick={handleSetTimeRanges}
-          >
-            Set Dates
-          </button>
-        </div>
-        {timeRanges.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-bold mb-4 text-blue-700 flex items-center gap-2">
-              <svg
-                width={20}
-                height={20}
-                fill="none"
-                viewBox="0 0 20 20"
-                className="inline"
-              >
-                <rect width="20" height="20" rx="10" fill="#2563eb" />
-                <path
-                  d="M6 10h8M10 6v8"
-                  stroke="#fff"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Set Time Ranges for Each Date
-            </h3>
-            <div className="space-y-6">
-              {timeRanges.map((tr, idx) => (
-                <div
-                  key={tr.date}
-                  className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200 shadow flex flex-col md:flex-row md:items-center gap-4"
+
+            <Grid>
+              <TextField
+                fullWidth
+                type="number"
+                label="Capacity Per Day"
+                value={capacity}
+                onChange={(e) => setCapacity(Number(e.target.value))}
+                inputProps={{ min: 1 }}
+                required
+              />
+            </Grid>
+
+            <Grid>
+              <TextField
+                fullWidth
+                type="date"
+                label="Start Date"
+                name="start"
+                value={dateRange.start}
+                onChange={handleDateRangeChange}
+                InputLabelProps={{ shrink: true }}
+                required
+                disabled={mode === "edit" && !!selectedAvailability}
+              />
+            </Grid>
+
+            <Grid>
+              <TextField
+                fullWidth
+                type="date"
+                label="End Date"
+                name="end"
+                value={dateRange.end}
+                onChange={handleDateRangeChange}
+                InputLabelProps={{ shrink: true }}
+                required
+                disabled={mode === "edit" && !!selectedAvailability}
+              />
+            </Grid>
+
+            {mode === "add" && (
+              <Grid>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={handleSetTimeRanges}
+                  disabled={!dateRange.start || !dateRange.end}
                 >
-                  <div className="font-semibold text-blue-700 mb-2 md:mb-0 md:w-32">
-                    {tr.date}
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-4 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-600 font-semibold">AM</span>
-                      <input
-                        type="time"
-                        value={tr.amStart}
-                        onChange={(e) =>
-                          handleTimeChange(idx, "amStart", e.target.value)
-                        }
-                        className="px-2 py-1 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-blue-900 font-medium"
-                        required
-                      />
-                      <span className="mx-1 text-gray-400">-</span>
-                      <input
-                        type="time"
-                        value={tr.amEnd}
-                        onChange={(e) =>
-                          handleTimeChange(idx, "amEnd", e.target.value)
-                        }
-                        className="px-2 py-1 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-blue-900 font-medium"
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-600 font-semibold">PM</span>
-                      <input
-                        type="time"
-                        value={tr.pmStart}
-                        onChange={(e) =>
-                          handleTimeChange(idx, "pmStart", e.target.value)
-                        }
-                        className="px-2 py-1 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-blue-900 font-medium"
-                        required
-                      />
-                      <span className="mx-1 text-gray-400">-</span>
-                      <input
-                        type="time"
-                        value={tr.pmEnd}
-                        onChange={(e) =>
-                          handleTimeChange(idx, "pmEnd", e.target.value)
-                        }
-                        className="px-2 py-1 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-blue-900 font-medium"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {timeRanges.length > 0 && (
-          <div className="mt-10 flex justify-end">
-            <button
-              type="submit"
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition"
-              style={{ padding: "5px" }}
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Save Availability"}
-            </button>
-          </div>
-        )}
-      </form>
-    </div>
+                  Set
+                </Button>
+              </Grid>
+            )}
+          </Grid>
+
+          {timeRanges.length > 0 && (
+            <Box mt={4}>
+              <Stack direction="row" alignItems="center" spacing={1} mb={3}>
+                <TimeIcon color="primary" />
+                <Typography variant="h6">Time Slots Configuration</Typography>
+              </Stack>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Grid container spacing={2}>
+                {timeRanges.map((tr, idx) => (
+                  <Grid key={tr.date}>
+                    <Card variant="outlined" sx={{ p: 2 }}>
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid>
+                          <Typography variant="subtitle1" color="text.secondary">
+                            {tr.date}
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography variant="body2">AM:</Typography>
+                            <TextField
+                              type="time"
+                              size="small"
+                              value={tr.amStart}
+                              onChange={(e) => handleTimeChange(idx, "amStart", e.target.value)}
+                              required
+                            />
+                            <Typography variant="body2">to</Typography>
+                            <TextField
+                              type="time"
+                              size="small"
+                              value={tr.amEnd}
+                              onChange={(e) => handleTimeChange(idx, "amEnd", e.target.value)}
+                              required
+                            />
+                          </Stack>
+                        </Grid>
+                        
+                        <Grid>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography variant="body2">PM:</Typography>
+                            <TextField
+                              type="time"
+                              size="small"
+                              value={tr.pmStart}
+                              onChange={(e) => handleTimeChange(idx, "pmStart", e.target.value)}
+                              required
+                            />
+                            <Typography variant="body2">to</Typography>
+                            <TextField
+                              type="time"
+                              size="small"
+                              value={tr.pmEnd}
+                              onChange={(e) => handleTimeChange(idx, "pmEnd", e.target.value)}
+                              required
+                            />
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Box mt={4} display="flex" justifyContent="flex-end">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  startIcon={<SaveIcon />}
+                  disabled={loading}
+                >
+                  {loading 
+                    ? "Saving..." 
+                    : mode === "add" 
+                      ? "Save Availability" 
+                      : "Update Availability"}
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      </Card>
+    </Box>
   );
 }
 
