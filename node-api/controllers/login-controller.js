@@ -25,14 +25,24 @@ async function login(req, res) {
         });
     }
 
-    const userId = response.user?.id || response.user?._id;
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "8h" });
+    const userId = response.user.user_id;
+    const user_level = response.user.user_level;
+    const token = jwt.sign({ userId, user_level }, JWT_SECRET, { expiresIn: "8h" });
+
+    // If a token already exists, clear it before setting a new one
+    if (req.cookies && req.cookies.token) {
+      res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      });
+    }
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 1000,
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
     });
 
     return res.json({ success: true, user: response.user });
@@ -100,7 +110,7 @@ async function verifyOtpController(req, res) {
 
   try {
     const result = await verifyOtp(email, otp);
-    console.log("Verify OTP Result:", result[0][0].result)
+    // console.log("Verify OTP Result:", result[0][0].result)
 
     const verifyResult = result[0][0].result;
 

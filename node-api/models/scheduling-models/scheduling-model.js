@@ -261,7 +261,8 @@ export class SchedulingModel {
     // Required fields
     const requiredFields = [
       "appointment_id",
-      "transaction_title",
+      "appointment_status",
+      "transaction_type_id",
       "user_id",
       "appointment_date",
     ];
@@ -325,8 +326,7 @@ export class SchedulingModel {
     const requiredFields = [
       "appointment_id",
       "user_id",
-      "status",
-      "date_approved",
+      "appoitnment_status",
     ];
 
     // Check for missing fields
