@@ -125,14 +125,17 @@ function Calendar({
       notifyError("Please select Either AM or PM");
       return;
     }
+    const userString = sessionStorage.getItem("user");
 
+    const user = userString ? JSON.parse(userString) : null;
+    console.log(user);
     const data = {
       model: "schedulesModel",
       function_name: "insertAppointment",
       payload: {
         time_frame: selectedTimeFrame,
         transaction_type_id: transactionTypeID,
-        user_id: "21-A-01760",
+        user_id: user?.user_id,
         appointment_date: formattedDate,
       },
     };

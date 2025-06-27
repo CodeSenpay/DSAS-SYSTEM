@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-
+import { notifyError, notifySuccess } from "../components/ToastUtils";
 type TimeWindow = {
   end_time_am: string;
   end_time_pm: string;
@@ -23,33 +23,77 @@ type Availability = {
   time_windows: TimeWindow[];
 };
 
-const API_URL = "http://localhost:5000/api/scheduling-system/user"; // Change to your actual API endpoint
+type transactionTypeProps = {
+  transaction_type_id: number;
+  transaction_title: string;
+  transaction_details: string;
+};
+
+const API_URL = "http://localhost:5000/api/scheduling-system/admin"; // Change to your actual API endpoint
 
 function AdjustAvailability() {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [loading, setLoading] = useState(true);
+  const [transactionTypes, setTransactionTypes] = useState<
+    transactionTypeProps[]
+  >([]);
 
-  const getAvailability = async () => {
+  const getAvailability = async (transactionTypeID: number) => {
     const data = {
       model: "schedulesModel",
       function_name: "getAvailability",
       payload: {
-        searchkey: "",
+        searchkey: transactionTypeID,
       },
     };
-
+    setLoading(true);
     try {
       const response = await axios.post(API_URL, data, {
         headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       });
 
-      console.log(response.data);
+      if (response.data.success) {
+        setAvailabilities(response.data.data);
+        notifySuccess("Availability data fetched successfully.");
+        console.log("Response:", response.data.data);
+      } else {
+        console.log(response.data);
+        notifyError("Failed to fetch availability data.");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTransactionType = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getTransactionType",
+      payload: {},
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      setTransactionTypes(response.data.data);
+      console.log(response);
     } catch (err) {
       console.log(err);
     }
   };
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    getTransactionType();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-10 px-4">
@@ -59,14 +103,23 @@ function AdjustAvailability() {
         </h1>
         <select
           className="border border-blue-300 rounded-lg px-5 py-3 text-blue-900 bg-white shadow focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 w-full max-w-xs"
-          defaultValue=""
+          defaultValue={""}
+          onChange={(e) => getAvailability(parseInt(e.target.value))}
+          required
         >
           <option value="" disabled>
             Select Transaction Type
           </option>
-          <option value="Subsidy">Subsidy</option>
-          <option value="Clearance">Clearance</option>
-          <option value="Claiming of ID">Claiming of ID</option>
+          {transactionTypes.map((type: transactionTypeProps) =>
+            type ? (
+              <option
+                key={type.transaction_type_id}
+                value={type.transaction_type_id}
+              >
+                {type.transaction_title}
+              </option>
+            ) : null
+          )}
         </select>
       </div>
       {loading ? (

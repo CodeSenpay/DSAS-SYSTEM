@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
-import { loginUser, logoutUser, sendOtpToEmail, verifyOtp } from "../models/login-model.js";
 import logger from "../middleware/logger.js";
+import {
+  loginUser,
+  logoutUser,
+  sendOtpToEmail,
+  verifyOtp,
+} from "../models/login-model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -17,24 +22,24 @@ async function login(req, res) {
 
     // console.log("Login Response:", response);
     if (!response.success) {
-      return res
-        .status(response.status || 401)
-        .json({
-          success: false,
-          message: response.message || "Invalid credentials.",
-        });
+      return res.status(response.status || 401).json({
+        success: false,
+        message: response.message || "Invalid credentials.",
+      });
     }
 
     const userId = response.user.user_id;
     const user_level = response.user.user_level;
-    const token = jwt.sign({ userId, user_level }, JWT_SECRET, { expiresIn: "8h" });
+    const token = jwt.sign({ userId, user_level }, JWT_SECRET, {
+      expiresIn: "8h",
+    });
 
     // If a token already exists, clear it before setting a new one
     if (req.cookies && req.cookies.token) {
       res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
       });
     }
 
@@ -79,11 +84,13 @@ async function logout(req, res) {
   }
 }
 
-async function sendOtp(req, res){
+async function sendOtp(req, res) {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json({ success: false, message: "Email is required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email is required." });
   }
 
   try {
@@ -97,7 +104,9 @@ async function sendOtp(req, res){
       });
     }
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 }
 
@@ -105,7 +114,9 @@ async function verifyOtpController(req, res) {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
-    return res.status(400).json({ success: false, message: "Email and OTP are required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email and OTP are required." });
   }
 
   try {
@@ -117,11 +128,17 @@ async function verifyOtpController(req, res) {
     if (verifyResult?.status === 200) {
       return res.json({ success: true, message: "OTP verified successfully." });
     } else {
-      return res.status(401).json({ success: false, message: verifyResult?.message || "Invalid OTP." });
+      return res.status(401).json({
+        success: false,
+        message: verifyResult?.message || "Invalid OTP.",
+      });
     }
   } catch (error) {
     console.error("OTP verification error:", error);
-    return res.status(error.status || 500).json({ success: false, message: error.message || "Internal server error" });
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 }
 

@@ -16,31 +16,79 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+import Loading from "../components/Loading";
+import { notifyError, notifySuccess } from "../components/ToastUtils";
+
 type transactionTypeProps = {
   transaction_type_id: number;
   transaction_title: string;
   transaction_details: string;
 };
 
+type appointmentProps = {
+  appointment_id: string;
+  transaction_title: string;
+  appointment_date: string;
+  appointment_status: string;
+  start_time: string;
+  end_time: string;
+  user_id: string;
+};
+
 function ApproveTransactionPage() {
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedType, setSelectedType] = useState<number>();
   const [selectedDate, setSelectedDate] = useState("");
-  const [appointments, setAppointments] = useState([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
 
   // For search trigger
-  const [searchType, setSearchType] = useState("all");
+  const [searchType, setSearchType] = useState<number>(0);
   const [searchDate, setSearchDate] = useState("");
 
-  const handleApprove = (id: number) => {};
+  const handleApprove = (data: appointmentProps) => {
+    const dataPayload = {
+      model: "schedulesModel",
+      function_name: "approveAppointment",
+      payload: {
+        user_id: data.user_id,
+        appointment_id: data.appointment_id,
+        appointment_status: "Approved",
+      },
+    };
 
-  const handleDecline = (id: number) => {};
+    axios
+      .post("http://localhost:5000/api/scheduling-system/admin", dataPayload, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((response) => {
+        console.log(response.data);
+        if (response.data.success) {
+          notifySuccess("Appointment approved successfully.");
+          // Optionally, refresh the appointments list
+          handleSearch();
+        } else {
+          notifyError("Failed to approve appointment.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        notifyError("An error occurred while approving the appointment.");
+      })
+      .finally(() => {
+        // Optionally, you can reset the selected appointment or perform other actions
+      });
+  };
+
+  const handleDecline = (data: appointmentProps) => {};
 
   // Only filter when Search is clicked
-  const [filteredAppointments, setFilteredAppointments] =
-    useState(appointments);
+  const [filteredAppointments, setFilteredAppointments] = useState<
+    appointmentProps[]
+  >([]);
 
   const handleSearch = async () => {
     const data = {
@@ -50,29 +98,30 @@ function ApproveTransactionPage() {
         appointment_id: "",
         appointment_status: "Pending",
         appointment_date: selectedDate || "",
-        transaction_title: selectedType || "",
+        transaction_type_id: selectedType || "",
         user_id: "",
       },
     };
-    console.log(data);
-    // try {
-    //   const response = await axios.post(
-    //     "http://localhost:5000/api/scheduling-system/admin",
-    //     data,
-    //     {
-    //       headers: { "Content-Type": "application/json" },
-    //       withCredentials: true,
-    //     }
-    //   );
-    //   console.log(response.data);
-    //   // setAppointments();
-    // } catch (err) {
-    //   console.log(err);
-    // }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      setFilteredAppointments(response.data.data);
+      // setAppointments();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // Keep search fields in sync with filter fields
-  const handleTypeChange = (value: string) => {
+  const handleTypeChange = (value: number) => {
     setSelectedType(value);
     setSearchType(value);
   };
@@ -97,7 +146,7 @@ function ApproveTransactionPage() {
           withCredentials: true,
         }
       );
-      console.log(response.data.data);
+
       setTransactionTypes(response.data.data);
     } catch (err) {
       console.log(err);
@@ -109,6 +158,7 @@ function ApproveTransactionPage() {
   // But only for the last search
   // eslint-disable-next-line
   useEffect(() => {
+    handleSearch();
     getTransactionTypes();
 
     // eslint-disable-next-line
@@ -116,6 +166,7 @@ function ApproveTransactionPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
+      {isLoading && <Loading />}
       <Paper
         elevation={3}
         className="p-8 rounded-xl bg-white shadow-lg"
@@ -136,6 +187,7 @@ function ApproveTransactionPage() {
               label="Transaction Type"
               onChange={(e) => handleTypeChange(e.target.value)}
             >
+              <MenuItem value={""}>ALL</MenuItem>
               {transactionTypes.map((type) => (
                 <MenuItem
                   key={type.transaction_type_id}
@@ -171,7 +223,7 @@ function ApproveTransactionPage() {
               <TableRow>
                 <TableCell className="font-semibold">Type</TableCell>
                 <TableCell className="font-semibold">Date</TableCell>
-                <TableCell className="font-semibold">Name</TableCell>
+                <TableCell className="font-semibold">User ID</TableCell>
                 <TableCell className="font-semibold">Details</TableCell>
                 <TableCell className="font-semibold">Status</TableCell>
                 <TableCell className="font-semibold">Action</TableCell>
@@ -186,22 +238,24 @@ function ApproveTransactionPage() {
                 </TableRow>
               ) : (
                 filteredAppointments.map((appt) => (
-                  <TableRow key={appt}>
-                    <TableCell className="capitalize">{appt}</TableCell>
-                    <TableCell>{appt}</TableCell>
-                    <TableCell>{appt}</TableCell>
-                    <TableCell>{appt}</TableCell>
+                  <TableRow key={appt.appointment_id}>
+                    <TableCell className="capitalize">
+                      {appt.transaction_title}
+                    </TableCell>
+                    <TableCell>{appt.appointment_date}</TableCell>
+                    <TableCell>{appt.user_id}</TableCell>
+                    <TableCell>{appt.transaction_title}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          appt === "pending"
+                          appt.appointment_status.toLowerCase() === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : appt === "approved"
+                            : appt.appointment_status === "approved"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {appt}
+                        {appt.appointment_status}
                       </span>
                     </TableCell>
                     <TableCell>

@@ -323,11 +323,7 @@ export class SchedulingModel {
 
   static async approveAppointment(payload, req, res) {
     // Required fields
-    const requiredFields = [
-      "appointment_id",
-      "user_id",
-      "appoitnment_status",
-    ];
+    const requiredFields = ["appointment_id", "user_id", "appoitnment_status"];
 
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));

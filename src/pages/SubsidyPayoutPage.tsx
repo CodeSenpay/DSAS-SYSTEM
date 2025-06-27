@@ -39,6 +39,9 @@ function SubsidyPayoutPage() {
   };
 
   const fetchTransactionsByType = async () => {
+    const userString = sessionStorage.getItem("user");
+
+    const user = userString ? JSON.parse(userString) : null;
     const data = {
       model: "schedulesModel",
       function_name: "getAppointment",
@@ -46,8 +49,8 @@ function SubsidyPayoutPage() {
         appointment_id: "",
         appointment_status: "",
         appointment_date: "",
-        transaction_title: "Subsidy",
-        user_id: "",
+        transaction_type_id: 2,
+        user_id: user?.user_id,
       },
     };
     try {

@@ -37,6 +37,9 @@ function ClaimingOfIDPage() {
   };
 
   const fetchTransactionsByType = async () => {
+    const userString = sessionStorage.getItem("user");
+
+    const user = userString ? JSON.parse(userString) : null;
     const data = {
       model: "schedulesModel",
       function_name: "getAppointment",
@@ -44,8 +47,8 @@ function ClaimingOfIDPage() {
         appointment_id: "",
         appointment_status: "",
         appointment_date: "",
-        transaction_title: "Claiming of ID",
-        user_id: "",
+        transaction_type_id: 1,
+        user_id: user?.user_id,
       },
     };
     try {

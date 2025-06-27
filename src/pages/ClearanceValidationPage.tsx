@@ -45,7 +45,7 @@ function ClearanceValidationPage() {
         appointment_id: "",
         appointment_status: "",
         appointment_date: "",
-        transaction_title: "Clearance",
+        transaction_type_id: 3,
         user_id: "",
       },
     };
