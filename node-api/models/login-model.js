@@ -3,6 +3,7 @@ import crypto from "crypto";
 import transporter from "../middleware/mailer.js";
 import { console } from "inspector";
 import logger from "../middleware/logger.js";
+import axios from "axios";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdmin(data, req, res) {
@@ -101,18 +102,85 @@ async function loginAdmin(data, req, res) {
 
 // Sample loginArmsAPI function returning a sample login response from an API
 async function loginStudent(params, req, res) {
-  // Simulate a successful login response from an external API
-  return {
-    success: true,
-    message: "Login successful (ARMS API)",
-    user: {
-      id: 12345,
-      email: params.email,
-      name: "John Doe",
-      user_level: "STUDENT",
-      token: "sample.jwt.token",
-    },
-  };
+  // First, get the ARMS token using registerToArmsToken
+  const tokenResponse = await registerToArmsToken(
+    params.student_id,
+    params.password
+  );
+
+  if (!tokenResponse || !tokenResponse.success || !tokenResponse.token) {
+    return {
+      success: false,
+      message: tokenResponse?.message || "Failed to get ARMS token",
+      error: tokenResponse?.error || null,
+    };
+  }
+
+  //TODO: Check in the local database first before logging in using the ARMS API
+
+  const url =
+    "https://jrmsu-arms.online/api/version-2/services/student/account/login";
+  try {
+    const response = await axios.post(
+      url,
+      {
+        Username: params.student_id,
+        Password: params.password,
+      },
+      {
+        headers: {
+          "Secret-Key": tokenResponse.Secret_Key,
+          "User-Agent": "Coderstation-Protocol",
+        },
+      }
+    );
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        message: "Login successful (ARMS API)",
+        user: response.data.user || {},
+        token: response.data.token || null,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data?.message || "Login failed",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: "Failed to login to ARMS API",
+      error: error.response?.data?.message || error.message,
+    };
+  }
+}
+
+async function registerToArmsToken() {
+  const key = process.env.API_KEY;
+  const secret = process.env.API_SECRET;
+  const url =
+    "https://jrmsu-arms.online/api/version-2/services/credential/token/request";
+  try {
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          "Api-Key": key,
+          "Api-Secret": secret,
+          "User-Agent": "Coderstation-Protocol",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: "Failed to register to ARMS token",
+      error: error.message,
+    };
+  }
 }
 
 async function logoutUser(req, res) {
