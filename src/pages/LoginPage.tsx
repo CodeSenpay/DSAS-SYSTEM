@@ -85,7 +85,7 @@ function LoginPage() {
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/login",
+        "http://localhost:5000/api/login-admin",
         data,
         {
           headers: { "Content-Type": "application/json" },
