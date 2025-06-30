@@ -1,13 +1,15 @@
-const JWT_SECRET = process.env.JWT_SECRET;
 import pool from "../config/db.conf.js";
 import crypto from "crypto";
 import transporter from "../middleware/mailer.js";
 import { console } from "inspector";
 import logger from "../middleware/logger.js";
+const JWT_SECRET = process.env.JWT_SECRET;
 
-async function loginUser(data, req, res) {
+async function loginAdmin(data, req, res) {
   try {
     const { email, password } = data;
+
+    // Original function for non-student user levels
     const payload = JSON.stringify({ email });
     const [result] = await pool.query(`CALL login_user(?)`, [payload]);
 
@@ -66,10 +68,7 @@ async function loginUser(data, req, res) {
         action: "login_success",
         user_id: email || null,
         details: `User logged in: ${email}`,
-        timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
       res
@@ -87,10 +86,7 @@ async function loginUser(data, req, res) {
         action: "login_error",
         user_id: data?.email || null,
         details: `Login error for email: ${data?.email || "unknown"} - ${error.message}`,
-        timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
       res
@@ -101,6 +97,22 @@ async function loginUser(data, req, res) {
       details: error.message,
     };
   }
+}
+
+// Sample loginArmsAPI function returning a sample login response from an API
+async function loginStudent(params, req, res) {
+  // Simulate a successful login response from an external API
+  return {
+    success: true,
+    message: "Login successful (ARMS API)",
+    user: {
+      id: 12345,
+      email: params.email,
+      name: "John Doe",
+      user_level: "STUDENT",
+      token: "sample.jwt.token",
+    },
+  };
 }
 
 async function logoutUser(req, res) {
@@ -198,4 +210,4 @@ async function verifyOtp(email, otp) {
   }
 }
 
-export { loginUser, logoutUser, sendOtpToEmail, verifyOtp };
+export { loginAdmin, loginStudent, logoutUser, sendOtpToEmail, verifyOtp };
