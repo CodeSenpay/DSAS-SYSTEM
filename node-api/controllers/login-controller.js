@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import logger from "../middleware/logger.js";
 import {
-  loginUser,
+  loginAdmin,
+  loginStudent,
   logoutUser,
   sendOtpToEmail,
   verifyOtp,
@@ -9,7 +10,9 @@ import {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-async function login(req, res) {
+async function loginAdminController(req, res) {
+  console.log("Student login-controller Data: ", req.body);
+
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
       .status(400)
@@ -18,7 +21,7 @@ async function login(req, res) {
 
   try {
     const { email, password } = req.body;
-    const response = await loginUser({ email, password });
+    const response = await loginAdmin({ email, password });
 
     // console.log("Login Response:", response);
     if (!response.success) {
@@ -29,8 +32,62 @@ async function login(req, res) {
     }
 
     const userId = response.user.user_id;
-    const user_level = response.user.user_level;
-    const token = jwt.sign({ userId, user_level }, JWT_SECRET, {
+    const userLevel = response.user.user_level;
+    const token = jwt.sign({ userId, userLevel }, JWT_SECRET, {
+      expiresIn: "8h",
+    });
+
+    // If a token already exists, clear it before setting a new one
+    if (req.cookies && req.cookies.token) {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+    }
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    });
+
+    return res.json({ success: true, user: response.user });
+  } catch (error) {
+    console.error("Login error:", error);
+    if (!res.headersSent) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+}
+
+async function loginStudentController(req, res) {
+  console.log("Student login-controller Data: ", req.body);
+
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No data provided." });
+  }
+
+  try {
+    const { email, password } = req.body;
+    const response = await loginStudent({ email, password });
+
+    // console.log("Login Response:", response);
+    if (!response.success) {
+      return res.status(response.status || 401).json({
+        success: false,
+        message: response.message || "Invalid credentials.",
+      });
+    }
+
+    const userId = response.user.user_id;
+    const userLevel = response.user.user_level;
+    const token = jwt.sign({ userId, userLevel }, JWT_SECRET, {
       expiresIn: "8h",
     });
 
@@ -142,4 +199,10 @@ async function verifyOtpController(req, res) {
   }
 }
 
-export { login, logout, sendOtp, verifyOtpController };
+export {
+  loginAdminController,
+  loginStudentController,
+  logout,
+  sendOtp,
+  verifyOtpController,
+};
