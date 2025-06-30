@@ -19,6 +19,7 @@ import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
 import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
+
 const NAVIGATION: Navigation = [
   {
     kind: "header",
@@ -124,9 +125,11 @@ function CustomToolbarActions() {
 
 export default function AdminDashboardPage() {
   const router = useDemoRouter("/admin-dashboard");
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Remove this const when copying and pasting into your project.
-
+  {
+    isModalOpen && <>Hello WORLD</>;
+  }
   return (
     <AppProvider
       navigation={NAVIGATION}

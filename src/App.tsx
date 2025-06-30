@@ -9,6 +9,7 @@ import {
 import { ToastContainer } from "react-toastify";
 import Loading from "./components/Loading";
 import LoginPage from "./pages/LoginPage";
+import LoginPageStudent from "./pages/LoginPageStudent";
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
 const VMGOPage = lazy(() => import("./pages/VMGOPage"));
@@ -16,6 +17,7 @@ const AboutUsPage = lazy(() => import("./pages/AboutUsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SubsidyPayoutPage = lazy(() => import("./pages/SubsidyPayoutPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminSection"));
+
 const ClearanceValidationPage = lazy(
   () => import("./pages/ClearanceValidationPage")
 );
@@ -25,7 +27,8 @@ function App() {
     createRoutesFromElements(
       <Route>
         <Route path="/" element={<Navigate to="login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPageStudent />} />
+        <Route path="/login/admin" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/calendar"
@@ -36,6 +39,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/subsidy-payout" element={<SubsidyPayoutPage />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
         <Route
           path="/clearance-validation"
           element={<ClearanceValidationPage />}

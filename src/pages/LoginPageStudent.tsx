@@ -12,7 +12,8 @@ import {
 } from "../components/ToastUtils";
 
 import { IconButton, InputAdornment } from "@mui/material";
-function LoginPage() {
+
+function LoginPageStudent() {
   type dataProps = {
     email: string;
     password: string;
@@ -137,7 +138,6 @@ function LoginPage() {
         : user[0] + "*".repeat(user.length - 2) + user[user.length - 1];
     return `${maskedUser}@${domain}`;
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
@@ -148,7 +148,6 @@ function LoginPage() {
         >
           <img src="/LogoPNG.png" alt="logo" className="w-20 h-20" />
           <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
-          <p>ADMIN</p>
           <TextField
             label="Student ID"
             variant="outlined"
@@ -286,4 +285,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default LoginPageStudent;
