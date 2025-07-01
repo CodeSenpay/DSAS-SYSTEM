@@ -29,7 +29,13 @@ function getSessionFromStorage(): Session | null {
   }
 }
 
-export default function AccountCustomSlotProps() {
+type AccountCustomSlotPropsProps = {
+  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export default function AccountCustomSlotProps({
+  setIsModalOpen,
+}: AccountCustomSlotPropsProps) {
   const [session, setSession] = React.useState<Session | null>(
     getSessionFromStorage()
   );
@@ -72,6 +78,10 @@ export default function AccountCustomSlotProps() {
     }
   };
 
+  function handleRegisterAdmin() {
+    setIsModalOpen(true);
+  }
+
   function CustomPopoverContent() {
     return (
       <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1 }}>
@@ -80,7 +90,9 @@ export default function AccountCustomSlotProps() {
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <ThemeSwitcher />
         </Box>
-        <Button variant="contained">Register Admin</Button>
+        <Button variant="contained" onClick={handleRegisterAdmin}>
+          Register Admin
+        </Button>
 
         <SignOutButton onClick={LogoutUser} />
       </Box>

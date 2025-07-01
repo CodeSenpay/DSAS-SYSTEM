@@ -9,12 +9,12 @@ import type { Navigation, Router } from "@toolpad/core/AppProvider";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
-import { useMemo, useState } from "react";
-
-import React from "react";
+import React, { useMemo, useState } from "react";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 import AddAvailability from "./AddAvailability";
+import RegisterAdminPage from "./RegisterAdminPage";
 
+import Modal from "../components/Modal";
 import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
 import ReportPage from "./ReportPage";
@@ -114,37 +114,40 @@ function renderCurrentPage(pathname: string) {
   }
 }
 
-function CustomToolbarActions() {
-  return (
-    <React.Fragment>
-      {/* Add your custom button */}
-      <AccountCustomSlotProps />
-    </React.Fragment>
-  );
-}
-
 export default function AdminDashboardPage() {
   const router = useDemoRouter("/admin-dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Remove this const when copying and pasting into your project.
-  {
-    isModalOpen && <>Hello WORLD</>;
+  function CustomToolbarActions() {
+    return (
+      <React.Fragment>
+        <AccountCustomSlotProps setIsModalOpen={setIsModalOpen} />
+      </React.Fragment>
+    );
   }
   return (
-    <AppProvider
-      navigation={NAVIGATION}
-      router={router}
-      theme={demoTheme}
-      branding={{
-        logo: <img src="/LogoPNG.png" />,
-        title: "JRMSU DSASADMIN",
-      }}
-    >
-      <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
-        <PageContainer title="" breadcrumbs={[]}>
-          {renderCurrentPage(router.pathname)}
-        </PageContainer>
-      </DashboardLayout>
-    </AppProvider>
+    <>
+      {isModalOpen && (
+        <Modal isOpen={isModalOpen} handleClose={() => setIsModalOpen(false)}>
+          <RegisterAdminPage />
+        </Modal>
+      )}
+
+      <AppProvider
+        navigation={NAVIGATION}
+        router={router}
+        theme={demoTheme}
+        branding={{
+          logo: <img src="/LogoPNG.png" />,
+          title: "JRMSU DSASADMIN",
+        }}
+      >
+        <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
+          <PageContainer title="" breadcrumbs={[]}>
+            {renderCurrentPage(router.pathname)}
+          </PageContainer>
+        </DashboardLayout>
+      </AppProvider>
+    </>
   );
 }

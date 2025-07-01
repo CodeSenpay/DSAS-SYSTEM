@@ -199,10 +199,33 @@ async function verifyOtpController(req, res) {
   }
 }
 
+const verifyJwt = async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    res.json({
+      success: false,
+      message: "Unauthorized access. No token provided.",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.json({ success: true, user: decoded });
+  } catch (error) {
+    console.error("JWT verification error:", error);
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized access. Invalid token.",
+    });
+  }
+};
+
 export {
   loginAdminController,
   loginStudentController,
   logout,
   sendOtp,
+  verifyJwt,
   verifyOtpController,
 };

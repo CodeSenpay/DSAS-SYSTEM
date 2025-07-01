@@ -5,6 +5,7 @@ import {
   loginStudentController,
   logout,
   sendOtp,
+  verifyJwt,
   verifyOtpController,
 } from "./controllers/login-controller.js";
 import { register } from "./controllers/register-controller.js";
@@ -23,5 +24,6 @@ router.post("/api/logout", logout);
 router.post("/api/register", register);
 router.post("/api/send-otp", sendOtp);
 router.post("/api/verify-otp", verifyOtpController);
+router.get("/api/auth/verify-jwt", verifyJwt);
 
 export default router;

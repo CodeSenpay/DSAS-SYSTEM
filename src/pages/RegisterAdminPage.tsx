@@ -1,6 +1,13 @@
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-
 type AdminForm = {
   email: string;
   password: string;
@@ -30,116 +37,101 @@ function RegisterAdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-indigo-700 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <Paper elevation={3} className="w-full max-w-md p-8 rounded-2xl">
+        <Typography variant="h5" align="center" gutterBottom color="primary">
           Admin Registration
-        </h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              {...register("email", { required: "Email is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="admin@example.com"
-            />
-            {errors.email && (
-              <span className="text-red-500 text-xs">
-                {errors.email.message}
-              </span>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              {...register("password", { required: "Password is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="********"
-            />
-            {errors.password && (
-              <span className="text-red-500 text-xs">
-                {errors.password.message}
-              </span>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name
-            </label>
-            <input
-              type="text"
-              {...register("first_name", {
-                required: "First name is required",
-              })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="First Name"
-            />
-            {errors.first_name && (
-              <span className="text-red-500 text-xs">
-                {errors.first_name.message}
-              </span>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Middle Name
-            </label>
-            <input
-              type="text"
-              {...register("middle_name")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="Middle Name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name
-            </label>
-            <input
-              type="text"
-              {...register("last_name", { required: "Last name is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="Last Name"
-            />
-            {errors.last_name && (
-              <span className="text-red-500 text-xs">
-                {errors.last_name.message}
-              </span>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mobile Number
-            </label>
-            <input
-              type="tel"
-              {...register("mobile_number", {
-                required: "Mobile number is required",
-              })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="09XXXXXXXXX"
-            />
-            {errors.mobile_number && (
-              <span className="text-red-500 text-xs">
-                {errors.mobile_number.message}
-              </span>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-2 mt-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition"
-          >
-            {isSubmitting ? "Registering..." : "Register Admin"}
-          </button>
+        </Typography>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className="space-y-5"
+        >
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("email", { required: "Email is required" })}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+          />
+
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("password", { required: "Password is required" })}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+          />
+
+          <TextField
+            label="First Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("first_name", { required: "First name is required" })}
+            error={!!errors.first_name}
+            helperText={errors.first_name?.message}
+          />
+
+          <TextField
+            label="Middle Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("middle_name")}
+          />
+
+          <TextField
+            label="Last Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("last_name", { required: "Last name is required" })}
+            error={!!errors.last_name}
+            helperText={errors.last_name?.message}
+          />
+
+          <TextField
+            label="Mobile Number"
+            type="tel"
+            fullWidth
+            variant="outlined"
+            size="small"
+            {...register("mobile_number", {
+              required: "Mobile number is required",
+            })}
+            error={!!errors.mobile_number}
+            helperText={errors.mobile_number?.message}
+          />
+
+          <Box mt={2}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={isSubmitting}
+              size="large"
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Register Admin"
+              )}
+            </Button>
+          </Box>
         </form>
-      </div>
+      </Paper>
     </div>
   );
 }
