@@ -4,6 +4,7 @@ import transporter from "../middleware/mailer.js";
 import { console } from "inspector";
 import logger from "../middleware/logger.js";
 import axios from "axios";
+import { Console } from "console";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdmin(data, req, res) {
@@ -100,23 +101,35 @@ async function loginAdmin(data, req, res) {
   }
 }
 
-// Sample loginArmsAPI function returning a sample login response from an API
+// Sample loginArmsAPI function returning a sample login response from an API(Include user details in sending to the sp)
 async function loginStudent(params, req, res) {
-  // First, get the ARMS token using registerToArmsToken
-  const tokenResponse = await registerToArmsToken(
-    params.student_id,
-    params.password
-  );
+  // First, check if the student exists in the local database
+  const localResult = await checkStudentExists(params);
 
-  if (!tokenResponse || !tokenResponse.success || !tokenResponse.token) {
+  if (localResult.success) {
+    // Student exists in local DB, return details
     return {
-      success: false,
-      message: tokenResponse?.message || "Failed to get ARMS token",
-      error: tokenResponse?.error || null,
+      success: true,
+      message: "Login successful (local database)",
+      user: localResult.user || {}, // Attach user details if available
     };
   }
 
-  //TODO: Check in the local database first before logging in using the ARMS API
+  // If not found locally, get the ARMS token
+  const tokenResponse = await registerToArmsToken();
+
+  if (
+    !tokenResponse ||
+    typeof tokenResponse !== "object" ||
+    !tokenResponse.JWToken ||
+    !tokenResponse.Secret_Key
+  ) {
+    return {
+      success: false,
+      message: tokenResponse?.Status || "Failed to get ARMS token",
+      error: tokenResponse?.error || null,
+    };
+  }
 
   const url =
     "https://jrmsu-arms.online/api/version-2/services/student/account/login";
@@ -131,27 +144,62 @@ async function loginStudent(params, req, res) {
         headers: {
           "Secret-Key": tokenResponse.Secret_Key,
           "User-Agent": "Coderstation-Protocol",
+          authorization: `Bearer ${tokenResponse.JWToken}`,
         },
       }
     );
-    if (response.data && response.data.success) {
-      return {
-        success: true,
-        message: "Login successful (ARMS API)",
-        user: response.data.user || {},
-        token: response.data.token || null,
+
+    // Check if ARMS API returned a valid student record
+    const record = response.data?.Record;
+    if (record) {
+      // Prepare student details for local DB
+      const studentDetails = {
+        sex: record.Sex,
+        major: record.Major,
+        college: record.College,
+        program: record.Program,
+        semester: record.Semester,
+        student_id: record.Student_ID,
+        year_level: record.Year_Level,
+        school_year: record.School_Year,
+        student_name: record.Student_Name,
+        status: response.data.Status,
       };
+
+      // Insert student into local DB using data from ARMS API
+      const insertParams = {
+        student_id: record.Student_ID,
+        student_details: studentDetails,
+        password: params.password,
+      };
+      const insertResult = await insertStudent(insertParams);
+
+      if (insertResult.success) {
+        return {
+          success: true,
+          message: "Login successful (ARMS API, student inserted locally)",
+          user: insertResult.student || studentDetails,
+        };
+      } else {
+        return {
+          success: insertResult,
+          message:
+            "Login successful (ARMS API) but failed to insert student locally",
+          user: studentDetails,
+          error: insertResult.message,
+        };
+      }
     } else {
       return {
         success: false,
-        message: response.data?.message || "Login failed",
+        message: response.data?.Status || "Login failed",
       };
     }
   } catch (error) {
     return {
       success: false,
       message: "Failed to login to ARMS API",
-      error: error.response?.data?.message || error.message,
+      error: error.response?.data?.Status || error.message,
     };
   }
 }
@@ -159,6 +207,7 @@ async function loginStudent(params, req, res) {
 async function registerToArmsToken() {
   const key = process.env.API_KEY;
   const secret = process.env.API_SECRET;
+  const agent = process.env.USER_AGENT;
   const url =
     "https://jrmsu-arms.online/api/version-2/services/credential/token/request";
   try {
@@ -169,7 +218,7 @@ async function registerToArmsToken() {
         headers: {
           "Api-Key": key,
           "Api-Secret": secret,
-          "User-Agent": "Coderstation-Protocol",
+          "User-Agent": agent,
         },
       }
     );
@@ -198,6 +247,100 @@ async function logoutUser(req, res) {
         .status(500)
         .json({ success: false, message: "Internal server error" });
     }
+  }
+}
+
+// Checks if a student exists in the local database, inserts if not, and returns student info
+async function checkStudentExists(params) {
+  try {
+    const payload = JSON.stringify({
+      student_id: params.student_id,
+      password: params.password || null, // Include password if needed by SP
+    });
+    const [result] = await pool.query(`CALL check_student(?)`, [payload]);
+    const spResult = result?.[0]?.[0]?.Response;
+
+    if (spResult && spResult.success) {
+      // Parse student_details if it's a string
+      let user = spResult.student;
+      if (user && typeof user.student_details === "string") {
+        try {
+          user.student_details = JSON.parse(user.student_details);
+        } catch (e) {
+          // leave as string if parsing fails
+        }
+      }
+      return {
+        success: true,
+        message: spResult.message,
+        user,
+      };
+    } else {
+      return {
+        success: false,
+        message:
+          spResult?.message || "Student does not exist in local database",
+        user: spResult?.student || null,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: "Error checking student existence",
+      error: error.message,
+    };
+  }
+}
+
+async function insertStudent(params) {
+  try {
+    // Hash the password before storing
+    const hashedPassword = crypto
+      .createHmac("sha256", process.env.SECRET_KEY)
+      .update(params.password)
+      .digest("hex");
+
+    // Ensure student_details is a stringified JSON (as expected by the SP)
+    const studentDetailsString =
+      typeof params.student_details === "string"
+        ? params.student_details
+        : JSON.stringify(params.student_details);
+
+    const payload = JSON.stringify({
+      student_id: params.student_id,
+      student_details: studentDetailsString,
+      password: hashedPassword,
+    });
+    const [result] = await pool.query(`CALL insert_student(?)`, [payload]);
+    const spResult = result?.[0]?.[0]?.Response;
+
+    if (spResult && spResult.success) {
+      // Parse student_details if it's a stringified JSON
+      let student = spResult.student;
+      if (student && typeof student.student_details === "string") {
+        try {
+          student.student_details = JSON.parse(student.student_details);
+        } catch (e) {
+          // leave as string if parsing fails
+        }
+      }
+      return {
+        success: true,
+        message: spResult.message,
+        student,
+      };
+    } else {
+      return {
+        success: false,
+        message: spResult?.message || "Failed to insert student",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: "Error inserting student",
+      error: error.message,
+    };
   }
 }
 

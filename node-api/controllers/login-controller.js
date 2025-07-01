@@ -11,7 +11,6 @@ import {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdminController(req, res) {
-  console.log("Student login-controller Data: ", req.body);
 
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
@@ -23,7 +22,7 @@ async function loginAdminController(req, res) {
     const { email, password } = req.body;
     const response = await loginAdmin({ email, password });
 
-    // console.log("Login Response:", response);
+    console.log("Login Response:", response);
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
@@ -65,7 +64,6 @@ async function loginAdminController(req, res) {
 }
 
 async function loginStudentController(req, res) {
-  console.log("Student login-controller Data: ", req.body);
 
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
@@ -74,10 +72,10 @@ async function loginStudentController(req, res) {
   }
 
   try {
-    const { email, password } = req.body;
-    const response = await loginStudent({ email, password });
+    const { student_id, password } = req.body;
+    const response = await loginStudent({ student_id, password });
 
-    // console.log("Login Response:", response);
+    console.log("Login Response:", response);
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
