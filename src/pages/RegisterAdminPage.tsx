@@ -2,7 +2,6 @@ import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import CustomAlert from "../components/CustomAlert";
 type AdminForm = {
   email: string;
   password: string;
@@ -40,15 +39,6 @@ function RegisterAdminPage() {
       className=" flex items-center justify-center bg-gray-50"
       style={{ paddingLeft: 16, paddingRight: 16 }}
     >
-      {alert ? (
-        <CustomAlert
-          message="Hello World"
-          severity="success"
-          onClose={() => setAlert(false)}
-        />
-      ) : (
-        <></>
-      )}
       <div
         className="w-full max-w-md bg-white shadow-md rounded-2xl"
         style={{ padding: 32 }}
