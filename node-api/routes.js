@@ -3,7 +3,8 @@ import { Router } from "express";
 import {
   loginAdminController,
   loginStudentController,
-  logout,
+  logoutUserController,
+  logoutStudentController,
   sendOtp,
   verifyJwt,
   verifyOtpController,
@@ -20,7 +21,8 @@ router.post("/api/scheduling-system/user", handle_schedule); //temporary
 router.get("/api/reporting-system", authenticate, handle_schedule);
 router.post("/api/login-admin", loginAdminController);
 router.post("/api/login-student", loginStudentController);
-router.post("/api/logout", logout);
+router.post("/api/logout/user", logoutUserController);
+router.post("/api/logout/student", logoutStudentController);
 router.post("/api/register", register);
 router.post("/api/send-otp", sendOtp);
 router.post("/api/verify-otp", verifyOtpController);

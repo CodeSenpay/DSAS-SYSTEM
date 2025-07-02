@@ -8,6 +8,7 @@ import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { notifyError, notifySuccess } from "./ToastUtils";
+import Alert from "@mui/material/Alert"; // <-- Added import
 
 function getSessionFromStorage(): Session | null {
   try {
@@ -48,9 +49,13 @@ export default function AccountCustomSlotProps() {
 
   const LogoutUser = async () => {
     try {
+      // Get user_id from session storage
+      const userStr = sessionStorage.getItem("user");
+      const user_id = userStr ? JSON.parse(userStr).user_id : null;
+
       const response = await axios.post(
-        "http://localhost:5000/api/logout",
-        {},
+        "http://localhost:5000/api/logout/user",
+        { user_id }, // Pass user_id in the request body
         {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
@@ -79,7 +84,7 @@ export default function AccountCustomSlotProps() {
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <ThemeSwitcher />
         </Box>
-
+        {/* You can use <Alert severity="info">Some info</Alert> here if needed */}
         <SignOutButton onClick={LogoutUser} />
       </Box>
     );

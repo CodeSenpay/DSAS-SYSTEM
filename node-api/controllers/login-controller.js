@@ -4,6 +4,7 @@ import {
   loginAdmin,
   loginStudent,
   logoutUser,
+  logoutStudent,
   sendOtpToEmail,
   verifyOtp,
 } from "../models/login-model.js";
@@ -114,9 +115,32 @@ async function loginStudentController(req, res) {
   }
 }
 
-async function logout(req, res) {
+async function logoutUserController(req, res) {
   try {
     const response = await logoutUser(req, res);
+    logger(
+      {
+      action: "logout",
+      user_id: req.user_id || "none",
+      details: `User logout attempt: ${req.user_id || "none"}`,
+      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      },
+      req,
+      res
+    );
+  } catch (error) {
+    console.error("Logout error:", error);
+    if (!res.headersSent) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+}
+
+async function logoutStudentController(req, res) {
+  try {
+    const response = await logoutStudent(req, res);
     logger(
       {
         action: "logout",
@@ -220,7 +244,8 @@ const verifyJwt = async (req, res) => {
 export {
   loginAdminController,
   loginStudentController,
-  logout,
+  logoutUserController,
+  logoutStudentController,
   sendOtp,
   verifyJwt,
   verifyOtpController,
