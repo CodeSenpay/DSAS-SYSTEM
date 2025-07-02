@@ -21,18 +21,18 @@ const settings = ["Profile", "Dashboard", "Logout"];
 
 function NavBar() {
 
-  const LogoutUser = async () => {
+  const LogoutStudent = async () => {
     try {
+      const user = sessionStorage.getItem('user');
+      const student_id = user ? JSON.parse(user).student_id : null;
       const response = await axios.post(
-        "http://localhost:5000/api/logout",
-        {},
+        "http://localhost:5000/api/logout/student",
+        { student_id },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
-      console.log(response.data);
       sessionStorage.removeItem('user');
       notifySuccess("Logout successful!");
       navigate("/login");
-
     } catch (err: any) {
       console.log(err);
       notifyError(
@@ -69,7 +69,7 @@ function NavBar() {
   const handleSettings = (setting: string) => {
     switch (setting.toLocaleUpperCase()) {
       case "LOGOUT":
-        LogoutUser();
+        LogoutStudent();
         navigate("/login");
         break;
       case "PROFILE":

@@ -123,6 +123,23 @@ async function loginStudent(params, req, res) {
       message: "Login successful (local database)",
       user: localResult.user || {}, // Attach user details if available
     };
+  } else if (!localResult.success) {
+    // Student is already logged in, return error
+    await logger(
+      {
+        action: "login_attempt",
+        user_id: params.student_id || null,
+        details: `Student already logged in: ${params.student_id}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      },
+      req,
+      res
+    );
+    return {
+      success: false,
+      message: localResult.message,
+      user: null,
+    };
   }
 
   // If not found locally, get the ARMS token
@@ -315,12 +332,67 @@ async function logoutUser(req, res) {
   }
 }
 
+async function logoutStudent(req, res) {
+  try {
+    const { student_id } = req.body;
+    if (!student_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing student_id" });
+    }
+
+    // Call the logout_student stored procedure
+    const payload = JSON.stringify({ student_id });
+    const [result] = await pool.query(`CALL logout_student(?)`, [payload]);
+    const spResult = result?.[0]?.[0]?.Response;
+
+    // Clear the token cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    // Parse the JSON response from the SP
+    let responseObj = spResult;
+    if (typeof spResult === "string") {
+      try {
+        responseObj = JSON.parse(spResult);
+      } catch (e) {
+        responseObj = { success: false, message: "Invalid SP response" };
+      }
+    }
+
+    return res.json({
+      success: responseObj.success,
+      message: responseObj.message,
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    if (!res.headersSent) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+}
+
 // Checks if a student exists in the local database, inserts if not, and returns student info
 async function checkStudentExists(params) {
   try {
+    // Hash the password if provided, to match the comparePassword logic
+    let hashedPassword = undefined;
+    if (params.password) {
+      hashedPassword = crypto
+        .createHmac("sha256", process.env.SECRET_KEY)
+        .update(params.password)
+        .digest("hex");
+    }
+
+    // Prepare payload (send hashed password if present)
     const payload = JSON.stringify({
       student_id: params.student_id,
-      password: params.password || null, // Include password if needed by SP
+      password: hashedPassword,
     });
     const [result] = await pool.query(`CALL check_student(?)`, [payload]);
     const spResult = result?.[0]?.[0]?.Response;
@@ -439,7 +511,17 @@ async function sendOtpToEmail(email) {
     from: process.env.SMTP_USER,
     to: email,
     subject: "Your OTP Code",
-    text: `Your OTP code is: ${otp}`,
+    text: `Your OTP code is: ${otp}\n\nThis code will expire in 10 minutes. If you did not request this, please ignore this email.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 400px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fafbfc;">
+        <h2 style="color: #2d7ff9; margin-top: 0;">Your OTP Code</h2>
+        <p style="font-size: 16px; color: #333;">Use the following One-Time Password (OTP) to proceed:</p>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2d7ff9; margin: 16px 0;">${otp}</div>
+        <p style="font-size: 14px; color: #555;">This code will expire in 10 minutes.<br>If you did not request this, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 0 0;">
+        <p style="font-size: 12px; color: #aaa; margin-top: 16px;">DSAS System</p>
+      </div>
+    `,
   };
 
   try {
@@ -497,4 +579,11 @@ async function verifyOtp(email, otp) {
   }
 }
 
-export { loginAdmin, loginStudent, logoutUser, sendOtpToEmail, verifyOtp };
+export {
+  loginAdmin,
+  loginStudent,
+  logoutUser,
+  logoutStudent,
+  sendOtpToEmail,
+  verifyOtp,
+};
