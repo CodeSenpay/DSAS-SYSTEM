@@ -48,7 +48,7 @@ function ClaimingOfIDPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 1,
-        user_id: user?.user_id,
+        user_id: user?.student_id,
       },
     };
     try {
@@ -149,7 +149,7 @@ function ClaimingOfIDPage() {
           startIcon={<AddCircleIcon />}
           onClick={handleAddingOfSchedule}
           disabled={
-            appointments.length > 0 ||
+            appointments.length !== 0 ||
             appointments.some((appointment) =>
               appointment.appointment_status.toLowerCase() === "approved"
                 ? true
@@ -161,7 +161,7 @@ function ClaimingOfIDPage() {
         </Button>
 
         <div className="w-screen flex flex-col gap-5 justify-center items-center overflow-y-auto max-h-[60vh]">
-          {appointments.length !== 0 ? (
+          {appointments.length > 0 ? (
             appointments.map((appointment) => (
               <div
                 key={appointment.appointment_id}

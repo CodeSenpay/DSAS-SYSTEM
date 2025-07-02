@@ -38,6 +38,9 @@ function ClearanceValidationPage() {
   };
 
   const fetchTransactionsByType = async () => {
+    const userString = sessionStorage.getItem("user");
+
+    const user = userString ? JSON.parse(userString) : null;
     const data = {
       model: "schedulesModel",
       function_name: "getAppointment",
@@ -46,7 +49,7 @@ function ClearanceValidationPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 3,
-        user_id: "",
+        user_id: user?.student_id,
       },
     };
     try {

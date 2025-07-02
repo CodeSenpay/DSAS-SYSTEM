@@ -35,30 +35,37 @@ type appointmentProps = {
   user_id: string;
 };
 
+type adminInfoProps = {
+  email: string;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  user_level: string;
+};
+
 function ApproveTransactionPage() {
   const [selectedType, setSelectedType] = useState<number>();
   const [selectedDate, setSelectedDate] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [adminInfo, setAdminInfo] = useState<adminInfoProps>();
 
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
-
-  // For search trigger
-  const [searchType, setSearchType] = useState<number>(0);
-  const [searchDate, setSearchDate] = useState("");
 
   const handleApprove = (data: appointmentProps) => {
     const dataPayload = {
       model: "schedulesModel",
       function_name: "approveAppointment",
       payload: {
-        user_id: data.user_id,
+        user_id: adminInfo?.user_id,
         appointment_id: data.appointment_id,
         appointment_status: "Approved",
       },
     };
 
+    setIsLoading(true);
     axios
       .post("http://localhost:5000/api/scheduling-system/admin", dataPayload, {
         headers: { "Content-Type": "application/json" },
@@ -68,7 +75,6 @@ function ApproveTransactionPage() {
         console.log(response.data);
         if (response.data.success) {
           notifySuccess("Appointment approved successfully.");
-          // Optionally, refresh the appointments list
           handleSearch();
         } else {
           notifyError("Failed to approve appointment.");
@@ -79,14 +85,40 @@ function ApproveTransactionPage() {
         notifyError("An error occurred while approving the appointment.");
       })
       .finally(() => {
-        // Optionally, you can reset the selected appointment or perform other actions
+        setIsLoading(false);
       });
   };
 
-  const handleDecline = (data: appointmentProps) => {
+  const handleDecline = async (data: appointmentProps) => {
+    setIsLoading(true);
+    const payload = {
+      model: "schedulesModel",
+      function_name: "deleteAppointment",
+      payload: {
+        appointment_id: data.appointment_id,
+        user_id: adminInfo?.user_id,
+      },
+    };
     try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        notifySuccess("Appointment declined successfully.");
+        handleSearch();
+      } else {
+        notifyError("Failed to decline appointment.");
+      }
     } catch (err) {
       console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -128,11 +160,9 @@ function ApproveTransactionPage() {
   // Keep search fields in sync with filter fields
   const handleTypeChange = (value: number) => {
     setSelectedType(value);
-    setSearchType(value);
   };
   const handleDateChange = (value: string) => {
     setSelectedDate(value);
-    setSearchDate(value);
   };
 
   const getTransactionTypes = async () => {
@@ -158,15 +188,12 @@ function ApproveTransactionPage() {
     }
   };
 
-  // Keep filteredAppointments in sync with appointments if appointments change
-  // (e.g. after approve/decline)
-  // But only for the last search
-  // eslint-disable-next-line
   useEffect(() => {
+    const userString = sessionStorage.getItem("user");
+
+    setAdminInfo(userString ? JSON.parse(userString) : null);
     handleSearch();
     getTransactionTypes();
-
-    // eslint-disable-next-line
   }, []);
 
   return (

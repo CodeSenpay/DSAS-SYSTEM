@@ -50,9 +50,10 @@ function SubsidyPayoutPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 2,
-        user_id: user?.user_id,
+        user_id: user?.student_id,
       },
     };
+    console.log(data);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/user",
@@ -101,8 +102,8 @@ function SubsidyPayoutPage() {
         className="flex flex-col justify-center items-center h-[100%] w-full gap-5 absolute "
         style={{ padding: "20px" }}
       >
-        {appointments.length > 0 ? (
-          appointments[0].appointment_status.toLowerCase() === "approved" ? (
+        {appointments.length !== 0 ? (
+          appointments[0]?.appointment_status.toLowerCase() === "approved" ? (
             <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-green-200 animate-fade-in">
               <div className="flex items-center justify-center mb-2">
                 <svg
@@ -159,7 +160,7 @@ function SubsidyPayoutPage() {
           startIcon={<AddCircleIcon />}
           onClick={handleAddingOfSchedule}
           disabled={
-            appointments.length > 0 ||
+            appointments.length !== 0 ||
             appointments.some((appointment) =>
               appointment.appointment_status.toLowerCase() === "approved"
                 ? true
@@ -171,7 +172,7 @@ function SubsidyPayoutPage() {
         </Button>
 
         <div className="w-screen flex flex-col justify-center items-center gap-5 overflow-y-auto px-4 md:px-16 lg:px-32">
-          {appointments.length !== 0 ? (
+          {appointments.length > 0 ? (
             appointments.map((appointment) => (
               <div
                 key={appointment.appointment_id}

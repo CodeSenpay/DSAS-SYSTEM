@@ -62,14 +62,8 @@ function LoginPage() {
    */
   function extractSafeUserData(user: any) {
     if (!user) return {};
-    const {
-      email,
-      user_id,
-      last_name,
-      first_name,
-      user_level,
-      middle_name,
-    } = user;
+    const { email, user_id, last_name, first_name, user_level, middle_name } =
+      user;
     return {
       email,
       user_id,
@@ -86,7 +80,9 @@ function LoginPage() {
         "http://localhost:5000/api/login-admin",
         data,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           withCredentials: true,
         }
       );

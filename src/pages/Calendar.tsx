@@ -135,7 +135,7 @@ function Calendar({
       payload: {
         time_frame: selectedTimeFrame,
         transaction_type_id: transactionTypeID,
-        user_id: user?.user_id,
+        user_id: user?.student_id,
         appointment_date: formattedDate,
       },
     };

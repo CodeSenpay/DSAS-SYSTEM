@@ -1,10 +1,9 @@
-import pool from "../config/db.conf.js";
-import crypto from "crypto";
-import transporter from "../middleware/mailer.js";
-import { console } from "inspector";
-import logger from "../middleware/logger.js";
 import axios from "axios";
-import { Console } from "console";
+import crypto from "crypto";
+import { console } from "inspector";
+import pool from "../config/db.conf.js";
+import logger from "../middleware/logger.js";
+import transporter from "../middleware/mailer.js";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdmin(data, req, res) {
@@ -164,6 +163,7 @@ async function loginStudent(params, req, res) {
       },
       {
         headers: {
+          Authorization: `Bearer ${tokenResponse.JWToken}`,
           "Secret-Key": tokenResponse.Secret_Key,
           "User-Agent": "Coderstation-Protocol",
           Authorization: `Bearer ${tokenResponse.JWToken}`,
