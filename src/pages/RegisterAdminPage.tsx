@@ -1,13 +1,8 @@
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import axios from "axios";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import CustomAlert from "../components/CustomAlert";
 type AdminForm = {
   email: string;
   password: string;
@@ -18,6 +13,7 @@ type AdminForm = {
 };
 
 function RegisterAdminPage() {
+  const [alert, setAlert] = useState(false);
   const {
     register,
     handleSubmit,
@@ -26,27 +22,54 @@ function RegisterAdminPage() {
   } = useForm<AdminForm>();
 
   const onSubmit = async (data: AdminForm) => {
+    console.log("Form Data:", data);
     try {
-      // Replace with your API endpoint
-      await axios.post("/api/admin/register", data);
-      alert("Registration successful!");
+      const response = await axios.post(
+        "http://localhost:5000/api/register",
+        data
+      );
+
+      console.log("Response:", response.data);
+
       reset();
-    } catch (error) {
-      alert("Registration failed.");
-    }
+    } catch {}
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <Paper elevation={3} className="w-full max-w-md p-8 rounded-2xl">
-        <Typography variant="h5" align="center" gutterBottom color="primary">
-          Admin Registration
-        </Typography>
+    <div
+      className=" flex items-center justify-center bg-gray-50"
+      style={{ paddingLeft: 16, paddingRight: 16 }}
+    >
+      {alert ? (
+        <CustomAlert
+          message="Hello World"
+          severity="success"
+          onClose={() => setAlert(false)}
+        />
+      ) : (
+        <></>
+      )}
+      <div
+        className="w-full max-w-md bg-white shadow-md rounded-2xl"
+        style={{ padding: 32 }}
+      >
+        <div className="text-center" style={{ marginBottom: 24 }}>
+          <Typography variant="h5" className="font-semibold text-gray-800">
+            Admin Registration
+          </Typography>
+          <Typography
+            variant="body2"
+            className="text-gray-500"
+            style={{ marginTop: 4 }}
+          >
+            Create a new admin account
+          </Typography>
+        </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
           noValidate
-          className="space-y-5"
         >
           <TextField
             label="Email"
@@ -70,35 +93,35 @@ function RegisterAdminPage() {
             helperText={errors.password?.message}
           />
 
-          <TextField
-            label="First Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            size="small"
-            {...register("first_name", { required: "First name is required" })}
-            error={!!errors.first_name}
-            helperText={errors.first_name?.message}
-          />
+          <div className="flex gap-3">
+            <TextField
+              label="First Name"
+              variant="outlined"
+              size="small"
+              fullWidth
+              {...register("first_name", {
+                required: "First name is required",
+              })}
+              error={!!errors.first_name}
+              helperText={errors.first_name?.message}
+            />
+            <TextField
+              label="Last Name"
+              variant="outlined"
+              size="small"
+              fullWidth
+              {...register("last_name", { required: "Last name is required" })}
+              error={!!errors.last_name}
+              helperText={errors.last_name?.message}
+            />
+          </div>
 
           <TextField
             label="Middle Name"
-            type="text"
-            fullWidth
             variant="outlined"
             size="small"
+            fullWidth
             {...register("middle_name")}
-          />
-
-          <TextField
-            label="Last Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            size="small"
-            {...register("last_name", { required: "Last name is required" })}
-            error={!!errors.last_name}
-            helperText={errors.last_name?.message}
           />
 
           <TextField
@@ -114,24 +137,26 @@ function RegisterAdminPage() {
             helperText={errors.mobile_number?.message}
           />
 
-          <Box mt={2}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              disabled={isSubmitting}
-              size="large"
-            >
-              {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Register Admin"
-              )}
-            </Button>
-          </Box>
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            size="large"
+            disabled={isSubmitting}
+            className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+            style={{ marginTop: 8 }}
+          >
+            {isSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Register"
+            )}
+          </Button>
+          <Button variant="contained" onClick={() => setAlert(true)}>
+            SAMPLE LANG
+          </Button>
         </form>
-      </Paper>
+      </div>
     </div>
   );
 }

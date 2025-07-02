@@ -93,10 +93,11 @@ function ApproveTransactionPage() {
     setIsLoading(true);
     const payload = {
       model: "schedulesModel",
-      function_name: "deleteAppointment",
+      function_name: "approveAppointment",
       payload: {
         appointment_id: data.appointment_id,
         user_id: adminInfo?.user_id,
+        appointment_status: "Declined",
       },
     };
     try {
