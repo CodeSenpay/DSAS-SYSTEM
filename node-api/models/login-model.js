@@ -101,12 +101,23 @@ async function loginAdmin(data, req, res) {
   }
 }
 
-// Sample loginArmsAPI function returning a sample login response from an API(Include user details in sending to the sp)
+// Sample loginArmsAPI function returning a sample login response from an API (Include user details in sending to the sp)
 async function loginStudent(params, req, res) {
   // First, check if the student exists in the local database
   const localResult = await checkStudentExists(params);
 
   if (localResult.success) {
+    // Log successful local login
+    await logger(
+      {
+        action: "login_success",
+        user_id: params.student_id || null,
+        details: `Student logged in (local DB): ${params.student_id}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      },
+      req,
+      res
+    );
     // Student exists in local DB, return details
     return {
       success: true,
@@ -124,6 +135,17 @@ async function loginStudent(params, req, res) {
     !tokenResponse.JWToken ||
     !tokenResponse.Secret_Key
   ) {
+    // Log ARMS token failure
+    await logger(
+      {
+        action: "login_error",
+        user_id: params.student_id || null,
+        details: `Failed to get ARMS token for student: ${params.student_id}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      },
+      req,
+      res
+    );
     return {
       success: false,
       message: tokenResponse?.Status || "Failed to get ARMS token",
@@ -175,12 +197,40 @@ async function loginStudent(params, req, res) {
       const insertResult = await insertStudent(insertParams);
 
       if (insertResult.success) {
+        // Log successful ARMS login and local insert
+        await logger(
+          {
+            action: "login_success",
+            user_id: record.Student_ID || null,
+            details: `Student logged in via ARMS API and inserted locally: ${record.Student_ID}`,
+            timestamp: new Date()
+              .toISOString()
+              .replace("T", " ")
+              .substring(0, 19),
+          },
+          req,
+          res
+        );
         return {
           success: true,
           message: "Login successful (ARMS API, student inserted locally)",
           user: insertResult.student || studentDetails,
         };
       } else {
+        // Log ARMS login success but local insert failure
+        await logger(
+          {
+            action: "login_partial_success",
+            user_id: record.Student_ID || null,
+            details: `Student logged in via ARMS API but failed to insert locally: ${record.Student_ID}`,
+            timestamp: new Date()
+              .toISOString()
+              .replace("T", " ")
+              .substring(0, 19),
+          },
+          req,
+          res
+        );
         return {
           success: insertResult,
           message:
@@ -190,12 +240,37 @@ async function loginStudent(params, req, res) {
         };
       }
     } else {
+      // Log failed ARMS login
+      await logger(
+        {
+          action: "login_attempt",
+          user_id: params.student_id || null,
+          details: `Failed ARMS login for student: ${params.student_id}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
       return {
         success: false,
         message: response.data?.Status || "Login failed",
       };
     }
   } catch (error) {
+    // Log ARMS API error
+    await logger(
+      {
+        action: "login_error",
+        user_id: params.student_id || null,
+        details: `Failed to login to ARMS API for student: ${params.student_id} - ${error.response?.data?.Status || error.message}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      },
+      req,
+      res
+    );
     return {
       success: false,
       message: "Failed to login to ARMS API",
