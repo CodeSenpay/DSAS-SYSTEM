@@ -25,11 +25,13 @@ function NavBar() {
     try {
       const user = sessionStorage.getItem('user');
       const student_id = user ? JSON.parse(user).student_id : null;
+      console.log("Student ID: ", typeof (student_id))
       const response = await axios.post(
         "http://localhost:5000/api/logout/student",
         { student_id },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
+      console.log("Logout Response:", response)
       sessionStorage.removeItem('user');
       notifySuccess("Logout successful!");
       navigate("/login");

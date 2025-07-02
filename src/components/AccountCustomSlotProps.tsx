@@ -70,8 +70,8 @@ export default function AccountCustomSlotProps() {
       console.log(err);
       notifyError(
         err?.response?.data?.message ||
-          err?.message ||
-          "Logout failed. Please try again."
+        err?.message ||
+        "Logout failed. Please try again."
       );
     }
   };

@@ -342,8 +342,7 @@ async function logoutStudent(req, res) {
     }
 
     // Call the logout_student stored procedure
-    const payload = JSON.stringify({ student_id });
-    const [result] = await pool.query(`CALL logout_student(?)`, [payload]);
+    const [result] = await pool.query(`CALL logout_student(?)`, [student_id]);
     const spResult = result?.[0]?.[0]?.Response;
 
     // Clear the token cookie
