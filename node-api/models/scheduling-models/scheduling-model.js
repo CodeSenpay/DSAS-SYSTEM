@@ -390,6 +390,81 @@ export class SchedulingModel {
     }
   }
 
+  static async deleteAppointment(payload, req, res) {
+    // Required field
+    const requiredFields = ["appointment_id", "user_id"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      await logger(
+        {
+          action: "deleteAppointment",
+          user_id: payload.user_id || null,
+          details: `Missing required fields: ${missingFields.join(", ")}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const [rows] = await pool.query(`CALL delete_appointment(?)`, [
+        payload.appointment_id,
+      ]);
+      await logger(
+        {
+          action: "deleteAppointment",
+          user_id: payload.user_id || null,
+          details: "Appointment deletion attempted",
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      // The stored procedure returns a result set with a single row containing a 'result' field (JSON string)
+      if (rows && Array.isArray(rows) && rows.length > 0 && rows[0].result) {
+        try {
+          return JSON.parse(rows[0].result);
+        } catch {
+          return rows[0];
+        }
+      }
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      await logger(
+        {
+          action: "deleteAppointment",
+          user_id: payload.user_id || null,
+          details: `Stored procedure execution failed: ${error.message}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
   // ========================================================== Transaction Type Functions ==========================================================
   static async insertTransactionType(payload, req, res) {
     // Required fields
