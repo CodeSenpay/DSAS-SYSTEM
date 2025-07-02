@@ -166,7 +166,7 @@ async function loginStudent(params, req, res) {
         headers: {
           "Secret-Key": tokenResponse.Secret_Key,
           "User-Agent": "Coderstation-Protocol",
-          authorization: `Bearer ${tokenResponse.JWToken}`,
+          Authorization: `Bearer ${tokenResponse.JWToken}`,
         },
       }
     );
@@ -174,7 +174,7 @@ async function loginStudent(params, req, res) {
     // Check if ARMS API returned a valid student record
     const record = response.data?.Record;
     if (record) {
-      // Prepare student details for local DB
+      // Prepare and insert student details in local DB
       const studentDetails = {
         sex: record.Sex,
         major: record.Major,
@@ -188,57 +188,46 @@ async function loginStudent(params, req, res) {
         status: response.data.Status,
       };
 
-      // Insert student into local DB using data from ARMS API
-      const insertParams = {
+      const insertResult = await insertStudent({
         student_id: record.Student_ID,
         student_details: studentDetails,
         password: params.password,
-      };
-      const insertResult = await insertStudent(insertParams);
+      });
 
-      if (insertResult.success) {
-        // Log successful ARMS login and local insert
-        await logger(
-          {
-            action: "login_success",
-            user_id: record.Student_ID || null,
-            details: `Student logged in via ARMS API and inserted locally: ${record.Student_ID}`,
-            timestamp: new Date()
-              .toISOString()
-              .replace("T", " ")
-              .substring(0, 19),
-          },
-          req,
-          res
-        );
-        return {
-          success: true,
-          message: "Login successful (ARMS API, student inserted locally)",
-          user: insertResult.student || studentDetails,
-        };
-      } else {
-        // Log ARMS login success but local insert failure
-        await logger(
-          {
-            action: "login_partial_success",
-            user_id: record.Student_ID || null,
-            details: `Student logged in via ARMS API but failed to insert locally: ${record.Student_ID}`,
-            timestamp: new Date()
-              .toISOString()
-              .replace("T", " ")
-              .substring(0, 19),
-          },
-          req,
-          res
-        );
-        return {
-          success: insertResult,
-          message:
-            "Login successful (ARMS API) but failed to insert student locally",
-          user: studentDetails,
-          error: insertResult.message,
-        };
-      }
+      const logAction = insertResult.success
+        ? "login_success"
+        : "login_partial_success";
+      const logDetails = insertResult.success
+        ? `Student logged in via ARMS API and inserted locally: ${record.Student_ID}`
+        : `Student logged in via ARMS API but failed to insert locally: ${record.Student_ID}`;
+
+      await logger(
+        {
+          action: logAction,
+          user_id: record.Student_ID || null,
+          details: logDetails,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+
+      return insertResult.success
+        ? {
+            success: true,
+            message: "Login successful (ARMS API, student inserted locally)",
+            user: insertResult.student || studentDetails,
+          }
+        : {
+            success: false,
+            message:
+              "Login successful (ARMS API) but failed to insert student locally",
+            user: studentDetails,
+            error: insertResult.message,
+          };
     } else {
       // Log failed ARMS login
       await logger(
@@ -256,7 +245,8 @@ async function loginStudent(params, req, res) {
       );
       return {
         success: false,
-        message: response.data?.Status || "Login failed",
+        status: 409,
+        message: "Invalid credentials",
       };
     }
   } catch (error) {
@@ -343,6 +333,17 @@ async function checkStudentExists(params) {
           user.student_details = JSON.parse(user.student_details);
         } catch (e) {
           // leave as string if parsing fails
+        }
+      }
+      // If password is provided, compare with stored hash
+      if (params.password && user && user.password) {
+        const isMatch = await comparePassword(params.password, user.password);
+        if (!isMatch) {
+          return {
+            success: false,
+            message: "Invalid credentials",
+            user: null,
+          };
         }
       }
       return {
