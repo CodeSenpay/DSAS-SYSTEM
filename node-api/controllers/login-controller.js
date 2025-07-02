@@ -11,7 +11,6 @@ import {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdminController(req, res) {
-
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
       .status(400)
@@ -64,7 +63,6 @@ async function loginAdminController(req, res) {
 }
 
 async function loginStudentController(req, res) {
-
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
       .status(400)
