@@ -123,13 +123,18 @@ async function loginStudent(params, req, res) {
       message: "Login successful (local database)",
       user: localResult.user || {}, // Attach user details if available
     };
-  } else if (!localResult.success) {
-    // Student is already logged in, return error
+  }
+
+  if (
+    (!localResult.success && localResult.message === "Invalid credentials.") ||
+    localResult.message === "Student is already logged in."
+  ) {
+    // Log error from checkStudentExists
     await logger(
       {
-        action: "login_attempt",
+        action: "login_error",
         user_id: params.student_id || null,
-        details: `Student already logged in: ${params.student_id}`,
+        details: `Error checking student existence: ${localResult.error}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -137,8 +142,8 @@ async function loginStudent(params, req, res) {
     );
     return {
       success: false,
-      message: localResult.message,
-      user: null,
+      message: localResult.message || "Error checking student existence",
+      error: localResult.error,
     };
   }
 

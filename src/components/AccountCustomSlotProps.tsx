@@ -8,7 +8,6 @@ import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { notifyError, notifySuccess } from "./ToastUtils";
-import Alert from "@mui/material/Alert"; // <-- Added import
 
 function getSessionFromStorage(): Session | null {
   try {
