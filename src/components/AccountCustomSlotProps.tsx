@@ -1,4 +1,3 @@
-import { Button } from "@mui/material";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import { createTheme } from "@mui/material/styles";
@@ -29,13 +28,7 @@ function getSessionFromStorage(): Session | null {
   }
 }
 
-type AccountCustomSlotPropsProps = {
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-export default function AccountCustomSlotProps({
-  setIsModalOpen,
-}: AccountCustomSlotPropsProps) {
+export default function AccountCustomSlotProps() {
   const [session, setSession] = React.useState<Session | null>(
     getSessionFromStorage()
   );
@@ -78,10 +71,6 @@ export default function AccountCustomSlotProps({
     }
   };
 
-  function handleRegisterAdmin() {
-    setIsModalOpen(true);
-  }
-
   function CustomPopoverContent() {
     return (
       <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1 }}>
@@ -90,9 +79,6 @@ export default function AccountCustomSlotProps({
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <ThemeSwitcher />
         </Box>
-        <Button variant="contained" onClick={handleRegisterAdmin}>
-          Register Admin
-        </Button>
 
         <SignOutButton onClick={LogoutUser} />
       </Box>

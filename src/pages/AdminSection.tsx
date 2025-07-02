@@ -4,6 +4,7 @@ import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import ManageSearchIcon from "@mui/icons-material/ManageSearch";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import { createTheme } from "@mui/material/styles";
 import type { Navigation, Router } from "@toolpad/core/AppProvider";
 import { AppProvider } from "@toolpad/core/AppProvider";
@@ -11,12 +12,11 @@ import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
 import React, { useMemo, useState } from "react";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
-import AddAvailability from "./AddAvailability";
-import RegisterAdminPage from "./RegisterAdminPage";
-
 import Modal from "../components/Modal";
+import AddAvailability from "./AddAvailability";
 import AdminDashboard from "./AdminDashboard";
 import ApproveTransactionPage from "./ApproveTransactionPage";
+import RegisterAdminPage from "./RegisterAdminPage";
 import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
 
@@ -64,6 +64,18 @@ const NAVIGATION: Navigation = [
     title: "Report",
     icon: <ArticleIcon />,
   },
+  {
+    kind: "divider",
+  },
+  {
+    kind: "header",
+    title: "Account",
+  },
+  {
+    segment: "register-admin",
+    title: "Register Admin",
+    icon: <SupervisorAccountIcon />,
+  },
 ];
 
 const demoTheme = createTheme({
@@ -109,6 +121,8 @@ function renderCurrentPage(pathname: string) {
       return <ApproveTransactionPage />;
     case "/report-page":
       return <ReportPage />;
+    case "/register-admin":
+      return <RegisterAdminPage />;
     default:
       return <h2>404 - Page not found</h2>;
   }
@@ -121,7 +135,7 @@ export default function AdminDashboardPage() {
   function CustomToolbarActions() {
     return (
       <React.Fragment>
-        <AccountCustomSlotProps setIsModalOpen={setIsModalOpen} />
+        <AccountCustomSlotProps />
       </React.Fragment>
     );
   }
