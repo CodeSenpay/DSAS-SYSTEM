@@ -14,7 +14,7 @@ import { IconButton, InputAdornment } from "@mui/material";
 
 function LoginPageStudent() {
   type dataProps = {
-    email: string;
+    student_id: string;
     password: string;
     user_level: string;
   };
@@ -34,7 +34,7 @@ function LoginPageStudent() {
   function extractSafeUserData(user: any) {
     if (!user) return {};
     const {
-      email,
+      student_id,
       user_id,
       last_name,
       first_name,
@@ -43,7 +43,7 @@ function LoginPageStudent() {
       mobile_number,
     } = user;
     return {
-      email,
+      student_id,
       user_id,
       last_name,
       first_name,
@@ -114,7 +114,7 @@ function LoginPageStudent() {
             type="text"
             required
             className="w-full max-w-sm"
-            {...register("email")}
+            {...register("student_id")}
           />
           <TextField
             label="Password"

@@ -69,7 +69,6 @@ function LoginPage() {
       first_name,
       user_level,
       middle_name,
-      mobile_number,
     } = user;
     return {
       email,
@@ -78,7 +77,6 @@ function LoginPage() {
       first_name,
       user_level,
       middle_name,
-      mobile_number,
     };
   }
 

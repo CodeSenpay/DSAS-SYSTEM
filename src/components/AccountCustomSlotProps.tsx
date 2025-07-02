@@ -67,7 +67,7 @@ export default function AccountCustomSlotProps({
       notifySuccess("Logout successful!");
       sessionStorage.removeItem("user");
       setSession(null);
-      navigate("/login");
+      navigate("/login/admin");
     } catch (err: any) {
       console.log(err);
       notifyError(
