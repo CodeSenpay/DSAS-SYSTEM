@@ -7,6 +7,7 @@ import {
   logoutStudent,
   sendOtpToEmail,
   verifyOtp,
+  getUserData,
 } from "../models/login-model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -71,8 +72,8 @@ async function loginStudentController(req, res) {
   }
 
   try {
-    const { student_id, password } = req.body;
-    const response = await loginStudent({ student_id, password });
+    const { studentId, password } = req.body;
+    const response = await loginStudent({ studentId, password });
 
     console.log("Login Response:", response);
     if (!response.success) {
@@ -82,9 +83,9 @@ async function loginStudentController(req, res) {
       });
     }
 
-    const userId = response.user.user_id;
+    const student_id = response.user.student_id;
     const userLevel = response.user.user_level;
-    const token = jwt.sign({ userId, userLevel }, JWT_SECRET, {
+    const token = jwt.sign({ student_id, userLevel }, JWT_SECRET, {
       expiresIn: "8h",
     });
 
@@ -120,10 +121,10 @@ async function logoutUserController(req, res) {
     const response = await logoutUser(req, res);
     logger(
       {
-      action: "logout",
-      user_id: req.user_id || "none",
-      details: `User logout attempt: ${req.user_id || "none"}`,
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+        action: "logout",
+        user_id: req.user_id || "none",
+        details: `User logout attempt: ${req.user_id || "none"}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
       res
@@ -228,9 +229,10 @@ const verifyJwt = async (req, res) => {
       message: "Unauthorized access. No token provided.",
     });
   }
-
+// use id from token to disable is_active
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+
     res.json({ success: true, user: decoded });
   } catch (error) {
     console.error("JWT verification error:", error);
@@ -238,6 +240,30 @@ const verifyJwt = async (req, res) => {
       success: false,
       message: "Unauthorized access. Invalid token.",
     });
+  }
+};
+
+const getUserDataController = async (req, res) => {
+  console.log(req.body);
+  const id = req.body.id;
+
+  if (!id) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User ID or Student ID is required." });
+  }
+
+  try {
+    const result = await getUserData(id);
+    if (!result.success) {
+      return res
+        .status(404)
+        .json({ success: false, message: result.message || "User not found." });
+    }
+    res.json({ success: true, data: result.data });
+  } catch (error) {
+    console.error("Get user data error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -249,4 +275,5 @@ export {
   sendOtp,
   verifyJwt,
   verifyOtpController,
+  getUserDataController,
 };

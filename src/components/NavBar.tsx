@@ -14,6 +14,7 @@ import * as React from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { notifySuccess, notifyError } from "./ToastUtils";
+import { useUser } from "../services/UserContext";
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
@@ -21,18 +22,19 @@ const settings = ["Profile", "Dashboard", "Logout"];
 
 function NavBar() {
 
+  const { userdata, setUser } = useUser();
+
   const LogoutStudent = async () => {
     try {
-      const user = sessionStorage.getItem('user');
-      const student_id = user ? JSON.parse(user).student_id : null;
-      console.log("Student ID: ", typeof (student_id))
+      const student_id = userdata?.student_id;
+      // console.log("Student ID: ", typeof student_id);
       const response = await axios.post(
         "http://localhost:5000/api/logout/student",
         { student_id },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
-      console.log("Logout Response:", response)
-      sessionStorage.removeItem('user');
+      // console.log("Logout Response:", response);
+      setUser(null)
       notifySuccess("Logout successful!");
       navigate("/login");
     } catch (err: any) {

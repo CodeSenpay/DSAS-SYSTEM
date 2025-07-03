@@ -8,6 +8,7 @@ import {
   sendOtp,
   verifyJwt,
   verifyOtpController,
+  getUserDataController,
 } from "./controllers/login-controller.js";
 import { register } from "./controllers/register-controller.js";
 import { handle_schedule } from "./controllers/schedule-main-controller.js";
@@ -27,5 +28,6 @@ router.post("/api/register", register);
 router.post("/api/send-otp", sendOtp);
 router.post("/api/verify-otp", verifyOtpController);
 router.get("/api/auth/verify-jwt", verifyJwt);
+router.post("/api/auth/get-user-data", getUserDataController);
 
 export default router;

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -11,6 +11,9 @@ import Loading from "./components/Loading";
 import ProtectedPages from "./components/ProtectedPages";
 import LoginPage from "./pages/LoginPage";
 import LoginPageStudent from "./pages/LoginPageStudent";
+import axios from "axios";
+import { useUser } from "./services/UserContext";
+
 const NotFoundPage = lazy(() => import("./components/NotFoundPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const CalendarPage = lazy(() => import("./pages/Calendar"));
@@ -25,6 +28,51 @@ const ClearanceValidationPage = lazy(
 );
 const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
 function App() {
+
+  const { setUser } = useUser();
+
+  async function getUserData(params: any) {
+    try {
+      // Extract student_id or user_id from params
+      const { student_id, user_id } = params;
+      const id = student_id || user_id;
+
+      if (!id) {
+        throw new Error("No student_id or user_id found in params");
+      }
+
+      const response = await axios.post(
+        `http://localhost:5000/api/auth/get-user-data`,
+        { id },
+        { withCredentials: true }
+      );
+      // console.log("Get userdata response: ", response);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    const verifyAndFetchUser = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/auth/verify-jwt", { withCredentials: true });
+        if (res.data.success) {
+          const userData = await getUserData(res.data.user);
+          setUser(userData);
+          // console.log(userData);
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      }
+    };
+    verifyAndFetchUser();
+  }, [setUser]);
+
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route>
@@ -36,7 +84,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route
             path="/calendar"
-            element={<CalendarPage setIsOpenCalendar={() => {}} />}
+            element={<CalendarPage setIsOpenCalendar={() => { }} />}
           />
           <Route path="/vmgo" element={<VMGOPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
