@@ -103,7 +103,21 @@ function SubsidyPayoutPage() {
         style={{ padding: "20px" }}
       >
         {appointments.length !== 0 ? (
-          appointments[0]?.appointment_status.toLowerCase() === "approved" ? (
+          appointments[0].appointment_status.toLowerCase() === "declined" ? (
+            <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-red-400">
+              <AddCircleIcon
+                className="text-red-700 mb-2"
+                style={{ fontSize: 40 }}
+              />
+              <h1 className="text-lg font-semibold text-red-800 mb-1 text-center">
+                Appointment Declined
+              </h1>
+              <p className="text-gray-600 text-center">
+                Try to schedule another date
+              </p>
+            </div>
+          ) : appointments[0]?.appointment_status.toLowerCase() ===
+            "approved" ? (
             <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-green-200 animate-fade-in">
               <div className="flex items-center justify-center mb-2">
                 <svg

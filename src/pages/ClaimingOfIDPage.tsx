@@ -92,7 +92,21 @@ function ClaimingOfIDPage() {
       )}
       <div className="flex flex-col justify-center items-center h-[88.5%] gap-10 w-screen absolute">
         {appointments.length > 0 ? (
-          appointments[0].appointment_status.toLowerCase() === "approved" ? (
+          appointments[0].appointment_status.toLowerCase() === "declined" ? (
+            <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-red-400">
+              <AddCircleIcon
+                className="text-red-700 mb-2"
+                style={{ fontSize: 40 }}
+              />
+              <h1 className="text-lg font-semibold text-red-800 mb-1 text-center">
+                Appointment Declined
+              </h1>
+              <p className="text-gray-600 text-center">
+                Try to schedule another date
+              </p>
+            </div>
+          ) : appointments[0].appointment_status.toLowerCase() ===
+            "approved" ? (
             <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-green-200 animate-fade-in">
               <div className="flex items-center justify-center mb-2">
                 <svg
@@ -168,7 +182,7 @@ function ClaimingOfIDPage() {
                 className="flex flex-col gap-3 p-6 m-3 bg-white rounded-xl shadow-lg w-full max-w-md transition-transform hover:scale-105"
                 style={{ padding: "20px" }}
               >
-                <h2 className="text-xl font-bold text-amber-800 mb-2">
+                <h2 className="text-xl font-bold text-blue-800 mb-2">
                   {appointment.transaction_title}
                 </h2>
                 <div className="text-gray-800 space-y-1">
@@ -181,9 +195,12 @@ function ClaimingOfIDPage() {
                     <span
                       className={
                         appointment.appointment_status.toLowerCase() ===
-                        "approved"
-                          ? "text-green-600"
-                          : "text-yellow-600"
+                        "declined"
+                          ? "text-red-700"
+                          : appointment.appointment_status.toLowerCase() ===
+                              "approved"
+                            ? "text-green-600"
+                            : "text-yellow-600"
                       }
                     >
                       {appointment.appointment_status}

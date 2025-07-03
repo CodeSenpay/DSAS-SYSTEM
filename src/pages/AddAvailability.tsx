@@ -1,31 +1,30 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { notifyError, notifySuccess } from "../components/ToastUtils";
+import {
+  Add as AddIcon,
+  Event as EventIcon,
+  Save as SaveIcon,
+  AccessTime as TimeIcon,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
   Card,
   Divider,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
-  Select,
-  type SelectChangeEvent,
-  TextField,
-  Typography,
   Radio,
   RadioGroup,
-  FormControlLabel,
+  Select,
+  type SelectChangeEvent,
   Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import {
-  Event as EventIcon,
-  Today as TodayIcon,
-  AccessTime as TimeIcon,
-  Add as AddIcon,
-  Save as SaveIcon,
-} from "@mui/icons-material";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { notifyError, notifySuccess } from "../components/ToastUtils";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -69,15 +68,20 @@ const API_URL = "http://localhost:5000/api/scheduling-system/admin";
 function AddAvailability() {
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [transactionType, setTransactionType] = useState("");
-  const [transactionTypes, setTransactionTypes] = useState<transactionTypeProps[]>([]);
+  const [transactionTypes, setTransactionTypes] = useState<
+    transactionTypeProps[]
+  >([]);
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
     end: "",
   });
   const [capacity, setCapacity] = useState(15);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
-  const [existingAvailabilities, setExistingAvailabilities] = useState<Availability[]>([]);
-  const [selectedAvailability, setSelectedAvailability] = useState<Availability | null>(null);
+  const [existingAvailabilities, setExistingAvailabilities] = useState<
+    Availability[]
+  >([]);
+  const [selectedAvailability, setSelectedAvailability] =
+    useState<Availability | null>(null);
   const [loading, setLoading] = useState(false);
 
   const getDatesInRange = (start: string, end: string) => {
@@ -151,7 +155,10 @@ function AddAvailability() {
 
   useEffect(() => {
     if (selectedAvailability) {
-      setDateRange({ start: selectedAvailability.start_date, end: selectedAvailability.end_date });
+      setDateRange({
+        start: selectedAvailability.start_date,
+        end: selectedAvailability.end_date,
+      });
       setCapacity(selectedAvailability.time_windows[0].capacity_per_day);
       setTimeRanges(
         selectedAvailability.time_windows.map((tw) => ({
@@ -181,7 +188,7 @@ function AddAvailability() {
     try {
       const userString = sessionStorage.getItem("user");
       const user = userString ? JSON.parse(userString) : null;
-    
+
       let payload;
       if (mode === "add") {
         payload = {
@@ -235,7 +242,11 @@ function AddAvailability() {
         setDateRange({ start: "", end: "" });
         setTransactionType("");
         setSelectedAvailability(null);
-        notifySuccess(mode === "add" ? "Availability added successfully" : "Availability updated successfully");
+        notifySuccess(
+          mode === "add"
+            ? "Availability added successfully"
+            : "Availability updated successfully"
+        );
       } else {
         notifyError("Failed to save availability");
       }
@@ -273,7 +284,6 @@ function AddAvailability() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      minHeight="100vh"
       bgcolor="background.paper"
       p={2}
     >
@@ -299,11 +309,7 @@ function AddAvailability() {
             value={mode}
             onChange={(e) => setMode(e.target.value as "add" | "edit")}
           >
-            <FormControlLabel
-              value="add"
-              control={<Radio />}
-              label="Add New"
-            />
+            <FormControlLabel value="add" control={<Radio />} label="Add New" />
             <FormControlLabel
               value="edit"
               control={<Radio />}
@@ -319,7 +325,9 @@ function AddAvailability() {
                 <InputLabel>Transaction Type</InputLabel>
                 <Select
                   value={transactionType}
-                  onChange={(e: SelectChangeEvent) => setTransactionType(e.target.value)}
+                  onChange={(e: SelectChangeEvent) =>
+                    setTransactionType(e.target.value)
+                  }
                   label="Transaction Type"
                   required
                 >
@@ -354,7 +362,10 @@ function AddAvailability() {
                   >
                     <MenuItem value="">Select Availability</MenuItem>
                     {existingAvailabilities.map((a) => (
-                      <MenuItem key={a.availability_id} value={a.availability_id}>
+                      <MenuItem
+                        key={a.availability_id}
+                        value={a.availability_id}
+                      >
                         {a.start_date} to {a.end_date}
                       </MenuItem>
                     ))}
@@ -425,28 +436,37 @@ function AddAvailability() {
                 <TimeIcon color="primary" />
                 <Typography variant="h6">Time Slots Configuration</Typography>
               </Stack>
-              
+
               <Divider sx={{ my: 2 }} />
-              
+
               <Grid container spacing={2}>
                 {timeRanges.map((tr, idx) => (
                   <Grid key={tr.date}>
                     <Card variant="outlined" sx={{ p: 2 }}>
                       <Grid container spacing={2} alignItems="center">
                         <Grid>
-                          <Typography variant="subtitle1" color="text.secondary">
+                          <Typography
+                            variant="subtitle1"
+                            color="text.secondary"
+                          >
                             {tr.date}
                           </Typography>
                         </Grid>
-                        
+
                         <Grid>
-                          <Stack direction="row" spacing={1} alignItems="center">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                          >
                             <Typography variant="body2">AM:</Typography>
                             <TextField
                               type="time"
                               size="small"
                               value={tr.amStart}
-                              onChange={(e) => handleTimeChange(idx, "amStart", e.target.value)}
+                              onChange={(e) =>
+                                handleTimeChange(idx, "amStart", e.target.value)
+                              }
                               required
                             />
                             <Typography variant="body2">to</Typography>
@@ -454,20 +474,28 @@ function AddAvailability() {
                               type="time"
                               size="small"
                               value={tr.amEnd}
-                              onChange={(e) => handleTimeChange(idx, "amEnd", e.target.value)}
+                              onChange={(e) =>
+                                handleTimeChange(idx, "amEnd", e.target.value)
+                              }
                               required
                             />
                           </Stack>
                         </Grid>
-                        
+
                         <Grid>
-                          <Stack direction="row" spacing={1} alignItems="center">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                          >
                             <Typography variant="body2">PM:</Typography>
                             <TextField
                               type="time"
                               size="small"
                               value={tr.pmStart}
-                              onChange={(e) => handleTimeChange(idx, "pmStart", e.target.value)}
+                              onChange={(e) =>
+                                handleTimeChange(idx, "pmStart", e.target.value)
+                              }
                               required
                             />
                             <Typography variant="body2">to</Typography>
@@ -475,7 +503,9 @@ function AddAvailability() {
                               type="time"
                               size="small"
                               value={tr.pmEnd}
-                              onChange={(e) => handleTimeChange(idx, "pmEnd", e.target.value)}
+                              onChange={(e) =>
+                                handleTimeChange(idx, "pmEnd", e.target.value)
+                              }
                               required
                             />
                           </Stack>
@@ -495,10 +525,10 @@ function AddAvailability() {
                   startIcon={<SaveIcon />}
                   disabled={loading}
                 >
-                  {loading 
-                    ? "Saving..." 
-                    : mode === "add" 
-                      ? "Save Availability" 
+                  {loading
+                    ? "Saving..."
+                    : mode === "add"
+                      ? "Save Availability"
                       : "Update Availability"}
                 </Button>
               </Box>

@@ -1,7 +1,7 @@
 import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { notifyInfo, notifySuccess } from "../components/ToastUtils";
 type AdminForm = {
   email: string;
   password: string;
@@ -12,7 +12,6 @@ type AdminForm = {
 };
 
 function RegisterAdminPage() {
-  const [alert, setAlert] = useState(false);
   const {
     register,
     handleSubmit,
@@ -29,6 +28,11 @@ function RegisterAdminPage() {
       );
 
       console.log("Response:", response.data);
+      if (response.data.success) {
+        notifySuccess(response.data.message);
+      } else {
+        notifyInfo(response.data.message);
+      }
 
       reset();
     } catch {}
@@ -141,9 +145,6 @@ function RegisterAdminPage() {
             ) : (
               "Register"
             )}
-          </Button>
-          <Button variant="contained" onClick={() => setAlert(true)}>
-            SAMPLE LANG
           </Button>
         </form>
       </div>
