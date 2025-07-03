@@ -28,7 +28,7 @@ function NavBar() {
     try {
       const student_id = userdata?.student_id;
       // console.log("Student ID: ", typeof student_id);
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/logout/student",
         { student_id },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }

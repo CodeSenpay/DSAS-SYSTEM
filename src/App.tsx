@@ -46,8 +46,7 @@ function App() {
         { id },
         { withCredentials: true }
       );
-      // console.log("Get userdata response: ", response);
-      return response.data;
+      return response.data.data[0];
     } catch (error) {
       console.error("Failed to fetch user data:", error);
       return null;
