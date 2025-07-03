@@ -8,6 +8,7 @@ export const verifyToken = async () => {
         withCredentials: true,
       }
     );
+
     return response.data;
   } catch (err) {
     console.log(err);

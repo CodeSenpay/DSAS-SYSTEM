@@ -1,3 +1,4 @@
+import axios from "axios";
 import { lazy, Suspense, useEffect } from "react";
 import {
   createBrowserRouter,
@@ -11,7 +12,6 @@ import Loading from "./components/Loading";
 import ProtectedPages from "./components/ProtectedPages";
 import LoginPage from "./pages/LoginPage";
 import LoginPageStudent from "./pages/LoginPageStudent";
-import axios from "axios";
 import { useUser } from "./services/UserContext";
 
 const NotFoundPage = lazy(() => import("./components/NotFoundPage"));
@@ -27,8 +27,8 @@ const ClearanceValidationPage = lazy(
   () => import("./pages/ClearanceValidationPage")
 );
 const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
-function App() {
 
+function App() {
   const { setUser } = useUser();
 
   async function getUserData(params: any) {
@@ -46,9 +46,10 @@ function App() {
         { id },
         { withCredentials: true }
       );
+      // console.log(response.data);
       return response.data.data[0];
     } catch (error) {
-      console.error("Failed to fetch user data:", error);
+      console.log("Failed to fetch user data:", error);
       return null;
     }
   }
@@ -56,7 +57,11 @@ function App() {
   useEffect(() => {
     const verifyAndFetchUser = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/auth/verify-jwt", { withCredentials: true });
+        const res = await axios.get(
+          "http://localhost:5000/api/auth/verify-jwt",
+          { withCredentials: true }
+        );
+
         if (res.data.success) {
           const user = res.data.user;
           // Try to get student_id, if not present, try userId
@@ -78,7 +83,6 @@ function App() {
     verifyAndFetchUser();
   }, [setUser]);
 
-
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route>
@@ -90,7 +94,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route
             path="/calendar"
-            element={<CalendarPage setIsOpenCalendar={() => { }} />}
+            element={<CalendarPage setIsOpenCalendar={() => {}} />}
           />
           <Route path="/vmgo" element={<VMGOPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />

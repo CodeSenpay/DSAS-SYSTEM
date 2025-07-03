@@ -10,8 +10,15 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-
+import { useEffect } from "react";
+import { useUser } from "../services/UserContext";
 function AdminDashboard() {
+  const { userdata } = useUser();
+
+  useEffect(() => {
+    console.log(userdata);
+  }, []);
+
   return (
     <Box
       sx={{
@@ -34,6 +41,7 @@ function AdminDashboard() {
         >
           Admin Dashboard
         </Typography>
+        <h1>WELCOME {userdata?.user_level}!</h1>
         <Box
           sx={{
             display: "flex",

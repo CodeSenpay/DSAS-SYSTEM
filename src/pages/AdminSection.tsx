@@ -19,7 +19,6 @@ import ApproveTransactionPage from "./ApproveTransactionPage";
 import RegisterAdminPage from "./RegisterAdminPage";
 import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
-
 const NAVIGATION: Navigation = [
   {
     kind: "header",
@@ -131,6 +130,7 @@ function renderCurrentPage(pathname: string) {
 export default function AdminDashboardPage() {
   const router = useDemoRouter("/admin-dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Remove this const when copying and pasting into your project.
   function CustomToolbarActions() {
     return (
@@ -146,7 +146,6 @@ export default function AdminDashboardPage() {
           <RegisterAdminPage />
         </Modal>
       )}
-
       <AppProvider
         navigation={NAVIGATION}
         router={router}

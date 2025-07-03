@@ -1,13 +1,13 @@
 import jwt from "jsonwebtoken";
 import logger from "../middleware/logger.js";
 import {
+  getUserData,
   loginAdmin,
   loginStudent,
-  logoutUser,
   logoutStudent,
+  logoutUser,
   sendOtpToEmail,
   verifyOtp,
-  getUserData,
 } from "../models/login-model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -268,12 +268,12 @@ const getUserDataController = async (req, res) => {
 };
 
 export {
+  getUserDataController,
   loginAdminController,
   loginStudentController,
-  logoutUserController,
   logoutStudentController,
+  logoutUserController,
   sendOtp,
   verifyJwt,
   verifyOtpController,
-  getUserDataController,
 };

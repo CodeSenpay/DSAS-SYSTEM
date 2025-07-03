@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
-
 type appointmentProps = {
   appointment_id: string;
   transaction_title: string;
@@ -21,7 +21,7 @@ function SubsidyPayoutPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
-
+  const { userdata } = useUser();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -39,9 +39,6 @@ function SubsidyPayoutPage() {
   };
 
   const fetchTransactionsByType = async () => {
-    const userString = sessionStorage.getItem("user");
-
-    const user = userString ? JSON.parse(userString) : null;
     const data = {
       model: "schedulesModel",
       function_name: "getAppointment",
@@ -50,10 +47,10 @@ function SubsidyPayoutPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 2,
-        user_id: user?.student_id,
+        user_id: userdata?.student_id,
       },
     };
-    console.log(data);
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/user",
@@ -63,6 +60,7 @@ function SubsidyPayoutPage() {
           withCredentials: true,
         }
       );
+
       if (response.data.success) {
         setAppointments(response.data.data);
 
@@ -103,7 +101,7 @@ function SubsidyPayoutPage() {
         style={{ padding: "20px" }}
       >
         {appointments.length !== 0 ? (
-          appointments[0].appointment_status.toLowerCase() === "declined" ? (
+          appointments[0]?.appointment_status.toLowerCase() === "declined" ? (
             <div className="flex flex-col items-center justify-center bg-white rounded-xl shadow-md p-6 mb-4 max-w-md w-full border border-red-400">
               <AddCircleIcon
                 className="text-red-700 mb-2"

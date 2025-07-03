@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
-
 type appointmentProps = {
   appointment_id: string;
   transaction_title: string;
@@ -20,7 +20,7 @@ function ClearanceValidationPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
-
+  const { userdata } = useUser();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -38,9 +38,6 @@ function ClearanceValidationPage() {
   };
 
   const fetchTransactionsByType = async () => {
-    const userString = sessionStorage.getItem("user");
-
-    const user = userString ? JSON.parse(userString) : null;
     const data = {
       model: "schedulesModel",
       function_name: "getAppointment",
@@ -49,7 +46,7 @@ function ClearanceValidationPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 3,
-        user_id: user?.student_id,
+        user_id: userdata?.student_id,
       },
     };
     try {
