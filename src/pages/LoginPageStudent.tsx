@@ -1,7 +1,7 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, TextField } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,10 +11,12 @@ import {
 } from "../components/ToastUtils";
 
 import { IconButton, InputAdornment } from "@mui/material";
+import { useUser } from "../services/UserContext";
+import { verifyToken } from "../services/verifyToken";
 
 function LoginPageStudent() {
   type dataProps = {
-    student_id: string;
+    studentId: string;
     password: string;
     user_level: string;
   };
@@ -28,30 +30,19 @@ function LoginPageStudent() {
     setShowPassword((prev) => !prev);
   };
 
-  /**
-   * Extracts only safe user data for session storage (no password).
-   */
-  function extractSafeUserData(user: any) {
-    if (!user) return {};
-    const {
-      student_id,
-      user_id,
-      last_name,
-      first_name,
-      user_level,
-      middle_name,
-      mobile_number,
-    } = user;
-    return {
-      student_id,
-      user_id,
-      last_name,
-      first_name,
-      user_level,
-      middle_name,
-      mobile_number,
+  const { userdata, setUser } = useUser();
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const result = await verifyToken();
+
+      if (result?.success) {
+        navigate("/dashboard");
+      }
     };
-  }
+    checkToken();
+  }, [userdata, navigate]);
+
 
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
@@ -66,10 +57,7 @@ function LoginPageStudent() {
       console.log(response.data);
       notifySuccess("Login successful!");
 
-      sessionStorage.setItem(
-        "user",
-        JSON.stringify(extractSafeUserData(response.data.user))
-      );
+      setUser(response.data.user);
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
@@ -114,7 +102,7 @@ function LoginPageStudent() {
             type="text"
             required
             className="w-full max-w-sm"
-            {...register("student_id")}
+            {...register("studentId")}
           />
           <TextField
             label="Password"

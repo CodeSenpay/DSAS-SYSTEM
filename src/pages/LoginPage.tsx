@@ -1,7 +1,7 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, TextField } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import CustomModal from "../components/Modal.tsx";
@@ -12,6 +12,7 @@ import {
 } from "../components/ToastUtils";
 
 import { IconButton, InputAdornment } from "@mui/material";
+import { useUser } from "../services/UserContext.ts";
 function LoginPage() {
   type dataProps = {
     email: string;
@@ -37,15 +38,15 @@ function LoginPage() {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-            err?.message ||
-            "Login failed. Please try again."
+          err?.message ||
+          "Login failed. Please try again."
         );
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-            err?.message ||
-            "Login failed. Please try again."
+          err?.message ||
+          "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -57,22 +58,15 @@ function LoginPage() {
     setShowPassword((prev) => !prev);
   };
 
-  /**
-   * Extracts only safe user data for session storage (no password).
-   */
-  function extractSafeUserData(user: any) {
-    if (!user) return {};
-    const { email, user_id, last_name, first_name, user_level, middle_name } =
-      user;
-    return {
-      email,
-      user_id,
-      last_name,
-      first_name,
-      user_level,
-      middle_name,
-    };
-  }
+  const { userdata } = useUser();
+
+  useEffect(() => {
+    if (!userdata) {
+      navigate("/login");
+    } else {
+      navigate("/dashboard");
+    }
+  }, [])
 
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
@@ -89,10 +83,10 @@ function LoginPage() {
       console.log(response.data);
       notifySuccess("Login successful!");
 
-      sessionStorage.setItem(
-        "user",
-        JSON.stringify(extractSafeUserData(response.data.user))
-      );
+      // sessionStorage.setItem(
+      //   "user",
+      //   JSON.stringify(extractSafeUserData(response.data.user))
+      // );
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
@@ -107,16 +101,16 @@ function LoginPage() {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-            err?.message ||
-            "Login failed. Please try again."
+          err?.message ||
+          "Login failed. Please try again."
         );
         sendOtpToEmail(data);
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-            err?.message ||
-            "Login failed. Please try again."
+          err?.message ||
+          "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -243,8 +237,8 @@ function LoginPage() {
                 } catch (err: any) {
                   notifyError(
                     err?.response?.data?.message ||
-                      err?.message ||
-                      "OTP verification failed."
+                    err?.message ||
+                    "OTP verification failed."
                   );
                 }
               }}

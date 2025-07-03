@@ -100,7 +100,6 @@ async function loginAdmin(data, req, res) {
   }
 }
 
-// Sample loginArmsAPI function returning a sample login response from an API (Include user details in sending to the sp)
 async function loginStudent(params, req, res) {
   // First, check if the student exists in the local database
   const localResult = await checkStudentExists(params);
@@ -110,8 +109,8 @@ async function loginStudent(params, req, res) {
     await logger(
       {
         action: "login_success",
-        user_id: params.student_id || null,
-        details: `Student logged in (local DB): ${params.student_id}`,
+        user_id: params.studentId || null,
+        details: `Student logged in (local DB): ${params.studentId}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -133,7 +132,7 @@ async function loginStudent(params, req, res) {
     await logger(
       {
         action: "login_error",
-        user_id: params.student_id || null,
+        user_id: params.studentId || null,
         details: `Error checking student existence: ${localResult.error}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
@@ -160,8 +159,8 @@ async function loginStudent(params, req, res) {
     await logger(
       {
         action: "login_error",
-        user_id: params.student_id || null,
-        details: `Failed to get ARMS token for student: ${params.student_id}`,
+        user_id: params.studentId || null,
+        details: `Failed to get ARMS token for student: ${params.studentId}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -180,7 +179,7 @@ async function loginStudent(params, req, res) {
     const response = await axios.post(
       url,
       {
-        Username: params.student_id,
+        Username: params.studentId,
         Password: params.password,
       },
       {
@@ -255,8 +254,8 @@ async function loginStudent(params, req, res) {
       await logger(
         {
           action: "login_attempt",
-          user_id: params.student_id || null,
-          details: `Failed ARMS login for student: ${params.student_id}`,
+          user_id: params.studentId || null,
+          details: `Failed ARMS login for student: ${params.studentId}`,
           timestamp: new Date()
             .toISOString()
             .replace("T", " ")
@@ -395,7 +394,7 @@ async function checkStudentExists(params) {
 
     // Prepare payload (send hashed password if present)
     const payload = JSON.stringify({
-      student_id: params.student_id,
+      student_id: params.studentId,
       password: hashedPassword,
     });
     const [result] = await pool.query(`CALL check_student(?)`, [payload]);
@@ -583,6 +582,62 @@ async function verifyOtp(email, otp) {
   }
 }
 
+async function getUserData(user_id_param) {
+  try {
+    const [resultSets] = await pool.query(`CALL get_user_data(?)`, [
+      user_id_param,
+    ]);
+    // The SP returns a result set if found, or nothing if not found.
+    // If not found, _response is set, but not selected, so resultSets may be empty.
+    if (Array.isArray(resultSets) && resultSets.length > 0 && resultSets[0]) {
+      // Return the first row of the first result set
+      return {
+        success: true,
+        data: resultSets[0],
+      };
+    } else {
+      // Not found, match the SP's message
+      return {
+        success: false,
+        message: "student not found.",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: "Error retrieving student data",
+      error: error.message,
+    };
+  }
+}
+
+async function disableIsActive(user_id) {
+  try {
+    const [result] = await pool.query(`CALL disable_is_active(?)`, [user_id]);
+    const spResult = result?.[0]?.[0];
+    if (spResult && typeof spResult === "object") {
+      // If the response is a JSON string, parse it
+      let responseObj = spResult;
+      if (typeof spResult === "string") {
+        try {
+          responseObj = JSON.parse(spResult);
+        } catch (e) {
+          responseObj = { success: false, message: "Invalid SP response" };
+        }
+      }
+      return responseObj;
+    } else {
+      return { success: false, message: "No response from stored procedure" };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: "Error disabling is_active",
+      error: error.message,
+    };
+  }
+}
+
 export {
   loginAdmin,
   loginStudent,
@@ -590,4 +645,6 @@ export {
   logoutStudent,
   sendOtpToEmail,
   verifyOtp,
+  getUserData,
+  disableIsActive
 };
