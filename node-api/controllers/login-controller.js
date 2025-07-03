@@ -229,7 +229,7 @@ const verifyJwt = async (req, res) => {
       message: "Unauthorized access. No token provided.",
     });
   }
-// use id from token to disable is_active
+  // use id from token to disable is_active
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
@@ -260,7 +260,7 @@ const getUserDataController = async (req, res) => {
         .status(404)
         .json({ success: false, message: result.message || "User not found." });
     }
-    res.json({ success: true, data: result.data });
+    res.json(result);
   } catch (error) {
     console.error("Get user data error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
