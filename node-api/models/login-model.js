@@ -338,37 +338,16 @@ async function logoutUser(req, res) {
 
 async function logoutStudent(req, res) {
   try {
-    const { student_id } = req.body;
-    if (!student_id) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing student_id" });
-    }
-
-    // Call the logout_student stored procedure
-    const [result] = await pool.query(`CALL logout_student(?)`, [student_id]);
-    const spResult = result?.[0]?.[0]?.Response;
-
-    // Clear the token cookie
+    // Only clear the token cookie and return success
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
 
-    // Parse the JSON response from the SP
-    let responseObj = spResult;
-    if (typeof spResult === "string") {
-      try {
-        responseObj = JSON.parse(spResult);
-      } catch (e) {
-        responseObj = { success: false, message: "Invalid SP response" };
-      }
-    }
-
     return res.json({
-      success: responseObj.success,
-      message: responseObj.message,
+      success: true,
+      message: "Logout successful",
     });
   } catch (error) {
     console.error("Logout error:", error);
