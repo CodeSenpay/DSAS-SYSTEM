@@ -11,6 +11,7 @@ function NotFoundPage() {
       <a
         href="/"
         className="inline-block px-8 py-3 bg-white text-purple-700 rounded-full font-semibold text-base shadow-lg transition-colors duration-200 hover:bg-purple-700 hover:text-white"
+        style={{ padding: 10 }}
       >
         Go Home
       </a>
