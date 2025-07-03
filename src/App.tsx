@@ -58,9 +58,16 @@ function App() {
       try {
         const res = await axios.get("http://localhost:5000/api/auth/verify-jwt", { withCredentials: true });
         if (res.data.success) {
-          const userData = await getUserData(res.data.user);
+          const user = res.data.user;
+          // Try to get student_id, if not present, try userId
+          const params: { student_id?: string; user_id?: string } = {};
+          if (user?.student_id) {
+            params.student_id = user.student_id;
+          } else if (user?.userId) {
+            params.user_id = user.userId;
+          }
+          const userData = await getUserData(params);
           setUser(userData);
-          // console.log(userData);
         } else {
           setUser(null);
         }

@@ -8,13 +8,19 @@ function ProtectedPages() {
   async function verifyUser() {
     const response = await verifyToken();
 
-    console.log(response);
 
     if (!response.success) {
       notifyError(response.message);
       navigate("/login");
       return;
     }
+
+    // if (response.user.userLevel !== "ADMIN") {
+    //   notifyError("Access denied: Admins only.");
+    //   navigate("/login/admin");
+    //   return;
+    // }
+    // If success and user is ADMIN, do nothing and allow access
   }
 
   useEffect(() => {

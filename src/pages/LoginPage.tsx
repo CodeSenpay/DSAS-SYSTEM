@@ -13,6 +13,7 @@ import {
 
 import { IconButton, InputAdornment } from "@mui/material";
 import { useUser } from "../services/UserContext.ts";
+import { verifyToken } from "../services/verifyToken.ts";
 function LoginPage() {
   type dataProps = {
     email: string;
@@ -58,15 +59,19 @@ function LoginPage() {
     setShowPassword((prev) => !prev);
   };
 
-  const { userdata } = useUser();
+  const { userdata, setUser } = useUser();
 
   useEffect(() => {
-    if (!userdata) {
-      navigate("/login");
-    } else {
-      navigate("/dashboard");
-    }
-  }, [])
+    const checkToken = async () => {
+      const result = await verifyToken();
+
+      if (result?.success) {
+        navigate("/admin-dashboard");
+      }
+    };
+    checkToken();
+  }, [userdata, navigate]);
+
 
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
@@ -80,13 +85,11 @@ function LoginPage() {
           withCredentials: true,
         }
       );
-      console.log(response.data);
+      console.log("Admin login: ", response.data);
       notifySuccess("Login successful!");
 
-      // sessionStorage.setItem(
-      //   "user",
-      //   JSON.stringify(extractSafeUserData(response.data.user))
-      // );
+      setUser(response.data.user);
+      console.log("User data: ", userdata)
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {

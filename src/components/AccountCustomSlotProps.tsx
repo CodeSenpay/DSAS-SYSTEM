@@ -8,19 +8,19 @@ import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { notifyError, notifySuccess } from "./ToastUtils";
+import { useUser } from "../services/UserContext";
 
 function getSessionFromStorage(): Session | null {
   try {
-    const userStr = sessionStorage.getItem("user");
-    if (!userStr) return null;
-    const userData = JSON.parse(userStr);
+    const { userdata } = useUser();
+    if (!userdata) return null;
     return {
       user: {
-        name: `${userData.first_name} ${userData.middle_name ?? ""} ${userData.last_name}`
+        name: `${userdata.first_name ?? ""} ${userdata.middle_name ?? ""} ${userdata.last_name ?? ""}`
           .replace(/\s+/g, " ")
           .trim(),
-        email: userData.email,
-        image: "https://avatars.githubusercontent.com/u/19550456", // You can update this if you have user image
+        email: userdata.email,
+        image: "https://avatars.githubusercontent.com/u/19550456", // Update if you have user image
       },
     };
   } catch {
