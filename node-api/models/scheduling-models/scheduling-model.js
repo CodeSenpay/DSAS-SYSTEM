@@ -1,6 +1,7 @@
 import pool from "../../config/db.conf.js";
 import logger from "../../middleware/logger.js";
 import transporter from "../../middleware/mailer.js";
+import { sendEmailToStudent } from "../../middleware/mailer.js";
 import { sendOtpToEmail } from "../login-model.js";
 
 export class SchedulingModel {
@@ -305,83 +306,6 @@ export class SchedulingModel {
     }
   }
 
-  // Fix: Make sendEmailToStudent a non-static method so it can be called as this.sendEmailToStudent
-  async sendEmailToStudent(payload) {
-    // This function sends an email to the student using the mailer.js transporter.
-    // Required fields: student_email, subject, message
-    const requiredFields = ["student_email", "subject", "message"];
-    const missingFields = requiredFields.filter((field) => !(field in payload));
-    if (missingFields.length > 0) {
-      await logger(
-        {
-          action: "sendEmailToStudent",
-          user_id: payload.user_id || null,
-          details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        }
-      );
-      return {
-        message: "Missing required fields",
-        missingFields,
-        receivedPayload: payload,
-      };
-    }
-
-    const mailOptions = {
-      from: process.env.SMTP_USER,
-      to: payload.student_email,
-      subject: payload.subject,
-      text: payload.message,
-      html: `
-      <div style="font-family: Arial, sans-serif; max-width: 400px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fafbfc;">
-        <h2 style="color: #2d7ff9; margin-top: 0;">${payload.subject}</h2>
-        <p style="font-size: 16px; color: #333;">${payload.message}</p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 0 0;">
-        <p style="font-size: 12px; color: #aaa; margin-top: 16px;">DSAS System</p>
-      </div>
-    `,
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      await logger(
-        {
-          action: "sendEmailToStudent",
-          user_id: payload.user_id || null,
-          details: `Email sent to ${payload.student_email}: ${info.response}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        }
-      );
-      return {
-        success: true,
-        message: `Email sent to ${payload.student_email}`,
-        info: info.response,
-      };
-    } catch (error) {
-      await logger(
-        {
-          action: "sendEmailToStudent",
-          user_id: payload.user_id || null,
-          details: `Failed to send email: ${error.message}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        }
-      );
-      return {
-        success: false,
-        message: "Failed to send email",
-        error: error.message,
-      };
-    }
-  }
 
   static async approveAppointment(payload) {
     // Required fields
@@ -420,13 +344,7 @@ export class SchedulingModel {
       let emailResult = null;
       if (payload.student_email) {
         // Use the sendEmailToStudent method with hardcoded subject and message
-        emailResult = await this.prototype.sendEmailToStudent(
-          {
-            student_email: payload.student_email,
-            subject: "Appointment Status Update",
-            message: "Your appointment status has been updated. Please check your account for more details.",
-          },
-        );
+        emailResult = await sendEmailToStudent(payload.student_email, payload.appointment_status);
       }
 
       await logger(
