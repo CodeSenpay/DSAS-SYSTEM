@@ -27,6 +27,7 @@ type transactionTypeProps = {
 };
 
 type appointmentProps = {
+  student_email: string;
   appointment_id: string;
   transaction_title: string;
   appointment_date: string;
@@ -54,6 +55,7 @@ function ApproveTransactionPage() {
         user_id: userdata?.user_id,
         appointment_id: data.appointment_id,
         appointment_status: "Approved",
+        student_email: data.student_email,
       },
     };
 
@@ -90,6 +92,7 @@ function ApproveTransactionPage() {
         appointment_id: data.appointment_id,
         user_id: userdata?.user_id,
         appointment_status: "Declined",
+        student_email: userdata?.email,
       },
     };
     try {
@@ -267,6 +270,10 @@ function ApproveTransactionPage() {
                     <TableCell>{appt.appointment_date}</TableCell>
                     <TableCell>{appt.user_id}</TableCell>
                     <TableCell>{appt.transaction_title}</TableCell>
+                    {/* Hidden cell for student_email */}
+                    <TableCell style={{ display: "none" }}>
+                      {appt.student_email}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
