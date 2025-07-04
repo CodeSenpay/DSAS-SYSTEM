@@ -7,6 +7,7 @@ import "react-day-picker/style.css";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
 
 type calendarProps = {
   transaction_title?: string;
@@ -52,7 +53,7 @@ function Calendar({
   const [availableDateInfo, setAvailableDateInfo] = useState<timewindowProps[]>(
     []
   );
-
+  const { userdata } = useUser();
   const handleClose = () => {
     setIsOpen(false);
   };
@@ -125,17 +126,14 @@ function Calendar({
       notifyError("Please select Either AM or PM");
       return;
     }
-    const userString = sessionStorage.getItem("user");
 
-    const user = userString ? JSON.parse(userString) : null;
-    console.log(user);
     const data = {
       model: "schedulesModel",
       function_name: "insertAppointment",
       payload: {
         time_frame: selectedTimeFrame,
         transaction_type_id: transactionTypeID,
-        user_id: user?.student_id,
+        user_id: userdata?.student_id,
         appointment_date: formattedDate,
       },
     };

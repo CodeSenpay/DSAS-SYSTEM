@@ -10,18 +10,16 @@ import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import * as React from "react";
 import axios from "axios";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { notifySuccess, notifyError } from "./ToastUtils";
 import { useUser } from "../services/UserContext";
+import { notifyError, notifySuccess } from "./ToastUtils";
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
-
 function NavBar() {
-
   const { userdata, setUser } = useUser();
 
   const LogoutStudent = async () => {
@@ -31,18 +29,21 @@ function NavBar() {
       await axios.post(
         "http://localhost:5000/api/logout/student",
         { student_id },
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
       );
       // console.log("Logout Response:", response);
-      setUser(null)
+      setUser(null);
       notifySuccess("Logout successful!");
       navigate("/login");
     } catch (err: any) {
       console.log(err);
       notifyError(
         err?.response?.data?.message ||
-        err?.message ||
-        "Logout failed. Please try again."
+          err?.message ||
+          "Logout failed. Please try again."
       );
     }
   };
@@ -105,7 +106,14 @@ function NavBar() {
 
   return (
     <Box sx={{ flexGrow: 1 }} className="w-full">
-      <AppBar position="static">
+      <AppBar
+        position="fixed"
+        sx={{
+          boxShadow: 1,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "primary.main",
+        }}
+      >
         <Container>
           <Toolbar disableGutters>
             <img src="/LogoPNG.png" className="max-w-10 md:w-30" alt="logo" />

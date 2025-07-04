@@ -1,5 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
@@ -43,7 +43,6 @@ function LoginPageStudent() {
     checkToken();
   }, [userdata, navigate]);
 
-
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
       const response = await axios.post(
@@ -72,14 +71,14 @@ function LoginPageStudent() {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
       } else {
         notifyError(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -87,7 +86,17 @@ function LoginPageStudent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        backgroundColor: "#f3f4f6",
+        backgroundImage: `
+        repeating-linear-gradient(135deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px),
+        repeating-linear-gradient(225deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px)
+      `,
+        backgroundSize: "40px 40px",
+      }}
+    >
       <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
         <form
           className="flex flex-col justify-center items-center gap-4"
@@ -123,6 +132,19 @@ function LoginPageStudent() {
               },
             }}
           />
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            className="w-full text-center mb-2"
+            sx={{
+              backgroundColor: "#f5f5f5",
+              borderRadius: "4px",
+              padding: "8px",
+              fontStyle: "italic",
+            }}
+          >
+            Hint: Your password is the same as your ARMS Portal password.
+          </Typography>
           <Button
             variant="contained"
             color="primary"
