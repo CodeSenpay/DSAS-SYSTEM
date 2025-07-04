@@ -10,34 +10,64 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import axios from "axios";
 import React, { useState } from "react";
+import Loading from "../components/Loading";
 import NavBar from "../components/NavBar";
+import { useUser } from "../services/UserContext";
+
+// type StudentDetailsProps = {
+//   college: string;
+//   major: string;
+//   program: string;
+//   school_year: string;
+//   semester: string;
+//   sex: string;
+//   student_id: string;
+//   student_name: string;
+//   year_level: string;
+// };
+
 function ProfilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [profile, setProfile] = useState({
-    full_name: "John Michael Doe",
-    student_id: "2023123456",
-    email: "john@example.com",
-    college_department: "College of Engineering",
-    program: "BS Computer Science",
-    sex: "Male",
-  });
-
-  const [form, setForm] = useState(profile);
-
+  const { userdata } = useUser();
+  const [studentEmail, setStudentEmail] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleEditClick = () => {
-    setForm(profile);
     setIsModalOpen(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setStudentEmail(e.target.value);
   };
 
-  const handleSave = () => {
-    setProfile(form);
-    setIsModalOpen(false);
+  const handleSave = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "updateStudentEmail",
+      payload: {
+        student_id: userdata?.student_id,
+        student_email: studentEmail,
+      },
+    };
+    console.log(data);
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/user",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      console.log(response.data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -46,6 +76,7 @@ function ProfilePage() {
 
   return (
     <>
+      {isLoading && <Loading />}
       <NavBar />
       <div
         style={{
@@ -74,43 +105,51 @@ function ProfilePage() {
 
             {/* Profile Info */}
             <Box className="flex flex-col gap-3 text-gray-700">
-              <Box className="flex justify-between">
+              <Box className="flex justify-start gap-3">
                 <Typography variant="body2" color="text.secondary">
-                  Full Name
-                </Typography>
-                <Typography variant="body2">{profile.full_name}</Typography>
-              </Box>
-              <Box className="flex justify-between">
-                <Typography variant="body2" color="text.secondary">
-                  Student ID
-                </Typography>
-                <Typography variant="body2">{profile.student_id}</Typography>
-              </Box>
-              <Box className="flex justify-between">
-                <Typography variant="body2" color="text.secondary">
-                  Email
-                </Typography>
-                <Typography variant="body2">{profile.email}</Typography>
-              </Box>
-              <Box className="flex justify-between">
-                <Typography variant="body2" color="text.secondary">
-                  Department
+                  Full Name:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.college_department}
+                  {userdata?.student_details?.student_name}
                 </Typography>
               </Box>
-              <Box className="flex justify-between">
+              <Box className="flex justify-start gap-3">
                 <Typography variant="body2" color="text.secondary">
-                  Program
+                  Student ID:
                 </Typography>
-                <Typography variant="body2">{profile.program}</Typography>
+                <Typography variant="body2">
+                  {userdata?.student_details?.student_id}
+                </Typography>
               </Box>
-              <Box className="flex justify-between">
+              <Box className="flex justify-start gap-3">
                 <Typography variant="body2" color="text.secondary">
-                  Sex
+                  Email:
                 </Typography>
-                <Typography variant="body2">{profile.sex}</Typography>
+                <Typography variant="body2">{userdata?.email}</Typography>
+              </Box>
+              <Box className="flex justify-start gap-3">
+                <Typography variant="body2" color="text.secondary">
+                  Department:
+                </Typography>
+                <Typography variant="body2">
+                  {userdata?.student_details?.college}
+                </Typography>
+              </Box>
+              <Box className="flex justify-start gap-3">
+                <Typography variant="body2" color="text.secondary">
+                  Program:
+                </Typography>
+                <Typography variant="body2">
+                  {userdata?.student_details?.program}
+                </Typography>
+              </Box>
+              <Box className="flex justify-start gap-3">
+                <Typography variant="body2" color="text.secondary">
+                  Sex:
+                </Typography>
+                <Typography variant="body2">
+                  {userdata?.student_details?.sex}
+                </Typography>
               </Box>
             </Box>
 
@@ -146,16 +185,14 @@ function ProfilePage() {
                 <TextField
                   label="Full Name"
                   name="full_name"
-                  value={form.full_name}
-                  onChange={handleChange}
+                  value={userdata?.student_details?.student_name}
                   fullWidth
                   disabled
                 />
                 <TextField
                   label="Student ID"
                   name="student_id"
-                  value={form.student_id}
-                  onChange={handleChange}
+                  value={userdata?.student_details?.student_id}
                   fullWidth
                   disabled
                 />
@@ -163,30 +200,30 @@ function ProfilePage() {
                   label="Email"
                   name="email"
                   type="email"
-                  value={form.email}
+                  value={userdata?.email}
                   onChange={handleChange}
                   fullWidth
                 />
                 <TextField
                   label="College Department"
                   name="college_department"
-                  value={form.college_department}
-                  onChange={handleChange}
+                  value={userdata?.student_details?.college}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Program / Course"
                   name="program"
-                  value={form.program}
-                  onChange={handleChange}
+                  value={userdata?.student_details?.program}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Sex"
                   name="sex"
-                  value={form.sex}
-                  onChange={handleChange}
+                  value={userdata?.student_details?.sex}
                   fullWidth
+                  disabled
                 />
               </Box>
             </DialogContent>
