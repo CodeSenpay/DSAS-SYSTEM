@@ -21,7 +21,7 @@ export default function DashboardPage() {
           backgroundSize: "40px 40px",
         }}
       >
-        <h1>WELCOME {userdata?.user_level}</h1>
+        <h1>WELCOME {userdata?.student_details?.student_name}</h1>
         <div
           className="w-full flex flex-col gap-3 md:flex-row justify-center"
           style={{ padding: "10px" }}

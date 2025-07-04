@@ -149,6 +149,7 @@ function ProfilePage() {
                   value={form.full_name}
                   onChange={handleChange}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Student ID"
@@ -156,6 +157,7 @@ function ProfilePage() {
                   value={form.student_id}
                   onChange={handleChange}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Email"

@@ -5,13 +5,25 @@ import React, {
   type ReactNode,
 } from "react";
 
+type StudentDetailsProps = {
+  college: string;
+  major: string;
+  program: string;
+  school_year: string;
+  semester: string;
+  sex: string;
+  student_id: string;
+  student_name: string;
+  year_level: string;
+};
+
 type User = {
   student_id?: string;
   user_id?: string;
   first_name?: string;
   middle_name?: string;
   last_name?: string;
-  student_details?: object;
+  student_details?: StudentDetailsProps;
   email?: string;
   user_level?: string;
 } | null;
