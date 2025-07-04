@@ -92,7 +92,7 @@ function ApproveTransactionPage() {
         appointment_id: data.appointment_id,
         user_id: userdata?.user_id,
         appointment_status: "Declined",
-        student_email: userdata?.email,
+        student_email: data.student_email,
       },
     };
     try {
