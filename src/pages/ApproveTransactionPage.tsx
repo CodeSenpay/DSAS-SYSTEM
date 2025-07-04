@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import Loading from "../components/Loading";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -35,21 +36,12 @@ type appointmentProps = {
   user_id: string;
 };
 
-type adminInfoProps = {
-  email: string;
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  middle_name: string;
-  user_level: string;
-};
-
 function ApproveTransactionPage() {
   const [selectedType, setSelectedType] = useState<number>();
   const [selectedDate, setSelectedDate] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [adminInfo, setAdminInfo] = useState<adminInfoProps>();
 
+  const { userdata } = useUser();
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
@@ -59,7 +51,7 @@ function ApproveTransactionPage() {
       model: "schedulesModel",
       function_name: "approveAppointment",
       payload: {
-        user_id: adminInfo?.user_id,
+        user_id: userdata?.user_id,
         appointment_id: data.appointment_id,
         appointment_status: "Approved",
       },
@@ -96,7 +88,7 @@ function ApproveTransactionPage() {
       function_name: "approveAppointment",
       payload: {
         appointment_id: data.appointment_id,
-        user_id: adminInfo?.user_id,
+        user_id: userdata?.user_id,
         appointment_status: "Declined",
       },
     };
@@ -190,9 +182,6 @@ function ApproveTransactionPage() {
   };
 
   useEffect(() => {
-    const userString = sessionStorage.getItem("user");
-
-    setAdminInfo(userString ? JSON.parse(userString) : null);
     handleSearch();
     getTransactionTypes();
   }, []);
