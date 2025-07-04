@@ -1,9 +1,11 @@
 import pool from "../../config/db.conf.js";
 import logger from "../../middleware/logger.js";
+import transporter from "../../middleware/mailer.js";
+import { sendOtpToEmail } from "../login-model.js";
 
 export class SchedulingModel {
   // ========================================================== Availability Functions ==========================================================
-  static async insertAvailability(payload, req, res) {
+  static async insertAvailability(payload) {
     // Required fields
     const requiredFields = [
       "transaction_type_id",
@@ -26,9 +28,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -52,9 +52,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
@@ -67,9 +65,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",
@@ -79,7 +75,7 @@ export class SchedulingModel {
     }
   }
 
-  static async updateAvailability(payload, req, res) {
+  static async updateAvailability(payload) {
     // Required fields
     const requiredFields = [
       "availability_id",
@@ -103,9 +99,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -130,9 +124,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
@@ -145,9 +137,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",
@@ -157,7 +147,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getAvailability(payload, req, res) {
+  static async getAvailability(payload) {
     let userId = null;
     try {
       // Extract searchkey from payload
@@ -185,7 +175,7 @@ export class SchedulingModel {
   }
 
   // ========================================================== Appointment Functions ==========================================================
-  static async insertAppointment(payload, req, res) {
+  static async insertAppointment(payload) {
     // Required fields
     const requiredFields = [
       "transaction_type_id",
@@ -206,9 +196,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -230,9 +218,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
@@ -245,9 +231,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",
@@ -257,7 +241,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getAppointment(payload, req, res) {
+  static async getAppointment(payload) {
     // Required fields
     const requiredFields = [
       "appointment_id",
@@ -292,7 +276,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getTimewindow(payload, req, res) {
+  static async getTimewindow(payload) {
     // Required fields
     const requiredFields = ["available_date"];
 
@@ -321,96 +305,8 @@ export class SchedulingModel {
     }
   }
 
-  static async approveAppointment(payload, req, res) {
-    // Required fields
-    const requiredFields = ["appointment_id", "user_id", "appointment_status"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
-    if (missingFields.length > 0) {
-      await logger(
-        {
-          action: "approveAppointment",
-          user_id: payload.user_id || null,
-          details: `Missing required fields: ${missingFields.join(", ")}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
-      return {
-        message: "Missing required fields",
-        missingFields,
-        receivedPayload: payload,
-      };
-    }
-
-    try {
-      const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
-        jsondata,
-      ]);
-      await logger(
-        {
-          action: "approveAppointment",
-          user_id: payload.user_id || null,
-          details: "Appointment approved successfully",
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
-
-      // If student_email, subject, and message are present in payload, send email
-      if (
-        payload.student_email &&
-        payload.subject &&
-        payload.message
-      ) {
-        // Use the sendEmailToStudent method
-        await this.sendEmailToStudent(
-          {
-            student_email: payload.student_email,
-            subject: payload.subject,
-            message: payload.message,
-            user_id: payload.user_id || null,
-          },
-          req,
-          res
-        );
-      }
-
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-    } catch (error) {
-      await logger(
-        {
-          action: "approveAppointment",
-          user_id: payload.user_id || null,
-          details: `Stored procedure execution failed: ${error.message}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
-      return {
-        message: "Stored procedure execution failed",
-        error: error.message,
-        receivedPayload: payload,
-      };
-    }
-  }
-
-  static async sendEmailToStudent(payload, req, res) {
+  // Fix: Make sendEmailToStudent a non-static method so it can be called as this.sendEmailToStudent
+  async sendEmailToStudent(payload) {
     // This function sends an email to the student using the mailer.js transporter.
     // Required fields: student_email, subject, message
     const requiredFields = ["student_email", "subject", "message"];
@@ -425,9 +321,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -436,35 +330,19 @@ export class SchedulingModel {
       };
     }
 
-    // Lazy import to avoid import issues at this point
-    let transporter;
-    try {
-      transporter = (await import("../../middleware/mailer.js")).default;
-    } catch (err) {
-      await logger(
-        {
-          action: "sendEmailToStudent",
-          user_id: payload.user_id || null,
-          details: `Failed to import mailer: ${err.message}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
-      return {
-        message: "Failed to import mailer",
-        error: err.message,
-      };
-    }
-
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: payload.student_email,
       subject: payload.subject,
       text: payload.message,
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 400px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; background: #fafbfc;">
+        <h2 style="color: #2d7ff9; margin-top: 0;">${payload.subject}</h2>
+        <p style="font-size: 16px; color: #333;">${payload.message}</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 0 0;">
+        <p style="font-size: 12px; color: #aaa; margin-top: 16px;">DSAS System</p>
+      </div>
+    `,
     };
 
     try {
@@ -478,9 +356,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         success: true,
@@ -497,9 +373,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         success: false,
@@ -509,8 +383,86 @@ export class SchedulingModel {
     }
   }
 
+  static async approveAppointment(payload) {
+    // Required fields
+    const requiredFields = ["appointment_id", "user_id", "appointment_status", "student_email"];
 
-  static async deleteAppointment(payload, req, res) {
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      await logger(
+        {
+          action: "approveAppointment",
+          user_id: payload.user_id || null,
+          details: `Missing required fields: ${missingFields.join(", ")}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        }
+      );
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+
+      // Wait for the stored procedure to finish and get the result
+      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
+        jsondata,
+      ]);
+
+      // Only after the SP finishes, send the email (if student_email is present)
+      let emailResult = null;
+      if (payload.student_email) {
+        // Use the sendEmailToStudent method with hardcoded subject and message
+        emailResult = await this.prototype.sendEmailToStudent(
+          {
+            student_email: payload.student_email,
+            subject: "Appointment Status Update",
+            message: "Your appointment status has been updated. Please check your account for more details.",
+          },
+        );
+      }
+
+      await logger(
+        {
+          action: "approveAppointment",
+          user_id: payload.user_id || null,
+          details: "Appointment approved successfully" + (emailResult && emailResult.message ? `; Email: ${emailResult.message}` : ""),
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        }
+      );
+
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      await logger(
+        {
+          action: "approveAppointment",
+          user_id: payload.user_id || null,
+          details: `Stored procedure execution failed: ${error.message}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        }
+      );
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
+  static async deleteAppointment(payload) {
     // Required field
     const requiredFields = ["appointment_id", "user_id"];
 
@@ -526,9 +478,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -550,9 +500,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       // The stored procedure returns a result set with a single row containing a 'result' field (JSON string)
       if (rows && Array.isArray(rows) && rows.length > 0 && rows[0].result) {
@@ -573,9 +521,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",
@@ -586,7 +532,7 @@ export class SchedulingModel {
   }
 
   // ========================================================== Transaction Type Functions ==========================================================
-  static async insertTransactionType(payload, req, res) {
+  static async insertTransactionType(payload) {
     // Required fields
     const requiredFields = ["transaction_title", "transaction_detail"];
 
@@ -602,9 +548,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -628,9 +572,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure executed successfully",
@@ -647,9 +589,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",
@@ -659,7 +599,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getTransactionType(req, res) {
+  static async getTransactionType() {
     try {
       const [rows] = await pool.query(`CALL get_transaction_type()`);
 
@@ -672,7 +612,7 @@ export class SchedulingModel {
     }
   }
 
-  static async updateStudentEmail(payload, req, res) {
+  static async updateStudentEmail(payload) {
     // Required fields
     const requiredFields = ["student_id", "student_email"];
 
@@ -688,9 +628,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Missing required fields",
@@ -715,9 +653,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
 
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
@@ -731,9 +667,7 @@ export class SchedulingModel {
             .toISOString()
             .replace("T", " ")
             .substring(0, 19),
-        },
-        req,
-        res
+        }
       );
       return {
         message: "Stored procedure execution failed",

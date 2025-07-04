@@ -41,8 +41,8 @@ async function handle_schedule(req, res) {
       );
     }
 
-    // Call the model function
-    const result = await fn(payload, req, res);
+    // Call the model function (without req, res)
+    const result = await fn(payload);
 
     // If the function already sent a response, do not send another
     if (!res.headersSent) {
