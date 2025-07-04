@@ -367,6 +367,26 @@ export class SchedulingModel {
         req,
         res
       );
+
+      // If student_email, subject, and message are present in payload, send email
+      if (
+        payload.student_email &&
+        payload.subject &&
+        payload.message
+      ) {
+        // Use the sendEmailToStudent method
+        await this.sendEmailToStudent(
+          {
+            student_email: payload.student_email,
+            subject: payload.subject,
+            message: payload.message,
+            user_id: payload.user_id || null,
+          },
+          req,
+          res
+        );
+      }
+
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
       await logger(
@@ -389,6 +409,106 @@ export class SchedulingModel {
       };
     }
   }
+
+  static async sendEmailToStudent(payload, req, res) {
+    // This function sends an email to the student using the mailer.js transporter.
+    // Required fields: student_email, subject, message
+    const requiredFields = ["student_email", "subject", "message"];
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      await logger(
+        {
+          action: "sendEmailToStudent",
+          user_id: payload.user_id || null,
+          details: `Missing required fields: ${missingFields.join(", ")}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    // Lazy import to avoid import issues at this point
+    let transporter;
+    try {
+      transporter = (await import("../../middleware/mailer.js")).default;
+    } catch (err) {
+      await logger(
+        {
+          action: "sendEmailToStudent",
+          user_id: payload.user_id || null,
+          details: `Failed to import mailer: ${err.message}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Failed to import mailer",
+        error: err.message,
+      };
+    }
+
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: payload.student_email,
+      subject: payload.subject,
+      text: payload.message,
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      await logger(
+        {
+          action: "sendEmailToStudent",
+          user_id: payload.user_id || null,
+          details: `Email sent to ${payload.student_email}: ${info.response}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        success: true,
+        message: `Email sent to ${payload.student_email}`,
+        info: info.response,
+      };
+    } catch (error) {
+      await logger(
+        {
+          action: "sendEmailToStudent",
+          user_id: payload.user_id || null,
+          details: `Failed to send email: ${error.message}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        success: false,
+        message: "Failed to send email",
+        error: error.message,
+      };
+    }
+  }
+
 
   static async deleteAppointment(payload, req, res) {
     // Required field
@@ -548,6 +668,77 @@ export class SchedulingModel {
       return {
         message: "Stored procedure execution failed",
         error: error.message,
+      };
+    }
+  }
+
+  static async updateStudentEmail(payload, req, res) {
+    // Required fields
+    const requiredFields = ["student_id", "student_email"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      await logger(
+        {
+          action: "updateStudentEmail",
+          user_id: payload.student_id || null,
+          details: `Missing required fields: ${missingFields.join(", ")}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+
+      const [rows] = await pool.query(`CALL update_student_email(?)`, [
+        jsondata,
+      ]);
+
+      await logger(
+        {
+          action: "updateStudentEmail",
+          user_id: payload.student_id || null,
+          details: "Student email updated/inserted successfully",
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      await logger(
+        {
+          action: "updateStudentEmail",
+          user_id: payload.student_id || null,
+          details: `Stored procedure execution failed: ${error.message}`,
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
+        },
+        req,
+        res
+      );
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
       };
     }
   }

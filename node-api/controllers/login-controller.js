@@ -118,12 +118,12 @@ async function loginStudentController(req, res) {
 
 async function logoutUserController(req, res) {
   try {
-    const response = await logoutUser(req, res);
+    const response = await logoutUser(res);
     logger(
       {
         action: "logout",
-        user_id: req.user_id || "none",
-        details: `User logout attempt: ${req.user_id || "none"}`,
+        user_id: req.body.user_id || "none",
+        details: `User logout attempt: ${response.message || "none"}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -141,12 +141,13 @@ async function logoutUserController(req, res) {
 
 async function logoutStudentController(req, res) {
   try {
-    const response = await logoutStudent(req, res);
+    const response = await logoutStudent(res);
+    console.log("Logout Response:", response.body);
     logger(
       {
         action: "logout",
-        user_id: response.user?.id || "none",
-        details: `User logout attempt: ${response.message}`,
+        user_id: req.body.student_id || "none",
+        details: `Student logout attempt: ${response.message || "none"}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -235,10 +236,11 @@ const verifyJwt = async (req, res) => {
 
     res.json({ success: true, user: decoded });
   } catch (error) {
-    console.error("JWT verification error:", error);
+    // console.error("JWT verification error:", error);
     res.status(401).json({
       success: false,
       message: "Unauthorized access. Invalid token.",
+      error: error,
     });
   }
 };

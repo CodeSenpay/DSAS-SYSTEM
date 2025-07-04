@@ -31,7 +31,10 @@ const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
 function App() {
   const { setUser } = useUser();
 
-  async function getUserData(params: any) {
+  async function getUserData(params: {
+    student_id?: string;
+    user_id?: string;
+  }) {
     try {
       // Extract student_id or user_id from params
       const { student_id, user_id } = params;
@@ -46,7 +49,7 @@ function App() {
         { id },
         { withCredentials: true }
       );
-      // console.log(response.data);
+      console.log(response.data);
       return response.data.data[0];
     } catch (error) {
       console.log("Failed to fetch user data:", error);

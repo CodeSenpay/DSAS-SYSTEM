@@ -11,6 +11,7 @@ type User = {
   first_name?: string;
   middle_name?: string;
   last_name?: string;
+  student_details?: object;
   email?: string;
   user_level?: string;
 } | null;
