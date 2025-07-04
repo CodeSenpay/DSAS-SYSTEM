@@ -11,7 +11,7 @@ export default function DashboardPage() {
     <>
       <NavBar />
       <div
-        className="min-w-screen min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-center"
+        className="min-w-screen min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-start gap-5"
         style={{
           backgroundColor: "#f3f4f6",
           backgroundImage: `
@@ -21,7 +21,21 @@ export default function DashboardPage() {
           backgroundSize: "40px 40px",
         }}
       >
-        <h1>WELCOME {userdata?.student_details?.student_name}</h1>
+        <div
+          className="mb-8 flex flex-col items-center"
+          style={{ padding: 20, marginTop: "100px" }}
+        >
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-2">
+            Welcome,{" "}
+            <span className="text-amber-500">
+              {userdata?.student_details?.student_name}
+            </span>
+            !
+          </h1>
+          <p className="text-lg text-gray-600">
+            We're glad to see you. Select a service below to get started.
+          </p>
+        </div>
         <div
           className="w-full flex flex-col gap-3 md:flex-row justify-center"
           style={{ padding: "10px" }}

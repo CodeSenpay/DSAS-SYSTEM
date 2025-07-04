@@ -202,17 +202,19 @@ async function loginStudent(params, req, res) {
     if (record) {
       // Prepare and insert student details in local DB
       // Deserialize student details as per the required format
-      const studentDetails = JSON.parse(JSON.stringify({
-        sex: record.Sex,
-        major: record.Major,
-        college: record.College,
-        program: record.Program,
-        semester: record.Semester,
-        student_id: record.Student_ID,
-        year_level: record.Year_Level,
-        school_year: record.School_Year,
-        student_name: record.Student_Name,
-      }));
+      const studentDetails = JSON.parse(
+        JSON.stringify({
+          sex: record.Sex,
+          major: record.Major,
+          college: record.College,
+          program: record.Program,
+          semester: record.Semester,
+          student_id: record.Student_ID,
+          year_level: record.Year_Level,
+          school_year: record.School_Year,
+          student_name: record.Student_Name,
+        })
+      );
 
       const insertResult = await insertStudent({
         student_id: record.Student_ID,
@@ -232,7 +234,10 @@ async function loginStudent(params, req, res) {
           action: logAction,
           user_id: record.Student_ID || null,
           details: logDetails,
-          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
         },
         req,
         res
@@ -240,17 +245,17 @@ async function loginStudent(params, req, res) {
 
       return insertResult.success
         ? {
-          success: true,
-          message: "Login successful (ARMS API, student inserted locally)",
-          user: insertResult.student || studentDetails,
-        }
+            success: true,
+            message: "Login successful (ARMS API, student inserted locally)",
+            user: insertResult.student || studentDetails,
+          }
         : {
-          success: false,
-          message:
-            "Login successful (ARMS API) but failed to insert student locally",
-          user: studentDetails,
-          error: insertResult.message,
-        };
+            success: false,
+            message:
+              "Login successful (ARMS API) but failed to insert student locally",
+            user: studentDetails,
+            error: insertResult.message,
+          };
     } else {
       // Log failed ARMS login
       await logger(
@@ -258,7 +263,10 @@ async function loginStudent(params, req, res) {
           action: "login_attempt",
           user_id: studentId || null,
           details: `Failed ARMS login for student: ${studentId}`,
-          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+          timestamp: new Date()
+            .toISOString()
+            .replace("T", " ")
+            .substring(0, 19),
         },
         req,
         res
@@ -628,12 +636,12 @@ async function disableIsActive(user_id) {
 }
 
 export {
+  disableIsActive,
+  getUserData,
   loginAdmin,
   loginStudent,
-  logoutUser,
   logoutStudent,
+  logoutUser,
   sendOtpToEmail,
   verifyOtp,
-  getUserData,
-  disableIsActive
 };

@@ -1,6 +1,5 @@
-import 'dotenv/config';
-import nodemailer from 'nodemailer';
-import logger from './logger.js';
+import "dotenv/config";
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -66,8 +65,9 @@ export async function sendEmailToStudent(email, appointment_status) {
   }
 }
 
-transporter.verify()
-  .then(() => console.log('SMTP verified ✅'))
-  .catch(err => console.error('Verification failed:', err));
+transporter
+  .verify()
+  .then(() => console.log("SMTP verified ✅"))
+  .catch((err) => console.error("Verification failed:", err));
 
 export default transporter;
