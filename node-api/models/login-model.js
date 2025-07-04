@@ -101,16 +101,22 @@ async function loginAdmin(data, req, res) {
 }
 
 async function loginStudent(params, req, res) {
+  // Normalize student_id for consistent usage
+  const studentId = params.student_id || params.studentId;
   // First, check if the student exists in the local database
-  const localResult = await checkStudentExists(params);
+  const localResult = await checkStudentExists({
+    ...params,
+    student_id: studentId,
+    studentId: studentId,
+  });
 
   if (localResult.success) {
     // Log successful local login
     await logger(
       {
         action: "login_success",
-        user_id: params.studentId || null,
-        details: `Student logged in (local DB): ${params.studentId}`,
+        user_id: studentId || null,
+        details: `Student logged in (local DB): ${studentId}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -120,20 +126,20 @@ async function loginStudent(params, req, res) {
     return {
       success: true,
       message: "Login successful (local database)",
-      user: localResult.user || {}, // Attach user details if available
+      user: localResult.user || {},
     };
   }
 
+  // Handle invalid credentials or already logged in
   if (
     (!localResult.success && localResult.message === "Invalid credentials.") ||
     localResult.message === "Student is already logged in."
   ) {
-    // Log error from checkStudentExists
     await logger(
       {
         action: "login_error",
-        user_id: params.studentId || null,
-        details: `Error checking student existence: ${localResult.error}`,
+        user_id: studentId || null,
+        details: `Error checking student existence: ${localResult.error || localResult.message}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -159,8 +165,8 @@ async function loginStudent(params, req, res) {
     await logger(
       {
         action: "login_error",
-        user_id: params.studentId || null,
-        details: `Failed to get ARMS token for student: ${params.studentId}`,
+        user_id: studentId || null,
+        details: `Failed to get ARMS token for student: ${studentId}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -179,7 +185,7 @@ async function loginStudent(params, req, res) {
     const response = await axios.post(
       url,
       {
-        Username: params.studentId,
+        Username: studentId,
         Password: params.password,
       },
       {
@@ -187,7 +193,6 @@ async function loginStudent(params, req, res) {
           Authorization: `Bearer ${tokenResponse.JWToken}`,
           "Secret-Key": tokenResponse.Secret_Key,
           "User-Agent": "Coderstation-Protocol",
-          Authorization: `Bearer ${tokenResponse.JWToken}`,
         },
       }
     );
@@ -196,7 +201,8 @@ async function loginStudent(params, req, res) {
     const record = response.data?.Record;
     if (record) {
       // Prepare and insert student details in local DB
-      const studentDetails = {
+      // Deserialize student details as per the required format
+      const studentDetails = JSON.parse(JSON.stringify({
         sex: record.Sex,
         major: record.Major,
         college: record.College,
@@ -206,8 +212,7 @@ async function loginStudent(params, req, res) {
         year_level: record.Year_Level,
         school_year: record.School_Year,
         student_name: record.Student_Name,
-        status: response.data.Status,
-      };
+      }));
 
       const insertResult = await insertStudent({
         student_id: record.Student_ID,
@@ -227,10 +232,7 @@ async function loginStudent(params, req, res) {
           action: logAction,
           user_id: record.Student_ID || null,
           details: logDetails,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
+          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
         },
         req,
         res
@@ -238,28 +240,25 @@ async function loginStudent(params, req, res) {
 
       return insertResult.success
         ? {
-            success: true,
-            message: "Login successful (ARMS API, student inserted locally)",
-            user: insertResult.student || studentDetails,
-          }
+          success: true,
+          message: "Login successful (ARMS API, student inserted locally)",
+          user: insertResult.student || studentDetails,
+        }
         : {
-            success: false,
-            message:
-              "Login successful (ARMS API) but failed to insert student locally",
-            user: studentDetails,
-            error: insertResult.message,
-          };
+          success: false,
+          message:
+            "Login successful (ARMS API) but failed to insert student locally",
+          user: studentDetails,
+          error: insertResult.message,
+        };
     } else {
       // Log failed ARMS login
       await logger(
         {
           action: "login_attempt",
-          user_id: params.studentId || null,
-          details: `Failed ARMS login for student: ${params.studentId}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
+          user_id: studentId || null,
+          details: `Failed ARMS login for student: ${studentId}`,
+          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
         },
         req,
         res
@@ -275,8 +274,8 @@ async function loginStudent(params, req, res) {
     await logger(
       {
         action: "login_error",
-        user_id: params.student_id || null,
-        details: `Failed to login to ARMS API for student: ${params.student_id} - ${error.response?.data?.Status || error.message}`,
+        user_id: studentId || null,
+        details: `Failed to login to ARMS API for student: ${studentId} - ${error.response?.data?.Status || error.message}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
@@ -318,7 +317,7 @@ async function registerToArmsToken() {
   }
 }
 
-async function logoutUser(req, res) {
+async function logoutUser(res) {
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -336,7 +335,7 @@ async function logoutUser(req, res) {
   }
 }
 
-async function logoutStudent(req, res) {
+async function logoutStudent(res) {
   try {
     // Only clear the token cookie and return success
     res.clearCookie("token", {
@@ -430,17 +429,28 @@ async function insertStudent(params) {
       .update(params.password)
       .digest("hex");
 
-    // Ensure student_details is a stringified JSON (as expected by the SP)
-    const studentDetailsString =
-      typeof params.student_details === "string"
-        ? params.student_details
-        : JSON.stringify(params.student_details);
+    // Only allow student_details to be inserted if it is a plain object (not a stringified JSON)
+    // If it's a string, ignore it and do not include in the payload
+    let studentDetailsToInsert = undefined;
+    if (
+      params.student_details &&
+      typeof params.student_details === "object" &&
+      !Array.isArray(params.student_details)
+    ) {
+      studentDetailsToInsert = params.student_details;
+    }
 
-    const payload = JSON.stringify({
+    // Build payload without student_details if it's a stringified JSON
+    const payloadObj = {
       student_id: params.student_id,
-      student_details: studentDetailsString,
       password: hashedPassword,
-    });
+    };
+    if (studentDetailsToInsert) {
+      payloadObj.student_details = studentDetailsToInsert;
+    }
+
+    const payload = JSON.stringify(payloadObj);
+
     const [result] = await pool.query(`CALL insert_student(?)`, [payload]);
     const spResult = result?.[0]?.[0]?.Response;
 
