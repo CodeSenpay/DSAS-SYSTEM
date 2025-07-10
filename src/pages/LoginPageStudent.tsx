@@ -1,5 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, TextField, Typography, CircularProgress } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
@@ -25,6 +25,7 @@ function LoginPageStudent() {
 
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
@@ -44,6 +45,7 @@ function LoginPageStudent() {
   }, [userdata, navigate]);
 
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/login-student",
@@ -53,7 +55,6 @@ function LoginPageStudent() {
           withCredentials: true,
         }
       );
-      console.log(response.data);
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
@@ -66,22 +67,29 @@ function LoginPageStudent() {
       } else {
         navigate("/dashboard");
       }
-    } catch (err: any) {
-      console.error(err.response?.status);
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { status?: number; data?: { message?: string } };
+        message?: string;
+      };
+      // eslint-disable-next-line no-console
+      console.error(error.response?.status);
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
         notifyInfo(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
       } else {
         notifyError(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,8 +158,12 @@ function LoginPageStudent() {
             color="primary"
             type="submit"
             className="w-full max-w-sm"
+            disabled={loading}
+            startIcon={
+              loading ? <CircularProgress size={20} color="inherit" /> : null
+            }
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </Button>
 
           <p className="text-md text-blue-600">

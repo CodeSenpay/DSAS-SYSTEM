@@ -134,17 +134,6 @@ async function loginStudent(params, req, res) {
     //   typeof userSchoolYear === "string" &&
     //   userSchoolYear.localeCompare(currentSchoolYear) < 0
     // ) {
-    //   // Student's school year is below the current school year
-    //   await logger(
-    //     {
-    //       action: "login_error",
-    //       user_id: studentId || null,
-    //       details: `Student attempted login with outdated school year (${userSchoolYear} < ${currentSchoolYear})`,
-    //       timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-    //     },
-    //     req,
-    //     res
-    //   );
     //   return {
     //     success: false,
     //     message: "Access Denied",
@@ -152,17 +141,6 @@ async function loginStudent(params, req, res) {
     //   };
     // }
 
-    // Log successful local login
-    await logger(
-      {
-        action: "login_success",
-        user_id: studentId || null,
-        details: `Student logged in (local DB): ${studentId}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
     // Student exists in local DB, return details
     return {
       success: true,
@@ -176,16 +154,6 @@ async function loginStudent(params, req, res) {
     (!localResult.success && localResult.message === "Invalid credentials.") ||
     localResult.message === "Student is already logged in."
   ) {
-    await logger(
-      {
-        action: "login_error",
-        user_id: studentId || null,
-        details: `Error checking student existence: ${localResult.error || localResult.message}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
     return {
       success: false,
       message: localResult.message || "Error checking student existence",
@@ -202,17 +170,6 @@ async function loginStudent(params, req, res) {
     !tokenResponse.JWToken ||
     !tokenResponse.Secret_Key
   ) {
-    // Log ARMS token failure
-    await logger(
-      {
-        action: "login_error",
-        user_id: studentId || null,
-        details: `Failed to get ARMS token for student: ${studentId}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
     return {
       success: false,
       message: tokenResponse?.Status || "Failed to get ARMS token",
@@ -249,17 +206,6 @@ async function loginStudent(params, req, res) {
       //   typeof recordSchoolYear === "string" &&
       //   recordSchoolYear.localeCompare(currentSchoolYear) < 0
       // ) {
-      //   // Student's school year is below the current school year
-      //   await logger(
-      //     {
-      //       action: "login_error",
-      //       user_id: record.Student_ID || null,
-      //       details: `Student attempted login with outdated school year (${recordSchoolYear} < ${currentSchoolYear})`,
-      //       timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      //     },
-      //     req,
-      //     res
-      //   );
       //   return {
       //     success: false,
       //     message: `Access Denied`,
@@ -289,27 +235,6 @@ async function loginStudent(params, req, res) {
         password: params.password,
       });
 
-      const logAction = insertResult.success
-        ? "login_success"
-        : "login_partial_success";
-      const logDetails = insertResult.success
-        ? `Student logged in via ARMS API and inserted locally: ${record.Student_ID}`
-        : `Student logged in via ARMS API but failed to insert locally: ${record.Student_ID}`;
-
-      await logger(
-        {
-          action: logAction,
-          user_id: record.Student_ID || null,
-          details: logDetails,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
-
       return insertResult.success
         ? {
           success: true,
@@ -324,20 +249,6 @@ async function loginStudent(params, req, res) {
           error: insertResult.message,
         };
     } else {
-      // Log failed ARMS login
-      await logger(
-        {
-          action: "login_attempt",
-          user_id: studentId || null,
-          details: `Failed ARMS login for student: ${studentId}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
-        },
-        req,
-        res
-      );
       return {
         success: false,
         status: 409,
@@ -345,17 +256,6 @@ async function loginStudent(params, req, res) {
       };
     }
   } catch (error) {
-    // Log ARMS API error
-    await logger(
-      {
-        action: "login_error",
-        user_id: studentId || null,
-        details: `Failed to login to ARMS API for student: ${studentId} - ${error.response?.data?.Status || error.message}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
     return {
       success: false,
       message: "Failed to login to ARMS API",
@@ -675,35 +575,7 @@ async function getUserData(user_id_param) {
   }
 }
 
-async function disableIsActive(user_id) {
-  try {
-    const [result] = await pool.query(`CALL disable_is_active(?)`, [user_id]);
-    const spResult = result?.[0]?.[0];
-    if (spResult && typeof spResult === "object") {
-      // If the response is a JSON string, parse it
-      let responseObj = spResult;
-      if (typeof spResult === "string") {
-        try {
-          responseObj = JSON.parse(spResult);
-        } catch (e) {
-          responseObj = { success: false, message: "Invalid SP response" };
-        }
-      }
-      return responseObj;
-    } else {
-      return { success: false, message: "No response from stored procedure" };
-    }
-  } catch (error) {
-    return {
-      success: false,
-      message: "Error disabling is_active",
-      error: error.message,
-    };
-  }
-}
-
 export {
-  disableIsActive,
   getUserData,
   loginAdmin,
   loginStudent,
