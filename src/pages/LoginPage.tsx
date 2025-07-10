@@ -39,15 +39,15 @@ function LoginPage() {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -72,7 +72,6 @@ function LoginPage() {
     checkToken();
   }, [userdata, navigate]);
 
-
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     try {
       const response = await axios.post(
@@ -89,7 +88,7 @@ function LoginPage() {
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
-      console.log("User data: ", userdata)
+      console.log("User data: ", userdata);
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
@@ -104,16 +103,16 @@ function LoginPage() {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         notifyInfo(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         sendOtpToEmail(data);
         openModal();
       } else {
         notifyError(
           err?.response?.data?.message ||
-          err?.message ||
-          "Login failed. Please try again."
+            err?.message ||
+            "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
@@ -130,7 +129,17 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-100 px-4"
+      style={{
+        backgroundColor: "#f3f4f6",
+        backgroundImage: `
+        repeating-linear-gradient(135deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px),
+        repeating-linear-gradient(225deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px)
+      `,
+        backgroundSize: "40px 40px",
+      }}
+    >
       <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
         <form
           className="flex flex-col justify-center items-center gap-4"
@@ -141,7 +150,7 @@ function LoginPage() {
           <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
           <p>ADMIN</p>
           <TextField
-            label="Student ID"
+            label="Admin Email"
             variant="outlined"
             type="text"
             required
@@ -240,8 +249,8 @@ function LoginPage() {
                 } catch (err: any) {
                   notifyError(
                     err?.response?.data?.message ||
-                    err?.message ||
-                    "OTP verification failed."
+                      err?.message ||
+                      "OTP verification failed."
                   );
                 }
               }}

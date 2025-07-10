@@ -63,11 +63,20 @@ type TimeRange = {
   time_window_id?: number;
 };
 
+type CollegeDeparmentsProps = {
+  college: string;
+  college_name: string;
+};
+
 const API_URL = "http://localhost:5000/api/scheduling-system/admin";
 
 function AddAvailability() {
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [transactionType, setTransactionType] = useState("");
+  const [selectedCollege, setSelectedCollege] = useState("");
+  const [collegeDepartments, setCollegeDepartments] = useState<
+    CollegeDeparmentsProps[]
+  >([]);
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
@@ -84,6 +93,8 @@ function AddAvailability() {
     useState<Availability | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [clearanceSelected, setClearanceSelected] = useState<boolean>(false);
+
   const getDatesInRange = (start: string, end: string) => {
     const dates = [];
     let current = new Date(start);
@@ -93,6 +104,32 @@ function AddAvailability() {
       current.setDate(current.getDate() + 1);
     }
     return dates;
+  };
+
+  const fetchCollegeDepartments = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getCollegeDeparments",
+    };
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/jrmsu/college-departments",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      console.log;
+      console.log(response.data.data);
+
+      if (response.data.success) {
+        setCollegeDepartments(response.data.data);
+      } else {
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleDateRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,6 +237,9 @@ function AddAvailability() {
             start_date: dateRange.start,
             end_date: dateRange.end,
             created_by: 1,
+            college: selectedCollege,
+            semester: "",
+            school_year: "",
             created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
             time_windows: timeRanges.map((tr) => ({
               capacity_per_day: capacity,
@@ -280,13 +320,7 @@ function AddAvailability() {
   }, []);
 
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      bgcolor="background.paper"
-      p={2}
-    >
+    <Box display="flex" justifyContent="center" alignItems="center" p={2}>
       <Card
         sx={{
           width: "100%",
@@ -325,9 +359,16 @@ function AddAvailability() {
                 <InputLabel>Transaction Type</InputLabel>
                 <Select
                   value={transactionType}
-                  onChange={(e: SelectChangeEvent) =>
-                    setTransactionType(e.target.value)
-                  }
+                  onChange={(e: SelectChangeEvent) => {
+                    setTransactionType(e.target.value);
+
+                    if (parseInt(e.target.value) === 3) {
+                      fetchCollegeDepartments();
+                      setClearanceSelected(true);
+                    } else {
+                      setClearanceSelected(false);
+                    }
+                  }}
                   label="Transaction Type"
                   required
                 >
@@ -345,7 +386,32 @@ function AddAvailability() {
                 </Select>
               </FormControl>
             </Grid>
-
+            {clearanceSelected ? (
+              <Grid width={"200px"}>
+                <FormControl fullWidth>
+                  <InputLabel>College Department</InputLabel>
+                  <Select
+                    value={selectedCollege}
+                    onChange={(e: SelectChangeEvent) => {
+                      setSelectedCollege(e.target.value);
+                    }}
+                    label="College Department"
+                    required
+                  >
+                    <MenuItem value="">Select College</MenuItem>
+                    {collegeDepartments.map((college) =>
+                      college ? (
+                        <MenuItem value={college.college}>
+                          {college.college_name}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Grid>
+            ) : (
+              <></>
+            )}
             {mode === "edit" && transactionType && (
               <Grid width={"200px"}>
                 <FormControl fullWidth>

@@ -449,6 +449,19 @@ export class SchedulingModel {
     }
   }
 
+  static async getCollegeDeparments() {
+    try {
+      const [rows] = await pool.query("SELECT * FROM college_departments");
+
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows : rows;
+    } catch (err) {
+      return {
+        message: "Fetching of College Departments Failed!",
+        error: err.message,
+      };
+    }
+  }
+
   static async updateStudentEmail(payload) {
     // Required fields
     const requiredFields = ["student_id", "student_email"];

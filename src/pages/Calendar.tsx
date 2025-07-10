@@ -50,6 +50,7 @@ function Calendar({
   const [transactionTypeID, setTransactionTypeID] = useState<number>(0);
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [availableDateInfo, setAvailableDateInfo] = useState<timewindowProps[]>(
     []
   );
@@ -173,6 +174,9 @@ function Calendar({
     setSelectedTimeFrame(e.target.value);
   };
   useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setCurrentDate(today);
     console.log("Calendar is Starting....");
     handleFetchingAvailableDates();
   }, []);
@@ -221,13 +225,14 @@ function Calendar({
         style={{ padding: "20px" }}
         mode="single"
         selected={selected}
-        defaultMonth={new Date(2025, 5)}
+        defaultMonth={new Date()}
         onSelect={handleDateSelection}
         modifiers={{ available: parsedAvailableDates }}
         modifiersClassNames={{
           available: "text-black",
         }}
         disabled={(date) =>
+          date < currentDate ||
           availableDateInfo.some(
             (d) =>
               d.total_slots_left === 0 &&

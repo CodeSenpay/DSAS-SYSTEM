@@ -1,14 +1,14 @@
 import cookieParser from "cookie-parser";
 import { Router } from "express";
 import {
+  getUserDataController,
   loginAdminController,
   loginStudentController,
-  logoutUserController,
   logoutStudentController,
+  logoutUserController,
   sendOtp,
   verifyJwt,
   verifyOtpController,
-  getUserDataController,
 } from "./controllers/login-controller.js";
 import { register } from "./controllers/register-controller.js";
 import { handle_schedule } from "./controllers/schedule-main-controller.js";
@@ -29,5 +29,6 @@ router.post("/api/send-otp", sendOtp);
 router.post("/api/verify-otp", verifyOtpController);
 router.get("/api/auth/verify-jwt", verifyJwt);
 router.post("/api/auth/get-user-data", getUserDataController);
+router.post("/api/jrmsu/college-departments", handle_schedule);
 
 export default router;
