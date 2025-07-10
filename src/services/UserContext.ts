@@ -31,16 +31,33 @@ type User = {
 type UserContextType = {
   userdata: User;
   setUser: (userdata: User) => void;
+  schoolYear: { schoolYear: string } | null;
+  setSchoolYear: (schoolYear: { schoolYear: string }) => void;
+  semester: { semester: string } | null;
+  setSemester: (semester: { semester: string }) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userdata, setUser] = useState<User>(null);
+  const [schoolYear, setSchoolYear] = useState<{ schoolYear: string } | null>(
+    null
+  );
+  const [semester, setSemester] = useState<{ semester: string } | null>(null);
 
   return React.createElement(
     UserContext.Provider,
-    { value: { userdata, setUser } },
+    {
+      value: {
+        userdata,
+        setUser,
+        schoolYear,
+        setSchoolYear,
+        semester,
+        setSemester,
+      },
+    },
     children
   );
 };

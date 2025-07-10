@@ -13,6 +13,7 @@ import ProtectedPages from "./components/ProtectedPages";
 import LoginPage from "./pages/LoginPage";
 import LoginPageStudent from "./pages/LoginPageStudent";
 import { useUser } from "./services/UserContext";
+import { fetchSemester, fetchShoolYear } from "./services/Utils";
 
 const NotFoundPage = lazy(() => import("./components/NotFoundPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -29,7 +30,7 @@ const ClearanceValidationPage = lazy(
 const ClaimingOfIDPage = lazy(() => import("./pages/ClaimingOfIDPage"));
 
 function App() {
-  const { setUser } = useUser();
+  const { setUser, setSemester, setSchoolYear } = useUser();
 
   async function getUserData(params: {
     student_id?: string;
@@ -56,6 +57,18 @@ function App() {
       return null;
     }
   }
+
+  const setSchoolYearAndSemester = () => {
+    const semester = fetchSemester();
+    const school_year = fetchShoolYear();
+
+    console.log(`Semester: ${semester}`);
+    console.log(`schoolYear: ${school_year}`);
+  };
+
+  useEffect(() => {
+    setSchoolYearAndSemester();
+  }, []);
 
   useEffect(() => {
     const verifyAndFetchUser = async () => {
