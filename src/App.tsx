@@ -58,12 +58,15 @@ function App() {
     }
   }
 
-  const setSchoolYearAndSemester = () => {
-    const semester = fetchSemester();
-    const school_year = fetchShoolYear();
+  const setSchoolYearAndSemester = async () => {
+    const semester = await fetchSemester();
+    const school_year = await fetchShoolYear();
 
-    console.log(`Semester: ${semester}`);
-    console.log(`schoolYear: ${school_year}`);
+    setSchoolYear(school_year);
+    setSemester(semester);
+
+    console.log(`Semester: ${semester.semester}`);
+    console.log(`schoolYear: ${school_year.schoolYear}`);
   };
 
   useEffect(() => {

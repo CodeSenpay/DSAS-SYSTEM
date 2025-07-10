@@ -75,6 +75,8 @@ function AddAvailability() {
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [transactionType, setTransactionType] = useState("");
   const [selectedCollege, setSelectedCollege] = useState("");
+
+  const { semester, schoolYear } = useUser();
   const [collegeDepartments, setCollegeDepartments] = useState<
     CollegeDeparmentsProps[]
   >([]);
@@ -237,9 +239,9 @@ function AddAvailability() {
             start_date: dateRange.start,
             end_date: dateRange.end,
             created_by: user?.user_id,
-            college: selectedCollege,
-            semester: "",
-            school_year: "",
+            college: selectedCollege || "",
+            semester: semester?.semester || "",
+            school_year: schoolYear?.schoolYear || "",
             created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
             time_windows: timeRanges.map((tr) => ({
               capacity_per_day: capacity,
@@ -260,6 +262,9 @@ function AddAvailability() {
             availability_id: selectedAvailability.availability_id,
             transaction_type_id: transactionType,
             start_date: dateRange.start,
+            college: selectedCollege || "",
+            semester: semester?.semester || "",
+            school_year: schoolYear?.schoolYear || "",
             end_date: dateRange.end,
             time_windows: timeRanges.map((tr) => ({
               time_window_id: tr.time_window_id,

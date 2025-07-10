@@ -4,7 +4,7 @@ export const fetchShoolYear = async () => {
   try {
     const response = await axios.get(
       "http://localhost:5000/api/utility/school-year",
-      { headers: { "Content-Type": "application/json" }, withCredentials: true }
+      { headers: { "Content-Type": "application/json" } }
     );
 
     return response.data;
@@ -21,7 +21,7 @@ export const fetchSemester = async () => {
   try {
     const response = await axios.get(
       "http://localhost:5000/api/utility/semester",
-      { headers: { "Content-Type": "application/json" }, withCredentials: true }
+      { headers: { "Content-Type": "application/json" } }
     );
 
     return response.data;
