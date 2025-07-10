@@ -25,6 +25,7 @@ import Grid from "@mui/material/Grid";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -97,7 +98,7 @@ function AddAvailability() {
 
   const getDatesInRange = (start: string, end: string) => {
     const dates = [];
-    let current = new Date(start);
+    const current = new Date(start);
     const last = new Date(end);
     while (current <= last) {
       dates.push(current.toISOString().slice(0, 10));
@@ -120,12 +121,10 @@ function AddAvailability() {
           withCredentials: true,
         }
       );
-      console.log;
       console.log(response.data.data);
 
       if (response.data.success) {
         setCollegeDepartments(response.data.data);
-      } else {
       }
     } catch (err) {
       console.log(err);
@@ -219,12 +218,14 @@ function AddAvailability() {
     setSelectedAvailability(null);
   }, [mode]);
 
+  const { userdata } = useUser();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const userString = sessionStorage.getItem("user");
-      const user = userString ? JSON.parse(userString) : null;
+      // Use user from UserContext instead of sessionStorage
+      const user = userdata;
 
       let payload;
       if (mode === "add") {
@@ -232,11 +233,10 @@ function AddAvailability() {
           model: "schedulesModel",
           function_name: "insertAvailability",
           payload: {
-            user_id: user?.user_id,
             transaction_type_id: transactionType,
             start_date: dateRange.start,
             end_date: dateRange.end,
-            created_by: 1,
+            created_by: user?.user_id,
             college: selectedCollege,
             semester: "",
             school_year: "",

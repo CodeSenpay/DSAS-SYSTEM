@@ -23,7 +23,7 @@ export class SchedulingModel {
     if (missingFields.length > 0) {
       await logger({
         action: "insertAvailability",
-        user_id: payload.user_id || null,
+        user_id: payload.created_by || null,
         details: `Missing required fields: ${missingFields.join(", ")}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
@@ -42,7 +42,7 @@ export class SchedulingModel {
       ]);
       await logger({
         action: "insertAvailability",
-        user_id: payload.user_id || null,
+        user_id: payload.created_by || null,
         details: "Availability inserted successfully",
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
@@ -50,7 +50,7 @@ export class SchedulingModel {
     } catch (error) {
       await logger({
         action: "insertAvailability",
-        user_id: payload.user_id || null,
+        user_id: payload.created_by || null,
         details: `Stored procedure execution failed: ${error.message}`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
@@ -150,12 +150,6 @@ export class SchedulingModel {
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
     if (missingFields.length > 0) {
-      await logger({
-        action: "insertAppointment",
-        user_id: payload.user_id || null,
-        details: `Missing required fields: ${missingFields.join(", ")}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
       return {
         message: "Missing required fields",
         missingFields,
@@ -167,20 +161,8 @@ export class SchedulingModel {
       const jsondata = JSON.stringify(payload);
 
       const [rows] = await pool.query(`CALL insert_appointment(?)`, [jsondata]);
-      await logger({
-        action: "insertAppointment",
-        user_id: payload.user_id || null,
-        details: "Appointment inserted successfully",
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
-      await logger({
-        action: "insertAppointment",
-        user_id: payload.user_id || null,
-        details: `Stored procedure execution failed: ${error.message}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
       return {
         message: "Stored procedure execution failed",
         error: error.message,
@@ -459,12 +441,6 @@ export class SchedulingModel {
     // Check for missing fields
     const missingFields = requiredFields.filter((field) => !(field in payload));
     if (missingFields.length > 0) {
-      await logger({
-        action: "updateStudentEmail",
-        user_id: payload.student_id || null,
-        details: `Missing required fields: ${missingFields.join(", ")}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
       return {
         message: "Missing required fields",
         missingFields,
@@ -479,21 +455,8 @@ export class SchedulingModel {
         jsondata,
       ]);
 
-      await logger({
-        action: "updateStudentEmail",
-        user_id: payload.student_id || null,
-        details: "Student email updated/inserted successfully",
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
-
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
-      await logger({
-        action: "updateStudentEmail",
-        user_id: payload.student_id || null,
-        details: `Stored procedure execution failed: ${error.message}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      });
       return {
         message: "Stored procedure execution failed",
         error: error.message,

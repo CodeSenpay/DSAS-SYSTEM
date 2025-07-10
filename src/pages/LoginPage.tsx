@@ -1,5 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, CircularProgress } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
@@ -26,6 +26,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
@@ -35,18 +36,22 @@ function LoginPage() {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
-    } catch (err: any) {
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { status?: number; data?: { message?: string } };
+        message?: string;
+      };
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
         notifyInfo(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
         openModal();
       } else {
         notifyError(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
@@ -73,6 +78,7 @@ function LoginPage() {
   }, [userdata, navigate]);
 
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/login-admin",
@@ -84,38 +90,41 @@ function LoginPage() {
           withCredentials: true,
         }
       );
-      console.log("Admin login: ", response.data);
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
-      console.log("User data: ", userdata);
 
       const userLevel = response.data?.user.user_level;
       if (userLevel === "ADMIN") {
         navigate("/admin-dashboard");
-      } else if (userLevel === "STUDENT") {
-        navigate("/dashboard");
       } else {
         navigate("/dashboard");
       }
-    } catch (err: any) {
-      console.error(err.response?.status);
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { status?: number; data?: { message?: string } };
+        message?: string;
+      };
+      // eslint-disable-next-line no-console
+      console.error(error.response?.status);
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
         notifyInfo(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
         sendOtpToEmail(data);
         openModal();
       } else {
         notifyError(
-          err?.response?.data?.message ||
-            err?.message ||
+          error?.response?.data?.message ||
+            error?.message ||
             "Login failed. Please try again."
         );
         // Do not open the modal for non-401 errors
       }
+    } finally {
+      setLoading(false);
     }
   };
   function maskEmail(email: string) {
@@ -181,8 +190,12 @@ function LoginPage() {
             color="primary"
             type="submit"
             className="w-full max-w-sm"
+            disabled={loading}
+            startIcon={
+              loading ? <CircularProgress size={20} color="inherit" /> : null
+            }
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </Button>
 
           <p className="text-md text-blue-600">
@@ -246,10 +259,14 @@ function LoginPage() {
                       ) as HTMLSelectElement
                     )?.value,
                   });
-                } catch (err: any) {
+                } catch (err: unknown) {
+                  const error = err as {
+                    response?: { data?: { message?: string } };
+                    message?: string;
+                  };
                   notifyError(
-                    err?.response?.data?.message ||
-                      err?.message ||
+                    error?.response?.data?.message ||
+                      error?.message ||
                       "OTP verification failed."
                   );
                 }

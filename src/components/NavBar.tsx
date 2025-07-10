@@ -38,11 +38,16 @@ function NavBar() {
       setUser(null);
       notifySuccess("Logout successful!");
       navigate("/login");
-    } catch (err: any) {
+    } catch (err) {
+      // eslint-disable-next-line no-console
       console.log(err);
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
       notifyError(
-        err?.response?.data?.message ||
-          err?.message ||
+        error?.response?.data?.message ||
+          error?.message ||
           "Logout failed. Please try again."
       );
     }

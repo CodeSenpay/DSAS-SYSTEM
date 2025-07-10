@@ -141,18 +141,7 @@ async function logoutUserController(req, res) {
 
 async function logoutStudentController(req, res) {
   try {
-    const response = await logoutStudent(res);
-    console.log("Logout Response:", response.body);
-    logger(
-      {
-        action: "logout",
-        user_id: req.body.student_id || "none",
-        details: `Student logout attempt: ${response.message || "none"}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      },
-      req,
-      res
-    );
+    await logoutStudent(res);
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {

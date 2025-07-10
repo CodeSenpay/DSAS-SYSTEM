@@ -9,39 +9,53 @@ import {
   Paper,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
 import Loading from "../components/Loading";
 import NavBar from "../components/NavBar";
 import { useUser } from "../services/UserContext";
+import {
+  notifySuccess,
+  notifyError,
+  notifyInfo,
+} from "../components/ToastUtils";
 
-// type StudentDetailsProps = {
-//   college: string;
-//   major: string;
-//   program: string;
-//   school_year: string;
-//   semester: string;
-//   sex: string;
-//   student_id: string;
-//   student_name: string;
-//   year_level: string;
-// };
+// Email regex for validation
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function ProfilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { userdata } = useUser();
+  const { userdata, setUser } = useUser();
   const [studentEmail, setStudentEmail] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<string>("");
+
   const handleEditClick = () => {
+    setStudentEmail(userdata?.email || "");
+    setEmailError("");
     setIsModalOpen(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStudentEmail(e.target.value);
+    const value = e.target.value;
+    setStudentEmail(value);
+    if (!EMAIL_REGEX.test(value)) {
+      setEmailError("Please enter a valid email address.");
+    } else {
+      setEmailError("");
+    }
   };
 
+  // Only recall the user context after saving, do not reload the page
   const handleSave = async () => {
+    // Validate email before proceeding
+    if (!EMAIL_REGEX.test(studentEmail)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
     const data = {
       model: "schedulesModel",
       function_name: "updateStudentEmail",
@@ -50,10 +64,10 @@ function ProfilePage() {
         student_email: studentEmail,
       },
     };
-    console.log(data);
+    setIsButtonLoading(true);
     setIsLoading(true);
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/scheduling-system/user",
         data,
         {
@@ -61,17 +75,47 @@ function ProfilePage() {
           withCredentials: true,
         }
       );
-
-      console.log(response.data);
+      // Refetch user data and update context, do not reload the page
+      try {
+        const student_id = userdata?.student_id;
+        const res = await axios.post(
+          "http://localhost:5000/api/auth/get-user-data",
+          { id: student_id },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        setUser(res.data.data[0]);
+        notifySuccess("Profile updated successfully!");
+      } catch {
+        notifyInfo("Profile updated, but failed to refresh user data.");
+      }
+      setIsModalOpen(false);
     } catch (err) {
-      console.log(err);
+      if (axios.isAxiosError(err)) {
+        notifyError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to update profile. Please try again."
+        );
+      } else if (err instanceof Error) {
+        notifyError(
+          err.message || "Failed to update profile. Please try again."
+        );
+      } else {
+        notifyError("Failed to update profile. Please try again.");
+      }
     } finally {
+      setIsButtonLoading(false);
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
     setIsModalOpen(false);
+    setIsButtonLoading(false);
+    setEmailError("");
   };
 
   return (
@@ -200,9 +244,11 @@ function ProfilePage() {
                   label="Email"
                   name="email"
                   type="email"
-                  value={userdata?.email}
+                  value={studentEmail}
                   onChange={handleChange}
                   fullWidth
+                  error={!!emailError}
+                  helperText={emailError}
                 />
                 <TextField
                   label="College Department"
@@ -228,13 +274,24 @@ function ProfilePage() {
               </Box>
             </DialogContent>
             <DialogActions className="px-6 pb-4">
-              <Button onClick={handleSave} variant="contained" color="primary">
-                Save
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                color="primary"
+                disabled={isButtonLoading || !!emailError}
+                startIcon={
+                  isButtonLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : null
+                }
+              >
+                {isButtonLoading ? "Saving..." : "Save"}
               </Button>
               <Button
                 onClick={handleClose}
                 variant="outlined"
                 color="secondary"
+                disabled={isButtonLoading}
               >
                 Cancel
               </Button>
