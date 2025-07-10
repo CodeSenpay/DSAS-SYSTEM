@@ -4,6 +4,7 @@ import { console } from "inspector";
 import pool from "../config/db.conf.js";
 import logger from "../middleware/logger.js";
 import transporter from "../middleware/mailer.js";
+import { generateSchoolYear } from "../services/utility.js";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdmin(data, req, res) {
@@ -100,6 +101,7 @@ async function loginAdmin(data, req, res) {
   }
 }
 
+
 async function loginStudent(params, req, res) {
   // Normalize student_id for consistent usage
   const studentId = params.student_id || params.studentId;
@@ -111,6 +113,45 @@ async function loginStudent(params, req, res) {
   });
 
   if (localResult.success) {
+    // // Check if the student's school year is current or above
+    // const currentSchoolYear = generateSchoolYear();
+
+    // // Get the school_year from student_details if available, otherwise fallback to user.school_year
+    // let userSchoolYear = undefined;
+    // if (
+    //   localResult.user &&
+    //   localResult.user.student_details &&
+    //   typeof localResult.user.student_details === "object" &&
+    //   localResult.user.student_details.school_year
+    // ) {
+    //   userSchoolYear = localResult.user.student_details.school_year;
+    // } else if (localResult.user && localResult.user.school_year) {
+    //   userSchoolYear = localResult.user.school_year;
+    // }
+
+    // if (
+    //   userSchoolYear &&
+    //   typeof userSchoolYear === "string" &&
+    //   userSchoolYear.localeCompare(currentSchoolYear) < 0
+    // ) {
+    //   // Student's school year is below the current school year
+    //   await logger(
+    //     {
+    //       action: "login_error",
+    //       user_id: studentId || null,
+    //       details: `Student attempted login with outdated school year (${userSchoolYear} < ${currentSchoolYear})`,
+    //       timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+    //     },
+    //     req,
+    //     res
+    //   );
+    //   return {
+    //     success: false,
+    //     message: "Access Denied",
+    //     error: "School year outdated",
+    //   };
+    // }
+
     // Log successful local login
     await logger(
       {
@@ -200,6 +241,32 @@ async function loginStudent(params, req, res) {
     // Check if ARMS API returned a valid student record
     const record = response.data?.Record;
     if (record) {
+      // // Check if the student's school year is current or above
+      // const currentSchoolYear = generateSchoolYear();
+      // const recordSchoolYear = record.School_Year;
+      // if (
+      //   recordSchoolYear &&
+      //   typeof recordSchoolYear === "string" &&
+      //   recordSchoolYear.localeCompare(currentSchoolYear) < 0
+      // ) {
+      //   // Student's school year is below the current school year
+      //   await logger(
+      //     {
+      //       action: "login_error",
+      //       user_id: record.Student_ID || null,
+      //       details: `Student attempted login with outdated school year (${recordSchoolYear} < ${currentSchoolYear})`,
+      //       timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      //     },
+      //     req,
+      //     res
+      //   );
+      //   return {
+      //     success: false,
+      //     message: `Access Denied`,
+      //     error: "School year outdated",
+      //   };
+      // }
+
       // Prepare and insert student details in local DB
       // Deserialize student details as per the required format
       const studentDetails = JSON.parse(
@@ -245,17 +312,17 @@ async function loginStudent(params, req, res) {
 
       return insertResult.success
         ? {
-            success: true,
-            message: "Login successful (ARMS API, student inserted locally)",
-            user: insertResult.student || studentDetails,
-          }
+          success: true,
+          message: "Login successful (ARMS API, student inserted locally)",
+          user: insertResult.student || studentDetails,
+        }
         : {
-            success: false,
-            message:
-              "Login successful (ARMS API) but failed to insert student locally",
-            user: studentDetails,
-            error: insertResult.message,
-          };
+          success: false,
+          message:
+            "Login successful (ARMS API) but failed to insert student locally",
+          user: studentDetails,
+          error: insertResult.message,
+        };
     } else {
       // Log failed ARMS login
       await logger(
