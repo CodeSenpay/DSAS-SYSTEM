@@ -15,8 +15,6 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
-
-import Loading from "../components/Loading";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
 
@@ -38,9 +36,12 @@ type appointmentProps = {
 };
 
 function ApproveTransactionPage() {
-  const [selectedType, setSelectedType] = useState<number>();
+  // Change initial value to '' (string) to avoid out-of-range value for Select
+  const [selectedType, setSelectedType] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Remove single isLoading, use per-row loading state
+  const [loadingApproveId, setLoadingApproveId] = useState<string | null>(null);
+  const [loadingDeclineId, setLoadingDeclineId] = useState<string | null>(null);
 
   const { userdata } = useUser();
   const [transactionTypes, setTransactionTypes] = useState<
@@ -59,7 +60,7 @@ function ApproveTransactionPage() {
       },
     };
 
-    setIsLoading(true);
+    setLoadingApproveId(data.appointment_id);
     axios
       .post("http://localhost:5000/api/scheduling-system/admin", dataPayload, {
         headers: { "Content-Type": "application/json" },
@@ -79,12 +80,12 @@ function ApproveTransactionPage() {
         notifyError("An error occurred while approving the appointment.");
       })
       .finally(() => {
-        setIsLoading(false);
+        setLoadingApproveId(null);
       });
   };
 
   const handleDecline = async (data: appointmentProps) => {
-    setIsLoading(true);
+    setLoadingDeclineId(data.appointment_id);
     const payload = {
       model: "schedulesModel",
       function_name: "approveAppointment",
@@ -114,7 +115,7 @@ function ApproveTransactionPage() {
     } catch (err) {
       console.log(err);
     } finally {
-      setIsLoading(false);
+      setLoadingDeclineId(null);
     }
   };
 
@@ -131,7 +132,8 @@ function ApproveTransactionPage() {
         appointment_id: "",
         appointment_status: "Pending",
         appointment_date: selectedDate || "",
-        transaction_type_id: selectedType || "",
+        // If selectedType is '', send '' (all), else send the number
+        transaction_type_id: selectedType === "" ? "" : Number(selectedType),
         user_id: "",
       },
     };
@@ -154,7 +156,7 @@ function ApproveTransactionPage() {
   };
 
   // Keep search fields in sync with filter fields
-  const handleTypeChange = (value: number) => {
+  const handleTypeChange = (value: string) => {
     setSelectedType(value);
   };
   const handleDateChange = (value: string) => {
@@ -191,7 +193,6 @@ function ApproveTransactionPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
-      {isLoading && <Loading />}
       <Paper
         elevation={3}
         className="p-8 rounded-xl bg-white shadow-lg"
@@ -203,7 +204,7 @@ function ApproveTransactionPage() {
         >
           Approve Appointments
         </h1>
-        <div className="flex flex-col md:flex-row gap-4 mb-8 items-end">
+        <div className="flex flex-col md:flex-row gap=4 mb-8 items-end">
           <FormControl fullWidth variant="outlined" size="small">
             <InputLabel id="type-label">Transaction Type</InputLabel>
             <Select
@@ -216,7 +217,7 @@ function ApproveTransactionPage() {
               {transactionTypes.map((type) => (
                 <MenuItem
                   key={type.transaction_type_id}
-                  value={type.transaction_type_id}
+                  value={String(type.transaction_type_id)}
                 >
                   {type.transaction_title}
                 </MenuItem>
@@ -289,13 +290,18 @@ function ApproveTransactionPage() {
                     </TableCell>
                     <TableCell>
                       {appt ? (
-                        <div className="flex gap-2">
+                        <div className="flex gap=2">
                           <Button
-                            variant="contained"
                             color="success"
-                            size="small"
-                            startIcon={<Check />}
                             onClick={() => handleApprove(appt)}
+                            loading={loadingApproveId === appt.appointment_id}
+                            loadingPosition="start"
+                            startIcon={<Check />}
+                            variant="contained"
+                            disabled={
+                              loadingApproveId !== null ||
+                              loadingDeclineId !== null
+                            }
                           >
                             Approve
                           </Button>
@@ -303,8 +309,14 @@ function ApproveTransactionPage() {
                             variant="outlined"
                             color="error"
                             size="small"
+                            loading={loadingDeclineId === appt.appointment_id}
+                            loadingPosition="start"
                             startIcon={<Close />}
                             onClick={() => handleDecline(appt)}
+                            disabled={
+                              loadingApproveId !== null ||
+                              loadingDeclineId !== null
+                            }
                           >
                             Decline
                           </Button>
