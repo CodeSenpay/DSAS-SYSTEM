@@ -1,6 +1,9 @@
-import axios from "axios";
-import { notifyError } from "../components/ToastUtils";
-import { useEffect, useState } from "react";
+import {
+  Event as EventIcon,
+  KeyboardArrowUp as ExpandLessIcon,
+  KeyboardArrowDown as ExpandMoreIcon,
+  AccessTime as TimeIcon,
+} from "@mui/icons-material";
 import {
   Box,
   Card,
@@ -9,7 +12,9 @@ import {
   Collapse,
   Divider,
   IconButton,
+  LinearProgress,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -17,17 +22,12 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Stack,
   useTheme,
-  LinearProgress,
 } from "@mui/material";
-import {
-  KeyboardArrowDown as ExpandMoreIcon,
-  KeyboardArrowUp as ExpandLessIcon,
-  Event as EventIcon,
-  AccessTime as TimeIcon,
-} from "@mui/icons-material";
+import axios from "axios";
 import { format } from "date-fns";
+import { useEffect, useState } from "react";
+import { notifyError } from "../components/ToastUtils";
 
 interface TimeWindow {
   end_time_am: string;
@@ -66,6 +66,7 @@ function ViewAvailability() {
 
   const fetchTransactionsByType = async () => {
     setLoading(true);
+
     const data = {
       model: "schedulesModel",
       function_name: "getAvailability",
@@ -73,7 +74,7 @@ function ViewAvailability() {
         searchkey: "",
       },
     };
-
+    console.log(data);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/admin",
@@ -84,6 +85,7 @@ function ViewAvailability() {
         }
       );
 
+      console.log(response.data);
       if (response.data.success) {
         setAvailabilities(response.data.data);
       } else {

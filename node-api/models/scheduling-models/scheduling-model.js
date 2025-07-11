@@ -123,16 +123,7 @@ export class SchedulingModel {
   }
 
   static async getAvailability(payload) {
-    // The get_availability SP expects a flat object with keys:
-    // searchkey, college, semester, school_year
-    // We'll allow these to be optional, but at least one should be present for meaningful results.
-    // If not present, all will be null (SP will return all).
-    const {
-      searchkey = null,
-      college = null,
-      semester = null,
-      school_year = null,
-    } = payload || {};
+    const { searchkey, college, semester, school_year } = payload || {};
 
     // Compose the flat object for the SP
     const spPayload = {
@@ -145,6 +136,7 @@ export class SchedulingModel {
     try {
       const jsondata = JSON.stringify(spPayload);
       const [rows] = await pool.query(`CALL get_availability(?)`, [jsondata]);
+      console.log(rows);
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
       return {
@@ -293,7 +285,7 @@ export class SchedulingModel {
         if (spResult) {
           try {
             transaction_title = JSON.parse(spResult).transaction_type ?? null;
-          } catch { }
+          } catch {}
         }
         emailResult = await sendEmailToStudent(
           payload.student_email,
@@ -505,7 +497,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL upload_student_profile(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL upload_student_profile(?)`, [
+        jsondata,
+      ]);
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
       return {
@@ -517,13 +511,12 @@ export class SchedulingModel {
   }
 
   static async generateReport(payload) {
-
     const requiredFields = [
       "transaction_type_id",
       "date",
       "school_year",
       "semester",
-      "status"
+      "status",
     ];
 
     // Check for missing fields
@@ -548,6 +541,4 @@ export class SchedulingModel {
       };
     }
   }
-
-
 }

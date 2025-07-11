@@ -89,7 +89,7 @@ function Calendar({
       model: "schedulesModel",
       function_name: "getAvailability",
       payload: {
-        searchkey: "Subsidy",
+        searchkey: transaction_title,
         college: studentCollege,
         semester: semester?.semester,
         school_year: schoolYear?.schoolYear,

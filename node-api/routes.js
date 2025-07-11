@@ -13,8 +13,11 @@ import {
 import { register } from "./controllers/register-controller.js";
 import { handle_schedule } from "./controllers/schedule-main-controller.js";
 import { authenticate } from "./middleware/middleware.js";
-import { generateSchoolYear, generateSemester, handleUploadStudentProfile } from "./services/utility.js";
-import { upload } from "./services/utility.js";
+import {
+  generateSchoolYear,
+  generateSemester,
+  handleUploadStudentProfile,
+} from "./services/utility.js";
 const router = Router();
 
 router.use(cookieParser());
