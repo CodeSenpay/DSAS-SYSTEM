@@ -33,6 +33,8 @@ type appointmentProps = {
   start_time: string;
   end_time: string;
   user_id: string;
+  semester: string;
+  school_year: string;
 };
 
 function ApproveTransactionPage() {
@@ -43,7 +45,7 @@ function ApproveTransactionPage() {
   const [loadingApproveId, setLoadingApproveId] = useState<string | null>(null);
   const [loadingDeclineId, setLoadingDeclineId] = useState<string | null>(null);
 
-  const { userdata } = useUser();
+  const { userdata, semester, schoolYear } = useUser();
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
@@ -135,6 +137,8 @@ function ApproveTransactionPage() {
         // If selectedType is '', send '' (all), else send the number
         transaction_type_id: selectedType === "" ? "" : Number(selectedType),
         user_id: "",
+        semester: semester?.semester || "",
+        school_year: schoolYear?.schoolYear || "",
       },
     };
 
@@ -147,7 +151,6 @@ function ApproveTransactionPage() {
           withCredentials: true,
         }
       );
-
       setFilteredAppointments(response.data.data);
       // setAppointments();
     } catch (err) {
@@ -228,7 +231,6 @@ function ApproveTransactionPage() {
             label="Date"
             type="date"
             size="small"
-            InputLabelProps={{ shrink: true }}
             value={selectedDate}
             onChange={(e) => handleDateChange(e.target.value)}
             fullWidth
@@ -251,8 +253,9 @@ function ApproveTransactionPage() {
                 <TableCell className="font-semibold">Date</TableCell>
                 <TableCell className="font-semibold">User ID</TableCell>
                 <TableCell className="font-semibold">Details</TableCell>
-                <TableCell className="font-semibold">Status</TableCell>
-                <TableCell className="font-semibold">Action</TableCell>
+                <TableCell className="font-semibold">Semester</TableCell>
+                <TableCell className="font-semibold">School-Year</TableCell>
+                <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -271,10 +274,9 @@ function ApproveTransactionPage() {
                     <TableCell>{appt.appointment_date}</TableCell>
                     <TableCell>{appt.user_id}</TableCell>
                     <TableCell>{appt.transaction_title}</TableCell>
+                    <TableCell>{appt.semester}</TableCell>
+                    <TableCell>{appt.school_year}</TableCell>
                     {/* Hidden cell for student_email */}
-                    <TableCell style={{ display: "none" }}>
-                      {appt.student_email}
-                    </TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${

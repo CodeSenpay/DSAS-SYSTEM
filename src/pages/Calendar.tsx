@@ -24,6 +24,7 @@ type timewindowProps = {
   availability_date: string;
   capacity_per_day: number;
   total_slots_left: number;
+  college: string;
 };
 
 type availableDatesProps = {
@@ -34,6 +35,9 @@ type availableDatesProps = {
   created_by: number;
   end_date: string;
   start_date: string;
+  semester: string;
+  school_year: string;
+  college: string;
   time_windows: timewindowProps[];
   transaction_title: string;
 };
@@ -51,10 +55,12 @@ function Calendar({
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
   const [availableDateInfo, setAvailableDateInfo] = useState<timewindowProps[]>(
     []
   );
-  const { userdata } = useUser();
+
+  const { userdata, semester, schoolYear } = useUser();
   const handleClose = () => {
     setIsOpen(false);
   };
@@ -79,11 +85,16 @@ function Calendar({
   };
 
   const handleFetchingAvailableDates = async () => {
+    const str = userdata?.student_details?.college;
+    const studentCollege = str?.split(" -")[0];
     const data = {
       model: "schedulesModel",
       function_name: "getAvailability",
       payload: {
         searchkey: transaction_title,
+        college: studentCollege,
+        semester: semester?.semester,
+        school_year: schoolYear?.schoolYear,
       },
     };
 
@@ -105,10 +116,14 @@ function Calendar({
             .map((item: availableDatesProps) =>
               item.transaction_title.toLowerCase() ===
               transaction_title?.toLowerCase()
-                ? item.time_windows
+                ? item.time_windows.map((window) => ({
+                    ...window,
+                    college: item.college,
+                  }))
                 : []
             )
             .flat();
+
           setAvailableDateInfo(mappedTime); // use for checking the fullybook dates
           parsedDates(mappedTime); //use to filter dates
         } else {
@@ -135,6 +150,8 @@ function Calendar({
         time_frame: selectedTimeFrame,
         transaction_type_id: transactionTypeID,
         user_id: userdata?.student_id,
+        semester: semester?.semester,
+        school_year: schoolYear?.schoolYear,
         appointment_date: formattedDate,
       },
     };
@@ -151,6 +168,7 @@ function Calendar({
         }
       );
 
+      console.log(response.data);
       if (response.data.data[0].result.success) {
         notifySuccess("Appointment Set Successfully");
       } else {
@@ -163,10 +181,6 @@ function Calendar({
       setIsOpen(false);
       setIsLoading(false);
     }
-  };
-
-  const practiceFunction = () => {
-    console.log(availableDateInfo);
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -209,9 +223,6 @@ function Calendar({
           <Button variant="contained" onClick={handleCreateAppointment}>
             CREATE APPOINTMENT
           </Button>
-          <Button variant="contained" onClick={practiceFunction}>
-            PRACTICE BUTTON
-          </Button>
         </Modal>
       ) : (
         <></>
@@ -219,6 +230,13 @@ function Calendar({
 
       <h1 className="text-xl font-semibold">Select a Date</h1>
       <p>Transaction: {transaction_title}</p>
+      <button
+        onClick={() =>
+          console.log(availableDateInfo.filter((d) => d.college === null))
+        }
+      >
+        Test
+      </button>
       <DayPicker
         animate
         className="bg-white rounded-lg shadow-md"
@@ -239,6 +257,19 @@ function Calendar({
               new Date(d.availability_date).toDateString() ===
                 date.toDateString()
           ) ||
+          (!availableDateInfo.some(
+            (info) =>
+              info.college === null &&
+              new Date(info.availability_date).toDateString() ===
+                date.toDateString()
+          ) &&
+            !availableDateInfo.some(
+              (info) =>
+                info.college ===
+                  userdata?.student_details?.college.split(" -")[0] &&
+                new Date(info.availability_date).toDateString() ===
+                  date.toDateString()
+            )) ||
           !parsedAvailableDates.some(
             (d) => d.toDateString() === date.toDateString()
           ) ||

@@ -14,13 +14,15 @@ type appointmentProps = {
   appointment_status: string;
   start_time: string;
   end_time: string;
+  semester: string;
+  school_year: string;
 };
 
 function ClearanceValidationPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
-  const { userdata } = useUser();
+  const { userdata, semester, schoolYear } = useUser();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -46,6 +48,8 @@ function ClearanceValidationPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 3,
+        semester: semester?.semester,
+        school_year: schoolYear?.schoolYear,
         user_id: userdata?.student_id,
       },
     };

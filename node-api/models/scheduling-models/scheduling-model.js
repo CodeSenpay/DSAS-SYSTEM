@@ -145,6 +145,8 @@ export class SchedulingModel {
       "user_id",
       "appointment_date",
       "time_frame",
+      "semester",
+      "school_year",
     ];
 
     // Check for missing fields
@@ -179,6 +181,8 @@ export class SchedulingModel {
       "transaction_type_id",
       "user_id",
       "appointment_date",
+      "semester",
+      "school_year",
     ];
 
     // Check for missing fields
@@ -260,7 +264,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL approve_appointment(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
+        jsondata,
+      ]);
 
       let emailResult = null;
       if (payload.student_email) {
@@ -269,7 +275,7 @@ export class SchedulingModel {
         if (spResult) {
           try {
             transaction_title = JSON.parse(spResult).transaction_type ?? null;
-          } catch { }
+          } catch {}
         }
         emailResult = await sendEmailToStudent(
           payload.student_email,

@@ -21,7 +21,7 @@ function SubsidyPayoutPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
-  const { userdata } = useUser();
+  const { userdata, semester, schoolYear } = useUser();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -46,6 +46,8 @@ function SubsidyPayoutPage() {
         appointment_id: "",
         appointment_status: "",
         appointment_date: "",
+        semester: semester?.semester,
+        school_year: schoolYear?.schoolYear,
         transaction_type_id: 2,
         user_id: userdata?.student_id,
       },

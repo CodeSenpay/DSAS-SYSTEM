@@ -299,6 +299,7 @@ function AddAvailability() {
       console.log(err);
       notifyError("An error occurred while saving availability");
     } finally {
+      setClearanceSelected(false);
       setLoading(false);
     }
   };
@@ -401,7 +402,6 @@ function AddAvailability() {
                       setSelectedCollege(e.target.value);
                     }}
                     label="College Department"
-                    required
                   >
                     <MenuItem value="">Select College</MenuItem>
                     {collegeDepartments.map((college) =>

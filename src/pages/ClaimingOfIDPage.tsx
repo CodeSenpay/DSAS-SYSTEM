@@ -20,7 +20,7 @@ function ClaimingOfIDPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
-  const { userdata } = useUser();
+  const { userdata, semester, schoolYear } = useUser();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -46,6 +46,8 @@ function ClaimingOfIDPage() {
         appointment_status: "",
         appointment_date: "",
         transaction_type_id: 1,
+        semester: semester?.semester,
+        school_year: schoolYear?.schoolYear,
         user_id: userdata?.student_id,
       },
     };
