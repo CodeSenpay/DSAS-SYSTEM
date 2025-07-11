@@ -23,7 +23,7 @@ async function loginAdminController(req, res) {
     const { email, password } = req.body;
     const response = await loginAdmin({ email, password });
 
-    console.log("Login Response:", response);
+    // console.log("Login Response:", response);
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
@@ -75,7 +75,7 @@ async function loginStudentController(req, res) {
     const { studentId, password } = req.body;
     const response = await loginStudent({ studentId, password });
 
-    console.log("Login Response:", response);
+    // console.log("Login Response:", response);
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
@@ -235,7 +235,7 @@ const verifyJwt = async (req, res) => {
 };
 
 const getUserDataController = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const id = req.body.id;
 
   if (!id) {
