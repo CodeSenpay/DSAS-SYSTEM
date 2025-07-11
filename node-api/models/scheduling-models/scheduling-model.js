@@ -145,8 +145,8 @@ export class SchedulingModel {
       "user_id",
       "appointment_date",
       "time_frame",
-      "semester",
       "school_year",
+      "semester",
     ];
 
     // Check for missing fields
@@ -181,8 +181,8 @@ export class SchedulingModel {
       "transaction_type_id",
       "user_id",
       "appointment_date",
-      "semester",
       "school_year",
+      "semester",
     ];
 
     // Check for missing fields
@@ -275,7 +275,7 @@ export class SchedulingModel {
         if (spResult) {
           try {
             transaction_title = JSON.parse(spResult).transaction_type ?? null;
-          } catch {}
+          } catch { }
         }
         emailResult = await sendEmailToStudent(
           payload.student_email,
@@ -470,4 +470,39 @@ export class SchedulingModel {
       };
     }
   }
+
+  static async generateReport(payload) {
+
+    const requiredFields = [
+      "transaction_type_id",
+      "date",
+      "school_year",
+      "semester",
+      "status"
+    ];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+      const [rows] = await pool.query(`CALL generate_report(?)`, [jsondata]);
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
+
 }

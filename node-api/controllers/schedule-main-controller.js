@@ -4,54 +4,36 @@ const models = {
   schedulesModel: SchedulingModel,
 };
 
-// Utility for better error responses
-function errorResponse(res, status, message, details = null) {
-  const error = { error: message };
-  if (details) error.details = details;
-  return res.status(status).json(error);
-}
+const errorResponse = (res, status, message, details) =>
+  res.status(status).json({ error: message, ...(details && { details }) });
 
-// Enhanced controller
-async function handle_schedule(req, res) {
+const handle_schedule = async (req, res) => {
   try {
-    // console.log("Schedule Controller Request Body:", req.body);
     const { model, function_name, payload } = req.body;
 
-    // Validate input
-    if (!model || !function_name) {
+    if (!model || !function_name)
       return errorResponse(res, 400, "Missing model or function_name");
-    }
-    if (typeof model !== "string" || typeof function_name !== "string") {
+
+    if (typeof model !== "string" || typeof function_name !== "string")
       return errorResponse(res, 400, "model and function_name must be strings");
-    }
 
-    // Check if the model exists
     const ctrl = models[model];
-    if (!ctrl) {
+    if (!ctrl)
       return errorResponse(res, 404, `Model "${model}" not found`);
-    }
 
-    // Check if the function exists in the model
     const fn = ctrl[function_name];
-    if (typeof fn !== "function") {
-      return errorResponse(
-        res,
-        404,
-        `Function "${function_name}" not found in model "${model}"`
-      );
-    }
+    if (typeof fn !== "function")
+      return errorResponse(res, 404, `Function "${function_name}" not found in model "${model}"`);
 
-    // Call the model function (without req, res)
     const result = await fn(payload);
 
-    // If the function already sent a response, do not send another
-    if (!res.headersSent) {
-      res.status(200).json({ success: true, data: result });
-    }
+    if (!res.headersSent)
+      return res.status(200).json({ success: true, data: result });
+
   } catch (err) {
     console.error("Schedule Controller Error:", err);
-    errorResponse(res, 500, "Internal server error", err.message);
+    errorResponse(res, 500, "Internal server error", err?.message);
   }
-}
+};
 
 export { handle_schedule };
