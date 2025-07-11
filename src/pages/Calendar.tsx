@@ -76,8 +76,6 @@ function Calendar({
   };
 
   const parsedDates = async (mappedTime: timewindowProps[]) => {
-    console.log("Mapped Data:");
-    console.log(mappedTime);
     const availableDates: Date[] = mappedTime
       .map((date) => new Date(date.availability_date))
       .flat();
@@ -91,13 +89,13 @@ function Calendar({
       model: "schedulesModel",
       function_name: "getAvailability",
       payload: {
-        searchkey: transaction_title,
+        searchkey: "Subsidy",
         college: studentCollege,
         semester: semester?.semester,
         school_year: schoolYear?.schoolYear,
       },
     };
-
+    console.log(data);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/user",
@@ -184,14 +182,12 @@ function Calendar({
   };
 
   const handleSelectedTimeFrame = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log(e.target.value);
     setSelectedTimeFrame(e.target.value);
   };
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     setCurrentDate(today);
-    console.log("Calendar is Starting....");
     handleFetchingAvailableDates();
   }, []);
 
@@ -230,13 +226,6 @@ function Calendar({
 
       <h1 className="text-xl font-semibold">Select a Date</h1>
       <p>Transaction: {transaction_title}</p>
-      <button
-        onClick={() =>
-          console.log(availableDateInfo.filter((d) => d.college === null))
-        }
-      >
-        Test
-      </button>
       <DayPicker
         animate
         className="bg-white rounded-lg shadow-md"

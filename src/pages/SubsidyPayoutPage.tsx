@@ -14,6 +14,8 @@ type appointmentProps = {
   appointment_status: string;
   start_time: string;
   end_time: string;
+  semester: string;
+  school_year: string;
 };
 
 function SubsidyPayoutPage() {
@@ -67,7 +69,6 @@ function SubsidyPayoutPage() {
         setAppointments(response.data.data);
 
         getAppointmentDates(response.data.data);
-        console.log(response.data.data);
       } else {
         notifyError("Can't Fetch Appointments");
       }
@@ -100,7 +101,7 @@ function SubsidyPayoutPage() {
       )}
       <div
         className="flex flex-col justify-center items-center h-[100%] w-full gap-5 absolute "
-        style={{ padding: "20px" }}
+        style={{ marginTop: "20px" }}
       >
         {appointments.length !== 0 ? (
           appointments[0]?.appointment_status.toLowerCase() === "declined" ? (

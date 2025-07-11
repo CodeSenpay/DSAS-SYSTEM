@@ -18,18 +18,20 @@ const handle_schedule = async (req, res) => {
       return errorResponse(res, 400, "model and function_name must be strings");
 
     const ctrl = models[model];
-    if (!ctrl)
-      return errorResponse(res, 404, `Model "${model}" not found`);
+    if (!ctrl) return errorResponse(res, 404, `Model "${model}" not found`);
 
     const fn = ctrl[function_name];
     if (typeof fn !== "function")
-      return errorResponse(res, 404, `Function "${function_name}" not found in model "${model}"`);
+      return errorResponse(
+        res,
+        404,
+        `Function "${function_name}" not found in model "${model}"`
+      );
 
     const result = await fn(payload);
 
     if (!res.headersSent)
       return res.status(200).json({ success: true, data: result });
-
   } catch (err) {
     console.error("Schedule Controller Error:", err);
     errorResponse(res, 500, "Internal server error", err?.message);
