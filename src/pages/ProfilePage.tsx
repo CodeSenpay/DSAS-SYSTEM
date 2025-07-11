@@ -138,7 +138,17 @@ function ProfilePage() {
     }
 
     const formData = new FormData();
-    formData.append("image", selectedFile);
+    formData.append("file", selectedFile);
+
+    // Also send the student_id
+    if (userdata?.student_id) {
+      formData.append("student_id", userdata.student_id);
+    } else if (userdata?.student_details?.student_id) {
+      formData.append("student_id", userdata.student_details.student_id);
+    } else {
+      notifyInfo("Student ID not found.");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5000/api/upload", {
@@ -148,9 +158,17 @@ function ProfilePage() {
 
       const data = await response.json();
 
-      console.log("Base64 from backend:", data.base64);
+      if (response.ok && data.success) {
+        notifySuccess(data.message || "File uploaded successfully.");
+        // Optionally reset file input and preview
+        setSelectedFile(null);
+        setPreview("");
+      } else {
+        notifyError(data.message || "Failed to upload file. Please try again.");
+      }
     } catch (error) {
       console.error("Upload failed:", error);
+      notifyError("An error occurred during upload. Please try again.");
     }
   };
 

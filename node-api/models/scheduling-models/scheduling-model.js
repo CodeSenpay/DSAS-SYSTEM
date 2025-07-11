@@ -123,9 +123,27 @@ export class SchedulingModel {
   }
 
   static async getAvailability(payload) {
+    // The get_availability SP expects a flat object with keys:
+    // searchkey, college, semester, school_year
+    // We'll allow these to be optional, but at least one should be present for meaningful results.
+    // If not present, all will be null (SP will return all).
+    const {
+      searchkey = null,
+      college = null,
+      semester = null,
+      school_year = null,
+    } = payload || {};
+
+    // Compose the flat object for the SP
+    const spPayload = {
+      searchkey,
+      college,
+      semester,
+      school_year,
+    };
+
     try {
-      // Always send an object containing the payload
-      const jsondata = JSON.stringify({ payload });
+      const jsondata = JSON.stringify(spPayload);
       const [rows] = await pool.query(`CALL get_availability(?)`, [jsondata]);
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
@@ -461,6 +479,33 @@ export class SchedulingModel {
         jsondata,
       ]);
 
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    } catch (error) {
+      return {
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
+  static async uploadProfile(payload) {
+    // Required fields
+    const requiredFields = ["student_id", "student_profile"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const jsondata = JSON.stringify(payload);
+      const [rows] = await pool.query(`CALL upload_student_profile(?)`, [jsondata]);
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
       return {
