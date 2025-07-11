@@ -40,7 +40,7 @@ function RegisterAdminPage() {
 
   return (
     <div
-      className=" flex items-center justify-center bg-gray-50"
+      className=" flex items-center justify-center"
       style={{ paddingLeft: 16, paddingRight: 16 }}
     >
       <div

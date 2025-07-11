@@ -207,7 +207,7 @@ function ApproveTransactionPage() {
         >
           Approve Appointments
         </h1>
-        <div className="flex flex-col md:flex-row gap=4 mb-8 items-end">
+        <div className="flex flex-col md:flex-row gap-4 mb-8 items-end">
           <FormControl fullWidth variant="outlined" size="small">
             <InputLabel id="type-label">Transaction Type</InputLabel>
             <Select
@@ -228,7 +228,6 @@ function ApproveTransactionPage() {
             </Select>
           </FormControl>
           <TextField
-            label="Date"
             type="date"
             size="small"
             value={selectedDate}
@@ -292,7 +291,7 @@ function ApproveTransactionPage() {
                     </TableCell>
                     <TableCell>
                       {appt ? (
-                        <div className="flex gap=2">
+                        <div className="flex gap-2">
                           <Button
                             color="success"
                             onClick={() => handleApprove(appt)}
