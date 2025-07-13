@@ -33,3 +33,17 @@ export const fetchSemester = async () => {
     }
   }
 };
+
+export const fetchTotalSlots = async () => {
+  try {
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const fetchPendingAppointments = async () => {
+  try {
+  } catch (err) {
+    console.log(err);
+  }
+};

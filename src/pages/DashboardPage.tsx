@@ -11,7 +11,7 @@ export default function DashboardPage() {
     <>
       <NavBar />
       <div
-        className="min-w-screen min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-start gap-5"
+        className="w-screen h-screen bg-[#f0f2f5] flex flex-col items-center justify-start gap-5"
         style={{
           backgroundColor: "#f3f4f6",
           backgroundImage: `
@@ -37,7 +37,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div
-          className="w-full flex flex-col gap-3 md:flex-row justify-center"
+          className="w-full flex flex-col gap-5 h-screen bg-amber-400 md:bg-transparent md:flex-row md:gap-3 justify-center"
           style={{ padding: "10px" }}
         >
           <div

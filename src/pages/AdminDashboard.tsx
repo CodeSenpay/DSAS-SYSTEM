@@ -23,7 +23,7 @@ function AdminDashboard() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)",
+
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -39,9 +39,8 @@ function AdminDashboard() {
           gutterBottom
           sx={{ mb: 6, textShadow: "0 2px 8px #e3f2fd" }}
         >
-          Admin Dashboard
+          Welcome {userdata?.first_name}!
         </Typography>
-        <h1>WELCOME {userdata?.user_level}!</h1>
         <Box
           sx={{
             display: "flex",
@@ -64,7 +63,9 @@ function AdminDashboard() {
               alignItems: "flex-start",
             }}
           >
-            <Typography color="text.secondary">Total Schedules</Typography>
+            <Typography color="text.secondary">
+              Total Slots - Subsidy
+            </Typography>
             <Typography variant="h4" color="primary" fontWeight="bold" mt={1}>
               120
             </Typography>
@@ -82,7 +83,9 @@ function AdminDashboard() {
               alignItems: "flex-start",
             }}
           >
-            <Typography color="text.secondary">Active Users</Typography>
+            <Typography color="text.secondary">
+              Total Slots - Clearance
+            </Typography>
             <Typography
               variant="h4"
               sx={{ color: "#43a047" }}
@@ -105,7 +108,9 @@ function AdminDashboard() {
               alignItems: "flex-start",
             }}
           >
-            <Typography color="text.secondary">Pending Requests</Typography>
+            <Typography color="text.secondary">
+              Total Slots - Claiming ID
+            </Typography>
             <Typography
               variant="h4"
               sx={{ color: "#ffb300" }}
@@ -128,7 +133,7 @@ function AdminDashboard() {
               alignItems: "flex-start",
             }}
           >
-            <Typography color="text.secondary">Completed Tasks</Typography>
+            <Typography color="text.secondary">Pending Appointments</Typography>
             <Typography
               variant="h4"
               sx={{ color: "#8e24aa" }}

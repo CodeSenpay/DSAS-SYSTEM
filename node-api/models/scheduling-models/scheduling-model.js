@@ -541,4 +541,27 @@ export class SchedulingModel {
       };
     }
   }
+
+  // ========================================================== Fetching Section ====================================================================
+  static async fetchTotalSlots(payload) {
+    try {
+      const [rows] = await pool.query();
+    } catch (err) {
+      return {
+        message: "Fetching total slots failed!",
+        error: err.message,
+      };
+    }
+  }
+
+  static async fetchTotalPendings(payload) {
+    try {
+      const [rows] = await pool.query();
+    } catch (err) {
+      return {
+        message: "Fetching total pendings failed",
+        error: err.message,
+      };
+    }
+  }
 }
