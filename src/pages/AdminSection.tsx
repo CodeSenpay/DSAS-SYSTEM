@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
         theme={demoTheme}
         branding={{
           logo: <img src="/LogoPNG.png" />,
-          title: "JRMSU DSASADMIN",
+          title: "JRMSU DSAS ADMIN",
         }}
       >
         <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>

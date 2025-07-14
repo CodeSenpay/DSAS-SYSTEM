@@ -285,7 +285,7 @@ export class SchedulingModel {
         if (spResult) {
           try {
             transaction_title = JSON.parse(spResult).transaction_type ?? null;
-          } catch {}
+          } catch { }
         }
         emailResult = await sendEmailToStudent(
           payload.student_email,
@@ -481,34 +481,81 @@ export class SchedulingModel {
     }
   }
 
-  static async uploadProfile(payload) {
-    // Required fields
-    const requiredFields = ["student_id", "student_profile"];
+  // static async uploadProfile(payload) {
+  //   // Required fields
+  //   const requiredFields = ["student_id", "student_profile"];
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
-    if (missingFields.length > 0) {
-      return {
-        message: "Missing required fields",
-        missingFields,
-        receivedPayload: payload,
-      };
-    }
+  //   // Check for missing fields
+  //   const missingFields = requiredFields.filter((field) => !(field in payload));
+  //   if (missingFields.length > 0) {
+  //     return {
+  //       message: "Missing required fields",
+  //       missingFields,
+  //       receivedPayload: payload,
+  //     };
+  //   }
 
-    try {
-      const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL upload_student_profile(?)`, [
-        jsondata,
-      ]);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
-    } catch (error) {
-      return {
-        message: "Stored procedure execution failed",
-        error: error.message,
-        receivedPayload: payload,
-      };
-    }
-  }
+  //   try {
+  //     const jsondata = JSON.stringify(payload);
+  //     const [rows] = await pool.query(`CALL upload_student_profile(?)`, [
+  //       jsondata,
+  //     ]);
+  //     return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+  //   } catch (error) {
+  //     return {
+  //       message: "Stored procedure execution failed",
+  //       error: error.message,
+  //       receivedPayload: payload,
+  //     };
+  //   }
+  // }
+
+  // static async getStudentProfile(payload) {
+  //   // Required field
+  //   const requiredFields = ["student_id"];
+
+  //   // Check for missing fields
+  //   const missingFields = requiredFields.filter((field) => !(field in payload));
+  //   if (missingFields.length > 0) {
+  //     return {
+  //       message: "Missing required fields",
+  //       missingFields,
+  //       receivedPayload: payload,
+  //     };
+  //   }
+
+  //   try {
+  //     // const jsondata = JSON.stringify(payload);
+  //     const [rows] = await pool.query(`CALL get_student_profile(?)`, [payload]);
+  //     // The SP returns two result sets: the profile (if found) and the response JSON
+  //     // Find the student_profile if present, otherwise return the response
+  //     if (rows && Array.isArray(rows) && rows.length > 0) {
+  //       // rows[0] is the first result set (student_profile if found)
+  //       // rows[1] is the second result set (response JSON)
+  //       const profileResult = rows[0] && rows[0][0] && rows[0][0].student_profile
+  //         ? { student_profile: rows[0][0].student_profile }
+  //         : null;
+  //       const responseResult = rows[1] && rows[1][0] && rows[1][0].Response
+  //         ? JSON.parse(rows[1][0].Response)
+  //         : null;
+
+  //       if (profileResult) {
+  //         return { success: true, ...profileResult };
+  //       } else if (responseResult) {
+  //         return responseResult;
+  //       }
+  //     }
+  //     // Fallback
+  //     return { success: false, message: "Unexpected response from stored procedure." };
+  //   } catch (error) {
+  //     return {
+  //       message: "Stored procedure execution failed",
+  //       error: error.message,
+  //       receivedPayload: payload,
+  //     };
+  //   }
+  // }
+
 
   static async generateReport(payload) {
     const requiredFields = [
