@@ -284,7 +284,7 @@ export class SchedulingModel {
       let spResult = rows?.[0]?.[0]?.result;
 
       if (spResult.success && payload.student_email) {
-        console.log("Transaction type: ", spResult?.transaction_type)
+        // console.log("Transaction type: ", spResult?.transaction_type)
         let transaction_title = spResult?.transaction_type ?? null;
         emailResult = await sendEmailToStudent(
           payload.student_email,
@@ -296,7 +296,7 @@ export class SchedulingModel {
       await logger({
         action: "approveAppointment",
         user_id: payload.approved_by ?? null,
-        details: `Appointment approved successfully${emailResult?.message ? `; Email: ${emailResult.message}` : ""}`,
+        details: `Appointment ${payload.appointment_status} successfully${emailResult?.message ? `; Email: ${emailResult.message}` : ""}`,
         timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
       });
 

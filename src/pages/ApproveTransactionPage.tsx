@@ -92,8 +92,8 @@ function ApproveTransactionPage() {
       model: "schedulesModel",
       function_name: "approveAppointment",
       payload: {
+        approved_by: userdata?.user_id,
         appointment_id: data.appointment_id,
-        user_id: userdata?.user_id,
         appointment_status: "Declined",
         student_email: data.student_email,
       },
