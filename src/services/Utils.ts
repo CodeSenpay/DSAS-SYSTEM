@@ -1,11 +1,9 @@
-import axios from "axios";
-
+import apiClient from "./apiClient";
 export const fetchShoolYear = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:5000/api/utility/school-year",
-      { headers: { "Content-Type": "application/json" } }
-    );
+    const response = await apiClient.get("/utility/school-year", {
+      headers: { "Content-Type": "application/json" },
+    });
 
     return response.data;
   } catch (err) {
@@ -19,10 +17,9 @@ export const fetchShoolYear = async () => {
 
 export const fetchSemester = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:5000/api/utility/semester",
-      { headers: { "Content-Type": "application/json" } }
-    );
+    const response = await apiClient.get("/utility/semester", {
+      headers: { "Content-Type": "application/json" },
+    });
 
     return response.data;
   } catch (err) {

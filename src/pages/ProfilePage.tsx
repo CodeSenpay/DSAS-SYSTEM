@@ -21,7 +21,7 @@ import {
   notifySuccess,
 } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
-
+import apiClient from "../services/apiClient";
 // Email regex for validation
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -70,23 +70,17 @@ function ProfilePage() {
     setIsButtonLoading(true);
     setIsLoading(true);
     try {
-      await axios.post(
-        "http://localhost:5000/api/scheduling-system/user",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      await apiClient.post("/scheduling-system/user", data, {
+        headers: { "Content-Type": "application/json" },
+      });
       // Refetch user data and update context, do not reload the page
       try {
         const student_id = userdata?.student_id;
-        const res = await axios.post(
-          "http://localhost:5000/api/auth/get-user-data",
+        const res = await apiClient.post(
+          "/auth/get-user-data",
           { id: student_id },
           {
             headers: { "Content-Type": "application/json" },
-            withCredentials: true,
           }
         );
         setUser(res.data.data[0]);

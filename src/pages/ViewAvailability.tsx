@@ -24,10 +24,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import axios from "axios";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { notifyError } from "../components/ToastUtils";
+import apiClient from "../services/apiClient";
 
 interface TimeWindow {
   end_time_am: string;
@@ -74,15 +74,11 @@ function ViewAvailability() {
         searchkey: "",
       },
     };
+
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/admin", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.data.success) {
         setAvailabilities(response.data.data);

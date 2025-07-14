@@ -1,6 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, TextField, CircularProgress } from "@mui/material";
-import axios from "axios";
+import { Button, CircularProgress, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +9,7 @@ import {
   notifyInfo,
   notifySuccess,
 } from "../components/ToastUtils";
+import apiClient from "../services/apiClient.ts";
 
 import { IconButton, InputAdornment } from "@mui/material";
 import { useUser } from "../services/UserContext.ts";
@@ -32,9 +32,8 @@ function LoginPage() {
 
   const sendOtpToEmail: SubmitHandler<dataProps> = async (data) => {
     try {
-      await axios.post("http://localhost:5000/api/send-otp", data, {
+      await apiClient.post("/send-otp", data, {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true,
       });
     } catch (err: unknown) {
       const error = err as {
@@ -80,16 +79,11 @@ function LoginPage() {
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/login-admin",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/login-admin", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
@@ -235,12 +229,11 @@ function LoginPage() {
                 )?.value;
                 try {
                   // Send both OTP and email as JSON payload
-                  await axios.post(
-                    "http://localhost:5000/api/verify-otp",
+                  await apiClient.post(
+                    "/verify-otp",
                     { otp, email },
                     {
                       headers: { "Content-Type": "application/json" },
-                      withCredentials: true,
                     }
                   );
                   notifySuccess("OTP verified!");

@@ -1,13 +1,7 @@
-import axios from "axios";
-
+import apiClient from "./apiClient";
 export const verifyToken = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:5000/api/auth/verify-jwt",
-      {
-        withCredentials: true,
-      }
-    );
+    const response = await apiClient.get("/auth/verify-jwt");
 
     return response.data;
   } catch (err) {

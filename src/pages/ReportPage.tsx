@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import PrintIcon from "@mui/icons-material/Print";
 import {
   Box,
   Button,
@@ -6,28 +6,29 @@ import {
   CardContent,
   CircularProgress,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
-  Typography,
-  Grid,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Typography,
 } from "@mui/material";
-import PrintIcon from "@mui/icons-material/Print";
-import dayjs, { Dayjs } from "dayjs";
-import axios from "axios";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import axios from "axios";
+import dayjs, { Dayjs } from "dayjs";
+import React, { useEffect, useRef, useState } from "react";
+import apiClient from "../services/apiClient";
 import LogoPNG from "../../public/LogoPNG.png"; // Make sure this import is at the top of your file
 
-const API_URL = "http://localhost:5000/api/scheduling-system/admin";
+const API_URL = "/scheduling-system/admin";
 
 const appointmentStatuses = [
   { value: "", label: "All" },
@@ -81,7 +82,7 @@ function ReportPage() {
   useEffect(() => {
     async function fetchTransactionTypes() {
       try {
-        const res = await axios.post(
+        const res = await apiClient.post(
           API_URL,
           {
             model: "schedulesModel",
@@ -89,7 +90,6 @@ function ReportPage() {
           },
           {
             headers: { "Content-Type": "application/json" },
-            withCredentials: true,
           }
         );
         if (res.data?.data) {
@@ -140,7 +140,7 @@ function ReportPage() {
         status: appointmentStatus || "", // <-- add status, using appointmentStatus as value
       };
 
-      const res = await axios.post(
+      const res = await apiClient.post(
         API_URL,
         {
           model: "schedulesModel",
@@ -149,7 +149,6 @@ function ReportPage() {
         },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true,
         }
       );
 

@@ -1,6 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, TextField, Typography, CircularProgress } from "@mui/material";
-import axios from "axios";
+import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +8,7 @@ import {
   notifyInfo,
   notifySuccess,
 } from "../components/ToastUtils";
+import apiClient from "../services/apiClient";
 
 import { IconButton, InputAdornment } from "@mui/material";
 import { useUser } from "../services/UserContext";
@@ -47,24 +47,15 @@ function LoginPageStudent() {
   const handleLogin: SubmitHandler<dataProps> = async (data) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/login-student",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/login-student", data, {
+        headers: { "Content-Type": "application/json" },
+      });
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
 
       const userLevel = response.data?.user.user_level;
-      if (userLevel === "ADMIN") {
-        navigate("/admin-dashboard");
-      } else if (userLevel === "STUDENT") {
-        navigate("/dashboard");
-      } else {
+      if (userLevel === "STUDENT") {
         navigate("/dashboard");
       }
     } catch (err: unknown) {

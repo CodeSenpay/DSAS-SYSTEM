@@ -13,10 +13,10 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
+import apiClient from "../services/apiClient";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -63,8 +63,8 @@ function ApproveTransactionPage() {
     };
 
     setLoadingApproveId(data.appointment_id);
-    axios
-      .post("http://localhost:5000/api/scheduling-system/admin", dataPayload, {
+    apiClient
+      .post("/scheduling-system/admin", dataPayload, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       })
@@ -77,8 +77,8 @@ function ApproveTransactionPage() {
           notifyError("Failed to approve appointment.");
         }
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((err: any) => {
+        console.error(err.message);
         notifyError("An error occurred while approving the appointment.");
       })
       .finally(() => {
@@ -99,12 +99,11 @@ function ApproveTransactionPage() {
       },
     };
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
+      const response = await apiClient.post(
+        "/scheduling-system/admin",
         payload,
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true,
         }
       );
 
@@ -114,8 +113,8 @@ function ApproveTransactionPage() {
       } else {
         notifyError("Failed to decline appointment.");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     } finally {
       setLoadingDeclineId(null);
     }
@@ -143,18 +142,13 @@ function ApproveTransactionPage() {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/admin", data, {
+        headers: { "Content-Type": "application/json" },
+      });
       setFilteredAppointments(response.data.data);
       // setAppointments();
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.log(err.message);
     }
   };
 
@@ -174,18 +168,13 @@ function ApproveTransactionPage() {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/admin", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       setTransactionTypes(response.data.data);
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err);
     }
   };
 

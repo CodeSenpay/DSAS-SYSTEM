@@ -1,10 +1,10 @@
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
+import apiClient from "../services/apiClient";
 import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
 
@@ -16,6 +16,7 @@ type appointmentProps = {
   start_time: string;
   end_time: string;
 };
+
 function ClaimingOfIDPage() {
   const [isOpenCalendar, setIsOpenCalendar] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
@@ -52,22 +53,17 @@ function ClaimingOfIDPage() {
       },
     };
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/user",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/user", data, {
+        headers: { "Content-Type": "application/json" },
+      });
       if (response.data.success) {
         setAppointments(response.data.data);
         getAppointmentDates(response.data.data);
       } else {
         notifyError("Can't Fetch Appointments");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     }
   };
 

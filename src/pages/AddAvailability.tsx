@@ -22,10 +22,10 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
+import apiClient from "../services/apiClient";
 
 type transactionTypeProps = {
   transaction_type_id: number;
@@ -69,7 +69,7 @@ type CollegeDeparmentsProps = {
   college_name: string;
 };
 
-const API_URL = "http://localhost:5000/api/scheduling-system/admin";
+const API_URL = "/scheduling-system/admin";
 
 function AddAvailability() {
   const [mode, setMode] = useState<"add" | "edit">("add");
@@ -115,21 +115,19 @@ function AddAvailability() {
       function_name: "getCollegeDeparments",
     };
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/jrmsu/college-departments",
+      const response = await apiClient.post(
+        "/jrmsu/college-departments",
         data,
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true,
         }
       );
-      console.log(response.data.data);
 
       if (response.data.success) {
         setCollegeDepartments(response.data.data);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     }
   };
 
@@ -170,9 +168,8 @@ function AddAvailability() {
       payload: { searchkey: transactionTypeID },
     };
     try {
-      const response = await axios.post(API_URL, data, {
+      const response = await apiClient.post(API_URL, data, {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true,
       });
       if (response.data.success) {
         setExistingAvailabilities(response.data.data);
@@ -278,9 +275,8 @@ function AddAvailability() {
           },
         };
       }
-      const response = await axios.post(API_URL, payload, {
+      const response = await apiClient.post(API_URL, payload, {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true,
       });
       if (response.data.success) {
         setTimeRanges([]);
@@ -295,8 +291,8 @@ function AddAvailability() {
       } else {
         notifyError("Failed to save availability");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
       notifyError("An error occurred while saving availability");
     } finally {
       setClearanceSelected(false);
@@ -311,13 +307,12 @@ function AddAvailability() {
       payload: {},
     };
     try {
-      const response = await axios.post(API_URL, data, {
+      const response = await apiClient.post(API_URL, data, {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true,
       });
       setTransactionTypes(response.data.data);
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     }
   };
 

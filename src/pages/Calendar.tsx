@@ -1,5 +1,4 @@
 import { Button } from "@mui/material";
-import axios from "axios";
 import { format } from "date-fns";
 import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
@@ -8,6 +7,7 @@ import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
+import apiClient from "../services/apiClient";
 
 type calendarProps = {
   transaction_title?: string;
@@ -95,19 +95,13 @@ function Calendar({
         school_year: schoolYear?.schoolYear,
       },
     };
-    console.log(data);
+
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/user",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/user", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.data.success) {
-        console.log("Response:");
-        console.log(response.data.data);
         setTransactionTypeID(response.data.data[0].transaction_type_id);
         if (response.data.data.length != 0) {
           const mappedTime: timewindowProps[] = response.data.data
@@ -130,8 +124,8 @@ function Calendar({
       } else {
         notifyError("Can't Fetch Available Dates");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error: any) {
+      console.error("Component Error: ", error.message);
     }
   };
 
@@ -153,27 +147,21 @@ function Calendar({
         appointment_date: formattedDate,
       },
     };
-    console.log(data);
 
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/user",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/user", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      console.log(response.data);
       if (response.data.data[0].result.success) {
         notifySuccess("Appointment Set Successfully");
       } else {
         notifyError("Appointment Set Failed");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     } finally {
       setIsOpenCalendar(false);
       setIsOpen(false);

@@ -1,12 +1,13 @@
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
+import apiClient from "../services/apiClient";
 import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
+
 type appointmentProps = {
   appointment_id: string;
   transaction_title: string;
@@ -56,14 +57,9 @@ function SubsidyPayoutPage() {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/user",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/user", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.data.success) {
         setAppointments(response.data.data);
@@ -72,8 +68,8 @@ function SubsidyPayoutPage() {
       } else {
         notifyError("Can't Fetch Appointments");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.error(err.message);
     }
   };
 
@@ -100,7 +96,7 @@ function SubsidyPayoutPage() {
         ""
       )}
       <div
-        className="flex flex-col justify-center items-center h-[100%] w-full gap-5 absolute "
+        className="flex flex-col justify-center items-center h-[88.5%] w-screen gap-10 absolute "
         style={{ marginTop: "20px" }}
       >
         {appointments.length !== 0 ? (

@@ -1,7 +1,7 @@
 import { Button, CircularProgress, TextField, Typography } from "@mui/material";
-import axios from "axios";
 import { useForm } from "react-hook-form";
 import { notifyInfo, notifySuccess } from "../components/ToastUtils";
+import apiClient from "../services/apiClient";
 type AdminForm = {
   email: string;
   password: string;
@@ -20,22 +20,20 @@ function RegisterAdminPage() {
   } = useForm<AdminForm>();
 
   const onSubmit = async (data: AdminForm) => {
-    console.log("Form Data:", data);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/register",
-        data
-      );
+      const response = await apiClient.post("/register", data, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      console.log("Response:", response.data);
       if (response.data.success) {
         notifySuccess(response.data.message);
       } else {
         notifyInfo(response.data.message);
       }
-
       reset();
-    } catch {}
+    } catch (err: any) {
+      console.error(err.message);
+    }
   };
 
   return (
