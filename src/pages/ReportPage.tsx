@@ -151,8 +151,6 @@ function ReportPage() {
           withCredentials: true,
         }
       );
-      console.log(payload);
-      console.log("Reports data: ", res.data);
 
       if (res.data?.data && Array.isArray(res.data.data)) {
         setAppointments(res.data.data);
@@ -200,7 +198,7 @@ function ReportPage() {
     const printContents = printRef.current.innerHTML;
     const printWindow = window.open("", "_blank", "width=900,height=650");
     if (printWindow) {
-      printWindow.document.write(`
+      printWindow.document.writeln(`
         <html>
           <head>
             <title>Appointment Reports</title>

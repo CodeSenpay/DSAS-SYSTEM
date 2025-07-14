@@ -50,7 +50,7 @@ function App() {
         { id },
         { withCredentials: true }
       );
-      console.log(response.data);
+      // console.log(response.data);
       return response.data.data[0];
     } catch (error) {
       console.log("Failed to fetch user data:", error);
@@ -65,8 +65,8 @@ function App() {
     setSchoolYear(school_year);
     setSemester(semester);
 
-    console.log(`Semester: ${semester.semester}`);
-    console.log(`schoolYear: ${school_year.schoolYear}`);
+    // console.log(`Semester: ${semester.semester}`);
+    // console.log(`schoolYear: ${school_year.schoolYear}`);
   };
 
   useEffect(() => {

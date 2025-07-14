@@ -63,7 +63,6 @@ function ClaimingOfIDPage() {
       if (response.data.success) {
         setAppointments(response.data.data);
         getAppointmentDates(response.data.data);
-        console.log(response.data.data);
       } else {
         notifyError("Can't Fetch Appointments");
       }

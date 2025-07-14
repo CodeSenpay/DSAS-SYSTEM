@@ -74,7 +74,6 @@ function ViewAvailability() {
         searchkey: "",
       },
     };
-    console.log(data);
     try {
       const response = await axios.post(
         "http://localhost:5000/api/scheduling-system/admin",
@@ -85,7 +84,6 @@ function ViewAvailability() {
         }
       );
 
-      console.log(response.data);
       if (response.data.success) {
         setAvailabilities(response.data.data);
       } else {
@@ -106,7 +104,7 @@ function ViewAvailability() {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), "MMM dd, yyyy");
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };

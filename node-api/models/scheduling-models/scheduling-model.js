@@ -136,7 +136,7 @@ export class SchedulingModel {
     try {
       const jsondata = JSON.stringify(spPayload);
       const [rows] = await pool.query(`CALL get_availability(?)`, [jsondata]);
-      console.log(rows);
+      // console.log(rows);
       return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (error) {
       return {
