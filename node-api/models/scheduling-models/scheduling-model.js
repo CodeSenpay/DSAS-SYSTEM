@@ -252,7 +252,7 @@ export class SchedulingModel {
   static async approveAppointment(payload) {
     const requiredFields = [
       "appointment_id",
-      "user_id",
+      "approved_by",
       "appointment_status",
       "student_email",
     ];
@@ -261,7 +261,7 @@ export class SchedulingModel {
     if (missingFields.length) {
       await logger({
         action: "approveAppointment",
-        user_id: payload.user_id ?? null,
+        user_id: payload.approved_by ?? null,
         details: `Missing required fields: ${missingFields.join(", ")}`,
         timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
       });
@@ -279,14 +279,13 @@ export class SchedulingModel {
       ]);
 
       let emailResult = null;
-      if (payload.student_email) {
-        let transaction_title = null;
-        const spResult = rows?.[0]?.[0]?.result;
-        if (spResult) {
-          try {
-            transaction_title = JSON.parse(spResult).transaction_type ?? null;
-          } catch { }
-        }
+      // Only send the email if the stored procedure call is successful
+      // We'll define "success" as the presence of a result field in the first row, and (optionally) a success property in the parsed result
+      let spResult = rows?.[0]?.[0]?.result;
+
+      if (spResult.success && payload.student_email) {
+        console.log("Transaction type: ", spResult?.transaction_type)
+        let transaction_title = spResult?.transaction_type ?? null;
         emailResult = await sendEmailToStudent(
           payload.student_email,
           payload.appointment_status,
@@ -296,7 +295,7 @@ export class SchedulingModel {
 
       await logger({
         action: "approveAppointment",
-        user_id: payload.user_id ?? null,
+        user_id: payload.approved_by ?? null,
         details: `Appointment approved successfully${emailResult?.message ? `; Email: ${emailResult.message}` : ""}`,
         timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
       });
@@ -305,7 +304,7 @@ export class SchedulingModel {
     } catch (error) {
       await logger({
         action: "approveAppointment",
-        user_id: payload.user_id ?? null,
+        user_id: payload.approved_by ?? null,
         details: `Stored procedure execution failed: ${error.message}`,
         timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
       });
