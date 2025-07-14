@@ -33,8 +33,8 @@ function ProfilePage() {
   const [isButtonLoading, setIsButtonLoading] = useState<boolean>(false);
   const [emailError, setEmailError] = useState<string>("");
 
-  const [preview, setPreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // const [preview, setPreview] = useState<string | null>(null);
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleEditClick = () => {
     setStudentEmail(userdata?.email || "");
@@ -121,56 +121,58 @@ function ProfilePage() {
     setEmailError("");
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreview(URL.createObjectURL(file)); // Preview image
-    }
-  };
+  // --- Upload feature commented out below ---
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setSelectedFile(file);
+  //     setPreview(URL.createObjectURL(file)); // Preview image
+  //   }
+  // };
 
-    if (!selectedFile) {
-      alert("Please select a file first.");
-      return;
-    }
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
+  //   if (!selectedFile) {
+  //     alert("Please select a file first.");
+  //     return;
+  //   }
 
-    // Also send the student_id
-    if (userdata?.student_id) {
-      formData.append("student_id", userdata.student_id);
-    } else if (userdata?.student_details?.student_id) {
-      formData.append("student_id", userdata.student_details.student_id);
-    } else {
-      notifyInfo("Student ID not found.");
-      return;
-    }
+  //   const formData = new FormData();
+  //   formData.append("file", selectedFile);
 
-    try {
-      const response = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+  //   // Also send the student_id
+  //   if (userdata?.student_id) {
+  //     formData.append("student_id", userdata.student_id);
+  //   } else if (userdata?.student_details?.student_id) {
+  //     formData.append("student_id", userdata.student_details.student_id);
+  //   } else {
+  //     notifyInfo("Student ID not found.");
+  //     return;
+  //   }
 
-      const data = await response.json();
+  //   try {
+  //     const response = await fetch("http://localhost:5000/api/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
 
-      if (response.ok && data.success) {
-        notifySuccess(data.message || "File uploaded successfully.");
-        // Optionally reset file input and preview
-        setSelectedFile(null);
-        setPreview("");
-      } else {
-        notifyError(data.message || "Failed to upload file. Please try again.");
-      }
-    } catch (error) {
-      console.error("Upload failed:", error);
-      notifyError("An error occurred during upload. Please try again.");
-    }
-  };
+  //     const data = await response.json();
+
+  //     if (response.ok && data.success) {
+  //       notifySuccess(data.message || "File uploaded successfully.");
+  //       // Optionally reset file input and preview
+  //       setSelectedFile(null);
+  //       setPreview("");
+  //     } else {
+  //       notifyError(data.message || "Failed to upload file. Please try again.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Upload failed:", error);
+  //     notifyError("An error occurred during upload. Please try again.");
+  //   }
+  // };
 
   return (
     <>
@@ -279,6 +281,7 @@ function ProfilePage() {
           >
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogContent>
+              {/* 
               <form
                 onSubmit={handleSubmit}
                 encType="multipart/form-data"
@@ -349,6 +352,7 @@ function ProfilePage() {
                   Upload Photo
                 </Button>
               </form>
+              */}
               <Box className="flex flex-col gap-4 mt-2" style={{ padding: 20 }}>
                 <TextField
                   label="Full Name"
