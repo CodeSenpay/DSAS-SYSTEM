@@ -25,6 +25,7 @@ import axios from "axios";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import LogoPNG from "../../public/LogoPNG.png"; // Make sure this import is at the top of your file
 
 const API_URL = "http://localhost:5000/api/scheduling-system/admin";
 
@@ -196,6 +197,8 @@ function ReportPage() {
   const handlePrint = () => {
     if (!printRef.current) return;
     const printContents = printRef.current.innerHTML;
+    // Get the logo as a data URL if imported, otherwise fallback to path
+    const logoSrc = LogoPNG;
     const printWindow = window.open("", "_blank", "width=900,height=650");
     if (printWindow) {
       printWindow.document.writeln(`
@@ -208,11 +211,14 @@ function ReportPage() {
               th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
               th { background: #f5f5f5; }
               .print-header { text-align: center; margin-bottom: 24px; }
+              .print-logo { width: 90px; margin-bottom: 8px; }
               .print-meta { margin-bottom: 16px; font-size: 14px; }
             </style>
           </head>
           <body>
             <div class="print-header">
+              <img src="${logoSrc}" alt="Logo" class="print-logo" />
+            <p>Dean of Student Affairs Services</p>
               <h2>Appointment Reports</h2>
             </div>
             <div class="print-meta">
