@@ -118,17 +118,18 @@ async function loginStudentController(req, res) {
 
 async function logoutUserController(req, res) {
   try {
-    const response = await logoutUser(res);
+    // Log before sending the response
     logger(
       {
         action: "logout",
         user_id: req.body.user_id || "none",
-        details: `User logout attempt: ${response.message || "none"}`,
+        details: `User logout attempt`,
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
-      req,
-      res
+      req
     );
+    // Now send the response
+    await logoutUser(res);
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {
@@ -214,7 +215,7 @@ const verifyJwt = async (req, res) => {
   const token = req.cookies.token;
 
   if (!token) {
-    res.json({
+    return res.json({
       success: false,
       message: "Unauthorized access. No token provided.",
     });
@@ -223,10 +224,10 @@ const verifyJwt = async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    res.json({ success: true, user: decoded });
+    return res.json({ success: true, user: decoded });
   } catch (error) {
     // console.error("JWT verification error:", error);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: "Unauthorized access. Invalid token.",
       error: error,

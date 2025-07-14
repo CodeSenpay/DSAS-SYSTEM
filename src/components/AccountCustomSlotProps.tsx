@@ -10,9 +10,13 @@ import { useNavigate } from "react-router-dom";
 import { notifyError, notifySuccess } from "./ToastUtils";
 import { useUser } from "../services/UserContext";
 
-function getSessionFromStorage(): Session | null {
-  try {
-    const { userdata } = useUser();
+// Move getSessionFromStorage inside the component and remove the useUser() call from outside a hook/component
+export default function AccountCustomSlotProps() {
+  const { userdata } = useUser();
+  const navigate = useNavigate();
+
+  // Helper to build session from userdata
+  const getSessionFromUserdata = React.useCallback((): Session | null => {
     if (!userdata) return null;
     return {
       user: {
@@ -23,36 +27,36 @@ function getSessionFromStorage(): Session | null {
         image: "https://avatars.githubusercontent.com/u/19550456", // Update if you have user image
       },
     };
-  } catch {
-    return null;
-  }
-}
+  }, [userdata]);
 
-export default function AccountCustomSlotProps() {
-  const [session, setSession] = React.useState<Session | null>(
-    getSessionFromStorage()
+  const [session, setSession] = React.useState<Session | null>(() =>
+    getSessionFromUserdata()
   );
+
+  // Keep session in sync with userdata
+  React.useEffect(() => {
+    setSession(getSessionFromUserdata());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userdata]);
 
   const authentication = React.useMemo(() => {
     return {
       signIn: () => {
-        setSession(getSessionFromStorage());
+        setSession(getSessionFromUserdata());
       },
       signOut: () => {
         setSession(null);
       },
     };
-  }, []);
-
-  const navigate = useNavigate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getSessionFromUserdata]);
 
   const LogoutUser = async () => {
     try {
-      // Get user_id from session storage
-      const userStr = sessionStorage.getItem("user");
-      const user_id = userStr ? JSON.parse(userStr).user_id : null;
+      // Get user_id from UserContext
+      const user_id = userdata?.user_id ?? null;
 
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/logout/user",
         { user_id }, // Pass user_id in the request body
         {
@@ -60,18 +64,24 @@ export default function AccountCustomSlotProps() {
           withCredentials: true,
         }
       );
-      console.log(response.data);
       notifySuccess("Logout successful!");
-      sessionStorage.removeItem("user");
       setSession(null);
       navigate("/login/admin");
-    } catch (err: any) {
+    } catch (err) {
       console.log(err);
-      notifyError(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Logout failed. Please try again."
-      );
+      if (err && typeof err === "object") {
+        const errorObj = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        notifyError(
+          errorObj.response?.data?.message ||
+            errorObj.message ||
+            "Logout failed. Please try again."
+        );
+      } else {
+        notifyError("Logout failed. Please try again.");
+      }
     }
   };
 
