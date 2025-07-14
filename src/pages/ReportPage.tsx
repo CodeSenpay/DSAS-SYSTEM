@@ -420,7 +420,7 @@ function ReportPage() {
                       <TableCell align="center">Status</TableCell>
                       <TableCell align="center">School Year</TableCell>
                       <TableCell align="center">Semester</TableCell>
-                      <TableCell align="center">User</TableCell>
+                      <TableCell align="center">Student</TableCell>
                       <TableCell align="center">College</TableCell>
                     </TableRow>
                   </TableHead>
