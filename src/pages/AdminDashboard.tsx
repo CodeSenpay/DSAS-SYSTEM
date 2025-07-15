@@ -76,7 +76,7 @@ function AdminDashboard() {
           withCredentials: true,
         }
       );
-      console.log(response.data);
+      // console.log(response.data);
 
       let slots = 0;
       if (
@@ -88,7 +88,7 @@ function AdminDashboard() {
         response.data.data[0].total_available_slots !== ""
       ) {
         slots = Number(response.data.data[0].total_available_slots);
-        console.log("Slots: ", slots);
+        // console.log("Slots: ", slots);
         if (isNaN(slots)) {
           slots = 0;
           console.warn(

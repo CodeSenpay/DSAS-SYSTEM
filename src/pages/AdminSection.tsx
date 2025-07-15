@@ -155,22 +155,23 @@ export default function AdminDashboardPage() {
           title: "JRMSU DSAS ADMIN",
         }}
       >
-        <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
-          <PageContainer
-            title=""
-            breadcrumbs={[]}
-            style={{
-              backgroundColor: "#f3f4f6",
-              backgroundImage: `
-        repeating-linear-gradient(135deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px),
-        repeating-linear-gradient(225deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px)
-      `,
-              backgroundSize: "40px 40px",
-            }}
-          >
-            {renderCurrentPage(router.pathname)}
-          </PageContainer>
-        </DashboardLayout>
+        <div
+          style={{
+            backgroundColor: "#f3f4f6",
+            backgroundImage: `
+              repeating-linear-gradient(135deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px),
+              repeating-linear-gradient(225deg, #e5e7eb 0px, #e5e7eb 2px, transparent 2px, transparent 40px)
+            `,
+            backgroundSize: "40px 40px",
+            minHeight: "100vh",
+          }}
+        >
+          <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
+            <PageContainer title="" breadcrumbs={[]}>
+              {renderCurrentPage(router.pathname)}
+            </PageContainer>
+          </DashboardLayout>
+        </div>
       </AppProvider>
     </>
   );

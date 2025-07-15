@@ -1,11 +1,77 @@
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useUser } from "../services/UserContext";
+import * as React from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+
+const DONT_SHOW_EMAIL_DIALOG_KEY = "dashboard_dont_show_email_dialog";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-
   const { userdata } = useUser();
+
+  // State for email notification dialog
+  const [openEmailDialog, setOpenEmailDialog] = React.useState(false);
+  // State for "Don't show again" checkbox
+  const [dontShowAgain, setDontShowAgain] = React.useState<boolean>(() => {
+    // Read from localStorage on mount
+    const stored = localStorage.getItem(DONT_SHOW_EMAIL_DIALOG_KEY);
+    return stored === "true";
+  });
+  // State to track if user has chosen "Don't show again" for this login
+  const [hideEmailDialog, setHideEmailDialog] = React.useState<boolean>(() => {
+    // Read from localStorage on mount
+    const stored = localStorage.getItem(DONT_SHOW_EMAIL_DIALOG_KEY);
+    return stored === "true";
+  });
+
+  // Effect to check for missing email and show dialog
+  React.useEffect(() => {
+    if (
+      userdata &&
+      (!userdata.email || userdata.email.trim() === "") &&
+      !hideEmailDialog
+    ) {
+      setOpenEmailDialog(true);
+    }
+  }, [userdata, hideEmailDialog]);
+
+  const handleCloseEmailDialog = () => {
+    setOpenEmailDialog(false);
+    if (dontShowAgain) {
+      setHideEmailDialog(true);
+      localStorage.setItem(DONT_SHOW_EMAIL_DIALOG_KEY, "true");
+    }
+  };
+
+  const handleGoToProfile = () => {
+    setOpenEmailDialog(false);
+    if (dontShowAgain) {
+      setHideEmailDialog(true);
+      localStorage.setItem(DONT_SHOW_EMAIL_DIALOG_KEY, "true");
+    }
+    navigate("/profile");
+  };
+
+  const handleDontShowAgainChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setDontShowAgain(event.target.checked);
+    if (event.target.checked) {
+      localStorage.setItem(DONT_SHOW_EMAIL_DIALOG_KEY, "true");
+      setHideEmailDialog(true);
+    } else {
+      localStorage.removeItem(DONT_SHOW_EMAIL_DIALOG_KEY);
+      setHideEmailDialog(false);
+    }
+  };
 
   return (
     <>
@@ -63,6 +129,45 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {/* Email missing dialog */}
+      <Dialog
+        open={openEmailDialog}
+        onClose={handleCloseEmailDialog}
+        aria-labelledby="missing-email-dialog-title"
+      >
+        <DialogTitle id="missing-email-dialog-title">
+          Email Required
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have not set an email address. Please add your email in the
+            profile section to ensure you receive important notifications.
+          </DialogContentText>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={dontShowAgain}
+                onChange={handleDontShowAgainChange}
+                color="primary"
+              />
+            }
+            label="Don't show again for this login"
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleGoToProfile}
+            color="primary"
+            variant="contained"
+          >
+            Go to Profile
+          </Button>
+          <Button onClick={handleCloseEmailDialog} color="secondary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
