@@ -35,8 +35,6 @@ const appointmentStatuses = [
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "declined", label: "Declined" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
 ];
 
 const semesters = [
@@ -393,7 +391,23 @@ function ReportPage() {
               startIcon={<PrintIcon />}
               onClick={handlePrint}
               disabled={appointments.length === 0 || loading}
-              sx={{ ml: 2, mb: 1 }}
+              sx={{
+                ml: 2,
+                mb: 1,
+                transition: "background 0.2s, color 0.2s",
+                "&:hover": {
+                  backgroundColor: "primary.main",
+                  color: "white",
+                  // Invert icon color as well
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                },
+                // Ensure icon is primary color by default
+                "& .MuiSvgIcon-root": {
+                  color: "primary.main",
+                },
+              }}
             >
               Print
             </Button>
@@ -471,11 +485,7 @@ function ReportPage() {
                                 color = "#ed6c02"; // MUI orange[800]
                                 break;
                               case "declined":
-                              case "cancelled":
                                 color = "#d32f2f"; // MUI red[700]
-                                break;
-                              case "completed":
-                                color = "#0288d1"; // MUI blue[700]
                                 break;
                               default:
                                 color = undefined;
