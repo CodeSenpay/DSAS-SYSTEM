@@ -126,8 +126,14 @@ function AddAvailability() {
       if (response.data.success) {
         setCollegeDepartments(response.data.data);
       }
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(
+          "An unknown error occurred while fetching college departments."
+        );
+      }
     }
   };
 
@@ -291,8 +297,12 @@ function AddAvailability() {
       } else {
         notifyError("Failed to save availability");
       }
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(err);
+      }
       notifyError("An error occurred while saving availability");
     } finally {
       setClearanceSelected(false);
@@ -311,8 +321,12 @@ function AddAvailability() {
         headers: { "Content-Type": "application/json" },
       });
       setTransactionTypes(response.data.data);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(err);
+      }
     }
   };
 

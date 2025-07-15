@@ -590,8 +590,22 @@ export class SchedulingModel {
 
   // ========================================================== Fetching Section ====================================================================
   static async fetchTotalSlots(payload) {
+    // Required fields
+    const requiredFields = ["transaction_type_id"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
     try {
-      const [rows] = await pool.query();
+      const [rows] = await pool.query('CALL get_total_slots(?)', [payload.transaction_type_id]);
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (err) {
       return {
         message: "Fetching total slots failed!",
@@ -601,8 +615,22 @@ export class SchedulingModel {
   }
 
   static async fetchTotalPendings(payload) {
+    // Required fields
+    const requiredFields = ["transaction_type_id"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
     try {
-      const [rows] = await pool.query();
+      const [rows] = await pool.query('CALL get_total_pending(?)', [payload.transaction_type_id]);
+      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
     } catch (err) {
       return {
         message: "Fetching total pendings failed",
