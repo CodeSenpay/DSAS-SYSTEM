@@ -343,6 +343,17 @@ function AddAvailability() {
     getTransactionType();
   }, []);
 
+  // --- Helper for Set button enablement ---
+  const isSetButtonEnabled = () => {
+    // Required: transactionType, capacity, dateRange.start, dateRange.end
+    if (!transactionType) return false;
+    if (!dateRange.start || !dateRange.end) return false;
+    if (!capacity || capacity < 1) return false;
+    // If clearanceSelected, selectedCollege must be set
+    if (clearanceSelected && !selectedCollege) return false;
+    return true;
+  };
+
   return (
     <Box display="flex" justifyContent="center" alignItems="center" p={2}>
       <Card
@@ -521,11 +532,18 @@ function AddAvailability() {
               <Grid>
                 <Button
                   fullWidth
+                  size="large"
                   variant="contained"
                   color="primary"
                   startIcon={<AddIcon />}
                   onClick={handleSetTimeRanges}
-                  disabled={!dateRange.start || !dateRange.end}
+                  disabled={!isSetButtonEnabled()}
+                  sx={{
+                    width: "100%",
+                    minWidth: 100,
+                    height: "100%",
+                    minHeight: 50,
+                  }} // Ensures button is as wide as DatePicker
                 >
                   Set
                 </Button>
