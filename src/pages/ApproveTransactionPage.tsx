@@ -11,8 +11,11 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TextField,
 } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
@@ -40,7 +43,7 @@ type appointmentProps = {
 function ApproveTransactionPage() {
   // Change initial value to '' (string) to avoid out-of-range value for Select
   const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   // Remove single isLoading, use per-row loading state
   const [loadingApproveId, setLoadingApproveId] = useState<string | null>(null);
   const [loadingDeclineId, setLoadingDeclineId] = useState<string | null>(null);
@@ -132,7 +135,7 @@ function ApproveTransactionPage() {
       payload: {
         appointment_id: "",
         appointment_status: "Pending",
-        appointment_date: selectedDate || "",
+        appointment_date: selectedDate ? selectedDate.format("YYYY-MM-DD") : "",
         // If selectedType is '', send '' (all), else send the number
         transaction_type_id: selectedType === "" ? "" : Number(selectedType),
         user_id: "",
@@ -156,7 +159,7 @@ function ApproveTransactionPage() {
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
   };
-  const handleDateChange = (value: string) => {
+  const handleDateChange = (value: Dayjs | null) => {
     setSelectedDate(value);
   };
 
@@ -181,6 +184,7 @@ function ApproveTransactionPage() {
   useEffect(() => {
     handleSearch();
     getTransactionTypes();
+    // eslint-disable-next-line
   }, []);
 
   return (
@@ -216,13 +220,20 @@ function ApproveTransactionPage() {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            type="date"
-            size="small"
-            value={selectedDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            fullWidth
-          />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Select Date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              slotProps={{
+                textField: {
+                  size: "small",
+                  fullWidth: true,
+                },
+              }}
+              format="YYYY-MM-DD"
+            />
+          </LocalizationProvider>
           <Button
             variant="contained"
             color="primary"

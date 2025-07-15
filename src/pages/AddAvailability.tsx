@@ -22,6 +22,9 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { Dayjs } from "dayjs";
 import React, { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
@@ -83,10 +86,14 @@ function AddAvailability() {
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
   >([]);
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
-    start: "",
-    end: "",
+  const [dateRange, setDateRange] = useState<{
+    start: Dayjs | null;
+    end: Dayjs | null;
+  }>({
+    start: null,
+    end: null,
   });
+
   const [capacity, setCapacity] = useState(15);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
   const [existingAvailabilities, setExistingAvailabilities] = useState<
@@ -98,12 +105,13 @@ function AddAvailability() {
 
   const [clearanceSelected, setClearanceSelected] = useState<boolean>(false);
 
-  const getDatesInRange = (start: string, end: string) => {
+  const getDatesInRange = (start: Dayjs, end: Dayjs) => {
     const dates = [];
-    const current = new Date(start);
-    const last = new Date(end);
+    const current = new Date(start.toDate());
+    const last = new Date(end.toDate());
+
     while (current <= last) {
-      dates.push(current.toISOString().slice(0, 10));
+      dates.push(current.toLocaleDateString("en-CA"));
       current.setDate(current.getDate() + 1);
     }
     return dates;
@@ -137,14 +145,10 @@ function AddAvailability() {
     }
   };
 
-  const handleDateRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateRange({ ...dateRange, [e.target.name]: e.target.value });
-    setTimeRanges([]);
-  };
-
   const handleSetTimeRanges = () => {
     if (dateRange.start && dateRange.end) {
       const dates = getDatesInRange(dateRange.start, dateRange.end);
+
       setTimeRanges(
         dates.map((date) => ({
           date,
@@ -197,8 +201,8 @@ function AddAvailability() {
   useEffect(() => {
     if (selectedAvailability) {
       setDateRange({
-        start: selectedAvailability.start_date,
-        end: selectedAvailability.end_date,
+        start: dayjs(selectedAvailability.start_date),
+        end: dayjs(selectedAvailability.end_date),
       });
       setCapacity(selectedAvailability.time_windows[0].capacity_per_day);
       setTimeRanges(
@@ -216,7 +220,7 @@ function AddAvailability() {
 
   useEffect(() => {
     setTransactionType("");
-    setDateRange({ start: "", end: "" });
+    setDateRange({ start: null, end: null });
     setCapacity(15);
     setTimeRanges([]);
     setExistingAvailabilities([]);
@@ -228,6 +232,11 @@ function AddAvailability() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const startDateStr = dateRange.start
+      ? dateRange.start.format("YYYY-MM-DD")
+      : "";
+    const endDateStr = dateRange.end ? dateRange.end.format("YYYY-MM-DD") : "";
     try {
       // Use user from UserContext instead of sessionStorage
       const user = userdata;
@@ -239,8 +248,8 @@ function AddAvailability() {
           function_name: "insertAvailability",
           payload: {
             transaction_type_id: transactionType,
-            start_date: dateRange.start,
-            end_date: dateRange.end,
+            start_date: startDateStr,
+            end_date: endDateStr,
             created_by: user?.user_id,
             college: selectedCollege || "",
             semester: semester?.semester || "",
@@ -264,11 +273,11 @@ function AddAvailability() {
             user_id: user?.user_id,
             availability_id: selectedAvailability.availability_id,
             transaction_type_id: transactionType,
-            start_date: dateRange.start,
+            start_date: startDateStr,
             college: selectedCollege || "",
             semester: semester?.semester || "",
             school_year: schoolYear?.schoolYear || "",
-            end_date: dateRange.end,
+            end_date: endDateStr,
             time_windows: timeRanges.map((tr) => ({
               time_window_id: tr.time_window_id,
               capacity_per_day: capacity,
@@ -286,7 +295,7 @@ function AddAvailability() {
       });
       if (response.data.success) {
         setTimeRanges([]);
-        setDateRange({ start: "", end: "" });
+        setDateRange({ start: null, end: null });
         setTransactionType("");
         setSelectedAvailability(null);
         notifySuccess(
@@ -466,33 +475,47 @@ function AddAvailability() {
               />
             </Grid>
 
-            <Grid>
-              <TextField
-                fullWidth
-                type="date"
-                label="Start Date"
-                name="start"
-                value={dateRange.start}
-                onChange={handleDateRangeChange}
-                InputLabelProps={{ shrink: true }}
-                required
-                disabled={mode === "edit" && !!selectedAvailability}
-              />
-            </Grid>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Grid>
+                <DatePicker
+                  label="Start Date"
+                  value={dateRange.start}
+                  onChange={(newValue) => {
+                    setDateRange((prev) => ({ ...prev, start: newValue }));
+                    setTimeRanges([]); // Reset time ranges on change
+                  }}
+                  format="YYYY-MM-DD"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "medium",
+                      required: true,
+                      disabled: mode === "edit" && !!selectedAvailability,
+                    },
+                  }}
+                />
+              </Grid>
 
-            <Grid>
-              <TextField
-                fullWidth
-                type="date"
-                label="End Date"
-                name="end"
-                value={dateRange.end}
-                onChange={handleDateRangeChange}
-                InputLabelProps={{ shrink: true }}
-                required
-                disabled={mode === "edit" && !!selectedAvailability}
-              />
-            </Grid>
+              <Grid>
+                <DatePicker
+                  label="End Date"
+                  value={dateRange.end}
+                  onChange={(newValue) => {
+                    setDateRange((prev) => ({ ...prev, end: newValue }));
+                    setTimeRanges([]); // Reset time ranges on change
+                  }}
+                  format="YYYY-MM-DD"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "medium",
+                      required: true,
+                      disabled: mode === "edit" && !!selectedAvailability,
+                    },
+                  }}
+                />
+              </Grid>
+            </LocalizationProvider>
 
             {mode === "add" && (
               <Grid>
