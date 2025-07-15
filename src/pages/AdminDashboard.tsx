@@ -9,6 +9,13 @@ import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { BarChart } from "@mui/x-charts";
 
+// Import Material-UI Icons for better visual representation
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import PermIdentityIcon from "@mui/icons-material/PermIdentity";
+import DashboardIcon from "@mui/icons-material/Dashboard"; // For overall dashboard title
+
 // TypeScript interfaces for API responses
 interface TransactionType {
   transaction_title: string;
@@ -76,7 +83,6 @@ function AdminDashboard() {
           withCredentials: true,
         }
       );
-      // console.log(response.data);
 
       let slots = 0;
       if (
@@ -88,7 +94,6 @@ function AdminDashboard() {
         response.data.data[0].total_available_slots !== ""
       ) {
         slots = Number(response.data.data[0].total_available_slots);
-        // console.log("Slots: ", slots);
         if (isNaN(slots)) {
           slots = 0;
           console.warn(
@@ -102,12 +107,10 @@ function AdminDashboard() {
         }));
         setError(null); // <-- Clear error on success
       } else {
-        // Do not show error, just set slots to 0 for this type
         setTotalSlots((prev) => ({
           ...prev,
           [transaction_type_id]: 0,
         }));
-        // Do not set error or notifyError here
       }
     } catch (err) {
       notifyError("Error fetching total slots");
@@ -121,7 +124,7 @@ function AdminDashboard() {
     if (!transactionTypes.length) return;
     let total = 0;
     const pendingMap: { [key: number]: number } = {};
-    let allFailed = true;
+    let allFailed = true; // Track if all pending fetches fail
     for (const type of transactionTypes) {
       const data = {
         model: "schedulesModel",
@@ -150,23 +153,23 @@ function AdminDashboard() {
           const pending = Number(arr[0].total_pending) || 0;
           total += pending;
           pendingMap[type.transaction_type_id] = pending;
-          allFailed = false;
+          allFailed = false; // At least one fetch succeeded
         } else {
           pendingMap[type.transaction_type_id] = 0;
         }
       } catch (err) {
-        // Only show error if all fail
         pendingMap[type.transaction_type_id] = 0;
         console.log(err);
       }
     }
     setTotalPendings(total);
     setPendingPerType(pendingMap);
-    if (allFailed) {
+    if (allFailed && transactionTypes.length > 0) {
+      // Only show error if there are transaction types but all pending fetches failed
       notifyError("Can't Fetch Pending Appointments");
       setError("Can't Fetch Pending Appointments");
     } else {
-      setError(null);
+      setError(null); // Clear error if at least one pending fetch succeeded
     }
   };
 
@@ -186,6 +189,9 @@ function AdminDashboard() {
       });
       fetchTotalPendings();
       setLoading(false);
+    } else if (transactionTypes.length === 0 && !loading) {
+      // If transaction types are empty after loading, set loading to false
+      setLoading(false);
     }
   }, [transactionTypes]);
 
@@ -203,6 +209,7 @@ function AdminDashboard() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: (theme) => theme.palette.background.default,
         }}
       >
         <CircularProgress />
@@ -215,12 +222,19 @@ function AdminDashboard() {
         sx={{
           minHeight: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: (theme) => theme.palette.background.default,
+          p: 3,
         }}
       >
-        <Typography color="error" variant="h6">
-          {error}
+        <Typography color="error" variant="h6" align="center" gutterBottom>
+          Error: {error}
+        </Typography>
+        <Typography variant="body1" color="text.secondary" align="center">
+          Please try refreshing the page or contact support if the issue
+          persists.
         </Typography>
       </Box>
     );
@@ -233,81 +247,110 @@ function AdminDashboard() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: (theme) => theme.palette.background.default,
         }}
       >
-        <Typography>No transaction types found.</Typography>
+        <Typography variant="h6" color="text.secondary">
+          No transaction types found.
+        </Typography>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        py: 6,
-      }}
-    >
+    <Box>
       <Container maxWidth="lg">
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          color="primary"
-          align="center"
-          gutterBottom
-          sx={{ mb: 6, textShadow: "0 2px 8px #e3f2fd" }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 6,
+          }}
         >
-          Welcome {userdata?.first_name}!
-        </Typography>
+          <DashboardIcon color="primary" sx={{ fontSize: 48, mr: 2 }} />
+          <Typography
+            variant="h3" // Larger, more prominent
+            fontWeight="bold"
+            color="primary"
+            align="center"
+            sx={{ textShadow: "0 2px 8px rgba(25, 118, 210, 0.2)" }} // Subtle shadow for depth
+          >
+            Welcome, {userdata?.first_name}!
+          </Typography>
+        </Box>
+
         <Box
           sx={{
             display: "flex",
             flexWrap: "wrap",
-            gap: 3,
+            gap: 3, // Consistent spacing between cards
             mb: 6,
             justifyContent: { xs: "center", md: "space-between" },
           }}
         >
+          {/* Card for Total Slots - Subsidy */}
           <Paper
-            elevation={4}
+            elevation={6} // Increased elevation for more prominence
             sx={{
               p: 3,
-              borderTop: "5px solid #1976d2",
+              borderTop: "6px solid #1976d2", // Thicker border for emphasis
               borderRadius: 3,
-              minWidth: 220,
-              flex: "1 1 220px",
+              minWidth: 250, // Slightly wider min-width
+              flex: "1 1 250px", // Allows flexibility while maintaining min-width
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
+              transition:
+                "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out", // Smooth transition
+              "&:hover": {
+                transform: "translateY(-5px)", // Lift effect on hover
+                boxShadow: (theme) => theme.shadows[10], // More pronounced shadow on hover
+              },
             }}
           >
-            <Typography color="text.secondary">
-              Total Slots - Subsidy
-            </Typography>
-            <Typography variant="h4" color="primary" fontWeight="bold" mt={1}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <AccountBalanceWalletIcon color="primary" fontSize="large" />
+              <Typography color="text.secondary" variant="subtitle1">
+                Total Slots - Subsidy
+              </Typography>
+            </Box>
+            <Typography variant="h3" color="primary" fontWeight="bold" mt={1}>
               {getSlotByTitle("Subsidy")}
             </Typography>
           </Paper>
+
+          {/* Card for Total Slots - Clearance */}
           <Paper
-            elevation={4}
+            elevation={6}
             sx={{
               p: 3,
-              borderTop: "5px solid #43a047",
+              borderTop: "6px solid #43a047",
               borderRadius: 3,
-              minWidth: 220,
-              flex: "1 1 220px",
+              minWidth: 250,
+              flex: "1 1 250px",
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
+              transition:
+                "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+              "&:hover": {
+                transform: "translateY(-5px)",
+                boxShadow: (theme) => theme.shadows[10],
+              },
             }}
           >
-            <Typography color="text.secondary">
-              Total Slots - Clearance
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CheckCircleOutlineIcon
+                sx={{ color: "#43a047" }}
+                fontSize="large"
+              />
+              <Typography color="text.secondary" variant="subtitle1">
+                Total Slots - Clearance
+              </Typography>
+            </Box>
             <Typography
-              variant="h4"
+              variant="h3"
               sx={{ color: "#43a047" }}
               fontWeight="bold"
               mt={1}
@@ -315,24 +358,35 @@ function AdminDashboard() {
               {getSlotByTitle("Clearance")}
             </Typography>
           </Paper>
+
+          {/* Card for Total Slots - Claiming ID */}
           <Paper
-            elevation={4}
+            elevation={6}
             sx={{
               p: 3,
-              borderTop: "5px solid #ffb300",
+              borderTop: "6px solid #ffb300",
               borderRadius: 3,
-              minWidth: 220,
-              flex: "1 1 220px",
+              minWidth: 250,
+              flex: "1 1 250px",
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
+              transition:
+                "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+              "&:hover": {
+                transform: "translateY(-5px)",
+                boxShadow: (theme) => theme.shadows[10],
+              },
             }}
           >
-            <Typography color="text.secondary">
-              Total Slots - Claiming ID
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <PermIdentityIcon sx={{ color: "#ffb300" }} fontSize="large" />
+              <Typography color="text.secondary" variant="subtitle1">
+                Total Slots - Claiming ID
+              </Typography>
+            </Box>
             <Typography
-              variant="h4"
+              variant="h3"
               sx={{ color: "#ffb300" }}
               fontWeight="bold"
               mt={1}
@@ -340,22 +394,35 @@ function AdminDashboard() {
               {getSlotByTitle("Claiming of ID")}
             </Typography>
           </Paper>
+
+          {/* Card for Pending Appointments */}
           <Paper
-            elevation={4}
+            elevation={6}
             sx={{
               p: 3,
-              borderTop: "5px solid #8e24aa",
+              borderTop: "6px solid #8e24aa",
               borderRadius: 3,
-              minWidth: 220,
-              flex: "1 1 220px",
+              minWidth: 250,
+              flex: "1 1 250px",
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
+              transition:
+                "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+              "&:hover": {
+                transform: "translateY(-5px)",
+                boxShadow: (theme) => theme.shadows[10],
+              },
             }}
           >
-            <Typography color="text.secondary">Pending Appointments</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <AccessTimeIcon sx={{ color: "#8e24aa" }} fontSize="large" />
+              <Typography color="text.secondary" variant="subtitle1">
+                Pending Appointments
+              </Typography>
+            </Box>
             <Typography
-              variant="h4"
+              variant="h3"
               sx={{ color: "#8e24aa" }}
               fontWeight="bold"
               mt={1}
@@ -364,16 +431,17 @@ function AdminDashboard() {
             </Typography>
           </Paper>
         </Box>
-        <Paper elevation={4} sx={{ borderRadius: 3, p: 4 }}>
+
+        {/* --- */}
+        <Paper elevation={6} sx={{ borderRadius: 3, p: 4 }}>
           <Typography
-            variant="h5"
-            fontWeight="medium"
+            variant="h4" // Larger title for the chart section
+            fontWeight="bold"
             color="primary"
-            sx={{ mb: 3 }}
+            sx={{ mb: 4, textAlign: "center" }} // Center align the chart title
           >
-            Transaction Slots & Pending Overview
+            Detailed Transaction Overview
           </Typography>
-          {/* Prepare chart data for slots and pending per transaction type */}
           {(() => {
             const chartLabels = transactionTypes.map(
               (t) => t.transaction_title
@@ -386,13 +454,22 @@ function AdminDashboard() {
             );
             return (
               <BarChart
-                height={300}
+                height={350} // Slightly taller chart
                 xAxis={[{ data: chartLabels, scaleType: "band" }]}
                 series={[
-                  { data: slotData, label: "Total Slots" },
-                  { data: pendingData, label: "Pending Appointments" },
+                  {
+                    data: slotData,
+                    label: "Total Slots",
+                    color: "#1976d2", // Blue for slots
+                  },
+                  {
+                    data: pendingData,
+                    label: "Pending Appointments",
+                    color: "#f44336", // Red for pending
+                  },
                 ]}
-                margin={{ top: 20, right: 20, bottom: 40, left: 40 }}
+                margin={{ top: 20, right: 30, bottom: 60, left: 50 }} // Adjust margins
+                grid={{ vertical: true, horizontal: true }} // Add grid lines for readability
               />
             );
           })()}
