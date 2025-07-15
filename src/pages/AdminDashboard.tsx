@@ -1,24 +1,249 @@
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { useUser } from "../services/UserContext";
+import { notifyError } from "../components/ToastUtils";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+import { BarChart } from "@mui/x-charts";
+
+// TypeScript interfaces for API responses
+interface TransactionType {
+  transaction_title: string;
+  transaction_type_id: number;
+}
+
 function AdminDashboard() {
   const { userdata } = useUser();
+
+  const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>(
+    []
+  );
+  const [totalSlots, setTotalSlots] = useState<{ [key: number]: number }>({});
+  const [totalPendings, setTotalPendings] = useState<number>(0);
+  const [pendingPerType, setPendingPerType] = useState<{
+    [key: number]: number;
+  }>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch all transaction types
+  const fetchTransactionsByType = async () => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "getTransactionType",
+      payload: {},
+    };
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setTransactionTypes(response.data.data);
+      } else {
+        notifyError("Can't Fetch Transaction Types");
+        setError("Can't Fetch Transaction Types");
+      }
+    } catch (err) {
+      notifyError("Error fetching transaction types");
+      setError("Error fetching transaction types");
+      console.log(err);
+    }
+  };
+
+  // Fetch total slots for a transaction_type_id
+  const fetchTotalSlots = async (transaction_type_id: number) => {
+    const data = {
+      model: "schedulesModel",
+      function_name: "fetchTotalSlots",
+      payload: {
+        transaction_type_id,
+      },
+    };
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/scheduling-system/admin",
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      console.log(response.data);
+
+      let slots = 0;
+      if (
+        response.data.success &&
+        Array.isArray(response.data.data) &&
+        response.data.data.length > 0 &&
+        typeof response.data.data[0].total_available_slots !== "undefined" &&
+        response.data.data[0].total_available_slots !== null &&
+        response.data.data[0].total_available_slots !== ""
+      ) {
+        slots = Number(response.data.data[0].total_available_slots);
+        console.log("Slots: ", slots);
+        if (isNaN(slots)) {
+          slots = 0;
+          console.warn(
+            `total_available_slots is not a number for transaction_type_id ${transaction_type_id}:`,
+            response.data.data[0].total_available_slots
+          );
+        }
+        setTotalSlots((prev) => ({
+          ...prev,
+          [transaction_type_id]: slots,
+        }));
+        setError(null); // <-- Clear error on success
+      } else {
+        // Do not show error, just set slots to 0 for this type
+        setTotalSlots((prev) => ({
+          ...prev,
+          [transaction_type_id]: 0,
+        }));
+        // Do not set error or notifyError here
+      }
+    } catch (err) {
+      notifyError("Error fetching total slots");
+      setError("Error fetching total slots");
+      console.log(err);
+    }
+  };
+
+  // Fetch total pendings for each transaction type and store in pendingPerType
+  const fetchTotalPendings = async () => {
+    if (!transactionTypes.length) return;
+    let total = 0;
+    const pendingMap: { [key: number]: number } = {};
+    let allFailed = true;
+    for (const type of transactionTypes) {
+      const data = {
+        model: "schedulesModel",
+        function_name: "fetchTotalPendings",
+        payload: { transaction_type_id: type.transaction_type_id },
+      };
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/scheduling-system/admin",
+          data,
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        const arr = Array.isArray(response.data.data)
+          ? response.data.data
+          : response.data;
+        if (
+          Array.isArray(arr) &&
+          arr.length > 0 &&
+          typeof arr[0].total_pending !== "undefined" &&
+          arr[0].total_pending !== null &&
+          arr[0].total_pending !== ""
+        ) {
+          const pending = Number(arr[0].total_pending) || 0;
+          total += pending;
+          pendingMap[type.transaction_type_id] = pending;
+          allFailed = false;
+        } else {
+          pendingMap[type.transaction_type_id] = 0;
+        }
+      } catch (err) {
+        // Only show error if all fail
+        pendingMap[type.transaction_type_id] = 0;
+        console.log(err);
+      }
+    }
+    setTotalPendings(total);
+    setPendingPerType(pendingMap);
+    if (allFailed) {
+      notifyError("Can't Fetch Pending Appointments");
+      setError("Can't Fetch Pending Appointments");
+    } else {
+      setError(null);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const fetchAll = async () => {
+      await fetchTransactionsByType();
+    };
+    fetchAll();
+  }, []);
+
+  useEffect(() => {
+    if (transactionTypes.length > 0) {
+      transactionTypes.forEach((type) => {
+        fetchTotalSlots(type.transaction_type_id);
+      });
+      fetchTotalPendings();
+      setLoading(false);
+    }
+  }, [transactionTypes]);
+
+  const getSlotByTitle = (title: string) => {
+    const type = transactionTypes.find((t) => t.transaction_title === title);
+    return type ? totalSlots[type.transaction_type_id] || 0 : 0;
+  };
+
+  // Loading, error, and empty states
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error" variant="h6">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
+  if (transactionTypes.length === 0) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography>No transaction types found.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -62,7 +287,7 @@ function AdminDashboard() {
               Total Slots - Subsidy
             </Typography>
             <Typography variant="h4" color="primary" fontWeight="bold" mt={1}>
-              120
+              {getSlotByTitle("Subsidy")}
             </Typography>
           </Paper>
           <Paper
@@ -87,7 +312,7 @@ function AdminDashboard() {
               fontWeight="bold"
               mt={1}
             >
-              45
+              {getSlotByTitle("Clearance")}
             </Typography>
           </Paper>
           <Paper
@@ -112,7 +337,7 @@ function AdminDashboard() {
               fontWeight="bold"
               mt={1}
             >
-              8
+              {getSlotByTitle("Claiming of ID")}
             </Typography>
           </Paper>
           <Paper
@@ -135,7 +360,7 @@ function AdminDashboard() {
               fontWeight="bold"
               mt={1}
             >
-              98
+              {totalPendings}
             </Typography>
           </Paper>
         </Box>
@@ -146,62 +371,31 @@ function AdminDashboard() {
             color="primary"
             sx={{ mb: 3 }}
           >
-            Recent Schedules
+            Transaction Slots & Pending Overview
           </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Time</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow hover>
-                  <TableCell>2024-06-10</TableCell>
-                  <TableCell>10:00 AM</TableCell>
-                  <TableCell>John Doe</TableCell>
-                  <TableCell>
-                    <Chip label="Confirmed" color="success" size="small" />
-                  </TableCell>
-                  <TableCell>
-                    <Button size="small" color="primary" variant="text">
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow hover>
-                  <TableCell>2024-06-11</TableCell>
-                  <TableCell>2:00 PM</TableCell>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>
-                    <Chip label="Pending" color="warning" size="small" />
-                  </TableCell>
-                  <TableCell>
-                    <Button size="small" color="primary" variant="text">
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow hover>
-                  <TableCell>2024-06-12</TableCell>
-                  <TableCell>9:00 AM</TableCell>
-                  <TableCell>Alice Brown</TableCell>
-                  <TableCell>
-                    <Chip label="Cancelled" color="error" size="small" />
-                  </TableCell>
-                  <TableCell>
-                    <Button size="small" color="primary" variant="text">
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+          {/* Prepare chart data for slots and pending per transaction type */}
+          {(() => {
+            const chartLabels = transactionTypes.map(
+              (t) => t.transaction_title
+            );
+            const slotData = transactionTypes.map(
+              (t) => totalSlots[t.transaction_type_id] || 0
+            );
+            const pendingData = transactionTypes.map(
+              (t) => pendingPerType[t.transaction_type_id] || 0
+            );
+            return (
+              <BarChart
+                height={300}
+                xAxis={[{ data: chartLabels, scaleType: "band" }]}
+                series={[
+                  { data: slotData, label: "Total Slots" },
+                  { data: pendingData, label: "Pending Appointments" },
+                ]}
+                margin={{ top: 20, right: 20, bottom: 40, left: 40 }}
+              />
+            );
+          })()}
         </Paper>
       </Container>
     </Box>
