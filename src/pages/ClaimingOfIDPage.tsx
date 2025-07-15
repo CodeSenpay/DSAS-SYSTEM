@@ -1,13 +1,13 @@
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
 import apiClient from "../services/apiClient";
 import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
-
 type appointmentProps = {
   appointment_id: string;
   transaction_title: string;
@@ -22,6 +22,10 @@ function ClaimingOfIDPage() {
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
   const { userdata, semester, schoolYear } = useUser();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const navigate = useNavigate();
+
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
@@ -52,6 +56,8 @@ function ClaimingOfIDPage() {
         user_id: userdata?.student_id,
       },
     };
+
+    setIsLoading(true);
     try {
       const response = await apiClient.post("/scheduling-system/user", data, {
         headers: { "Content-Type": "application/json" },
@@ -64,6 +70,11 @@ function ClaimingOfIDPage() {
       }
     } catch (err: any) {
       console.error(err.message);
+      if (err.code === "ECONNABORTED") {
+        navigate("/dashboard");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 

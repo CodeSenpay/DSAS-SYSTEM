@@ -1,13 +1,14 @@
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
 import apiClient from "../services/apiClient";
 import { useUser } from "../services/UserContext";
 import Calendar from "./Calendar";
-
 type appointmentProps = {
   appointment_id: string;
   transaction_title: string;
@@ -25,10 +26,11 @@ function SubsidyPayoutPage() {
   const [appointments, setAppointments] = useState<appointmentProps[]>([]);
   const [appointmentDates, setAppointmentDates] = useState<string[]>([]);
   const { userdata, semester, schoolYear } = useUser();
+  const navigate = useNavigate();
   const handleClosingOfModal = () => {
     setIsOpenCalendar(false);
   };
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleAddingOfSchedule = () => {
     setIsOpenCalendar(true);
   };
@@ -56,20 +58,25 @@ function SubsidyPayoutPage() {
       },
     };
 
+    setIsLoading(true);
+
     try {
       const response = await apiClient.post("/scheduling-system/user", data, {
         headers: { "Content-Type": "application/json" },
       });
-
       if (response.data.success) {
         setAppointments(response.data.data);
-
         getAppointmentDates(response.data.data);
       } else {
         notifyError("Can't Fetch Appointments");
       }
     } catch (err: any) {
       console.error(err.message);
+      if (err.code === "ECONNABORTED") {
+        navigate("/dashboard");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,6 +86,7 @@ function SubsidyPayoutPage() {
 
   return (
     <>
+      {isLoading ? <Loading /> : <></>}
       <NavBar />
       {isOpenCalendar ? (
         <Modal
