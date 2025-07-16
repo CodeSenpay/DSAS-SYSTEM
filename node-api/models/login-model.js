@@ -1,10 +1,9 @@
+import argon2 from "argon2";
 import axios from "axios";
-import crypto from "crypto";
 import { console } from "inspector";
 import pool from "../config/db.conf.js";
 import logger from "../middleware/logger.js";
 import transporter from "../middleware/mailer.js";
-import { generateSchoolYear } from "../services/utility.js";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function loginAdmin(data, req, res) {
@@ -100,7 +99,6 @@ async function loginAdmin(data, req, res) {
     };
   }
 }
-
 
 async function loginStudent(params) {
   // Normalize student_id for consistent usage
@@ -237,17 +235,17 @@ async function loginStudent(params) {
 
       return insertResult.success
         ? {
-          success: true,
-          message: "Login successful (ARMS API, student inserted locally)",
-          user: insertResult.student || studentDetails,
-        }
+            success: true,
+            message: "Login successful (ARMS API, student inserted locally)",
+            user: insertResult.student || studentDetails,
+          }
         : {
-          success: false,
-          message:
-            "Login successful (ARMS API) but failed to insert student locally",
-          user: studentDetails,
-          error: insertResult.message,
-        };
+            success: false,
+            message:
+              "Login successful (ARMS API) but failed to insert student locally",
+            user: studentDetails,
+            error: insertResult.message,
+          };
     } else {
       return {
         success: false,
@@ -336,19 +334,9 @@ async function logoutStudent(res) {
 // Checks if a student exists in the local database, inserts if not, and returns student info
 async function checkStudentExists(params) {
   try {
-    // Hash the password if provided, to match the comparePassword logic
-    let hashedPassword = undefined;
-    if (params.password) {
-      hashedPassword = crypto
-        .createHmac("sha256", process.env.SECRET_KEY)
-        .update(params.password)
-        .digest("hex");
-    }
-
     // Prepare payload (send hashed password if present)
     const payload = JSON.stringify({
       student_id: params.studentId,
-      password: hashedPassword,
     });
     const [result] = await pool.query(`CALL check_student(?)`, [payload]);
     const spResult = result?.[0]?.[0]?.Response;
@@ -365,7 +353,7 @@ async function checkStudentExists(params) {
       }
       // If password is provided, compare with stored hash
       if (params.password && user && user.password) {
-        const isMatch = await comparePassword(params.password, user.password);
+        const isMatch = await argon2.verify(user.password, params.password);
         if (!isMatch) {
           return {
             success: false,
@@ -399,10 +387,7 @@ async function checkStudentExists(params) {
 async function insertStudent(params) {
   try {
     // Hash the password before storing
-    const hashedPassword = crypto
-      .createHmac("sha256", process.env.SECRET_KEY)
-      .update(params.password)
-      .digest("hex");
+    const hashedPassword = await argon2.hash(params.password);
 
     // Only allow student_details to be inserted if it is a plain object (not a stringified JSON)
     // If it's a string, ignore it and do not include in the payload
@@ -456,19 +441,6 @@ async function insertStudent(params) {
       message: "Error inserting student",
       error: error.message,
     };
-  }
-}
-
-async function comparePassword(inputPassword, storedPassword) {
-  const hash = crypto
-    .createHmac("sha256", process.env.SECRET_KEY)
-    .update(inputPassword)
-    .digest("hex");
-
-  if (hash === storedPassword) {
-    return true;
-  } else {
-    return false;
   }
 }
 
