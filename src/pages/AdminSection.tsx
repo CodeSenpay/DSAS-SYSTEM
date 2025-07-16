@@ -19,6 +19,8 @@ import ApproveTransactionPage from "./ApproveTransactionPage";
 import RegisterAdminPage from "./RegisterAdminPage";
 import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
+import DeleteAvailability from "./DeleteAvailability";
+
 const NAVIGATION: Navigation = [
   {
     kind: "header",
@@ -31,7 +33,7 @@ const NAVIGATION: Navigation = [
   },
   {
     segment: "manage-availability",
-    title: "Add Availability",
+    title: "Manage Availability",
     icon: <ManageSearchIcon />,
     children: [
       {
@@ -43,6 +45,11 @@ const NAVIGATION: Navigation = [
         segment: "view-availability",
         title: "View Availability",
         icon: <CalendarViewDayIcon />,
+      },
+      {
+        segment: "delete-availability",
+        title: "Delete Availability",
+        icon: <ManageSearchIcon />,
       },
     ],
   },
@@ -116,6 +123,8 @@ function renderCurrentPage(pathname: string) {
       return <AddAvailability />;
     case "/manage-availability/view-availability":
       return <ViewAvailability />;
+    case "/manage-availability/delete-availability":
+      return <DeleteAvailability />;
     case "/approve-transactions":
       return <ApproveTransactionPage />;
     case "/report-page":
