@@ -10,8 +10,10 @@ import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import ManageSearchIcon from "@mui/icons-material/ManageSearch";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import AutoDeleteIcon from "@mui/icons-material/AutoDelete";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import Modal from "../components/Modal";
 import AddAvailability from "./AddAvailability";
 import AdminDashboard from "./AdminDashboard";
@@ -20,6 +22,7 @@ import RegisterAdminPage from "./RegisterAdminPage";
 import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
 import DeleteAvailability from "./DeleteAvailability";
+import ManageAdminPasswords from "./ManageAdminPasswords";
 
 const NAVIGATION: Navigation = [
   { kind: "header", title: "Main items" },
@@ -46,7 +49,7 @@ const NAVIGATION: Navigation = [
       {
         segment: "delete-availability",
         title: "Delete Availability",
-        icon: <ManageSearchIcon />,
+        icon: <AutoDeleteIcon />,
       },
     ],
   },
@@ -67,7 +70,12 @@ const NAVIGATION: Navigation = [
   {
     segment: "register-admin",
     title: "Register Admin",
-    icon: <SupervisorAccountIcon />,
+    icon: <HowToRegIcon />,
+  },
+  {
+    segment: "manage-admin",
+    title: "Manage Admin",
+    icon: <ManageAccountsIcon />,
   },
 ];
 
@@ -107,6 +115,8 @@ function renderCurrentPage(pathname: string) {
       return <ReportPage />;
     case "/register-admin":
       return <RegisterAdminPage />;
+    case "/manage-admin":
+      return <ManageAdminPasswords />;
     default:
       return <h2>404 - Page not found</h2>;
   }

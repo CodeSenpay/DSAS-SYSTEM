@@ -39,7 +39,6 @@ function NavBar() {
       notifySuccess("Logout successful!");
       navigate("/login");
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.log(err);
       const error = err as {
         response?: { data?: { message?: string } };

@@ -1,3 +1,4 @@
+import argon2 from "argon2";
 import pool from "../../config/db.conf.js";
 import logger from "../../middleware/logger.js";
 import { sendEmailToStudent } from "../../middleware/mailer.js";
@@ -600,6 +601,83 @@ export class SchedulingModel {
     } catch (err) {
       return {
         message: "Fetching total pendings failed",
+        error: err.message,
+      };
+    }
+  }
+
+  static async updateAdminPassword(payload) {
+    const requiredFields = ["admin_email", "new_password"];
+    const missingFields = getMissingFields(requiredFields, payload);
+    if (missingFields.length > 0) {
+      await logger({
+        action: "updateAdminPassword",
+        user_id: payload.admin_email || null,
+        details: `Missing required fields: ${missingFields.join(", ")}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      });
+      return {
+        success: false,
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      // Use argon2 to hash the new password before storing
+      const hashedPassword = await argon2.hash(payload.new_password);
+
+      // Prepare JSON data for the stored procedure, using the hashed password
+      const jsondata = JSON.stringify({
+        admin_email: payload.admin_email,
+        new_password: hashedPassword,
+      });
+
+      // Call the stored procedure
+      const [rows] = await pool.query('CALL update_admin_password(?)', [jsondata]);
+
+      // The result is always in rows[0][0].result (because SELECT returns a result set)
+      let result;
+      if (
+        Array.isArray(rows) &&
+        rows.length > 0 &&
+        Array.isArray(rows[0]) &&
+        rows[0].length > 0 &&
+        rows[0][0].result
+      ) {
+        // rows[0][0].result is a JSON string
+        result = typeof rows[0][0].result === "string"
+          ? JSON.parse(rows[0][0].result)
+          : rows[0][0].result;
+      } else {
+        result = {
+          success: false,
+          message: "Unexpected response from update_admin_password procedure",
+          raw: rows,
+        };
+      }
+
+      await logger({
+        action: "updateAdminPassword",
+        user_id: payload.admin_email || null,
+        details: result.success
+          ? "Admin password updated successfully"
+          : `Failed to update admin password: ${result.message || "Unknown error"}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      });
+
+      return result;
+    } catch (err) {
+      await logger({
+        action: "updateAdminPassword",
+        user_id: payload.admin_email || null,
+        details: `Error updating admin password: ${err.message}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      });
+      return {
+        success: false,
+        message: "Failed to update admin password",
         error: err.message,
       };
     }
