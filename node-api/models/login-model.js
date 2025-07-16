@@ -39,7 +39,7 @@ async function loginAdmin(data, req, res) {
     }
 
     const storedPassword = userResult.user_data?.password;
-    const isMatch = await comparePassword(password, storedPassword);
+    const isMatch = await argon2.verify(storedPassword, password);
 
     if (!isMatch) {
       // Log invalid credentials
@@ -235,17 +235,17 @@ async function loginStudent(params) {
 
       return insertResult.success
         ? {
-            success: true,
-            message: "Login successful (ARMS API, student inserted locally)",
-            user: insertResult.student || studentDetails,
-          }
+          success: true,
+          message: "Login successful (ARMS API, student inserted locally)",
+          user: insertResult.student || studentDetails,
+        }
         : {
-            success: false,
-            message:
-              "Login successful (ARMS API) but failed to insert student locally",
-            user: studentDetails,
-            error: insertResult.message,
-          };
+          success: false,
+          message:
+            "Login successful (ARMS API) but failed to insert student locally",
+          user: studentDetails,
+          error: insertResult.message,
+        };
     } else {
       return {
         success: false,

@@ -9,11 +9,23 @@ async function register(req, res) {
 
   try {
     const response = await registerUser(req.body);
-    // console.log("Register Controller response:", response);
 
-    return res.json(response[0].response_json);
+    // Defensive: check if response is an array and has at least one element with response_json
+    if (
+      Array.isArray(response) &&
+      response.length > 0 &&
+      response[0] &&
+      typeof response[0].response_json !== "undefined"
+    ) {
+      return res.json(response[0].response_json);
+    } else {
+      // If response is not as expected, return a 500 error
+      return res
+        .status(500)
+        .json({ success: false, message: "Unexpected response from registerUser." });
+    }
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Register error:", error);
     if (!res.headersSent) {
       return res
         .status(500)
