@@ -293,7 +293,24 @@ function AddAvailability() {
       const response = await apiClient.post(API_URL, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      if (response.data.success) {
+      console.log("Add availability: ", response);
+
+      // --- Custom error handling for AVAILABILITY_RECORD_EXISTS ---
+      // Check for the special error structure in the response
+      if (
+        response.data &&
+        response.data.success === true &&
+        Array.isArray(response.data.data) &&
+        response.data.data.length > 0 &&
+        response.data.data[0].result &&
+        response.data.data[0].result.success === false &&
+        response.data.data[0].result.error_code === "AVAILABILITY_RECORD_EXISTS"
+      ) {
+        notifyError(
+          response.data.data[0].result.message ||
+            "An availability record already exists for the selected transaction type and date range."
+        );
+      } else if (response.data.success) {
         setTimeRanges([]);
         setDateRange({ start: null, end: null });
         setTransactionType("");

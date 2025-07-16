@@ -147,6 +147,53 @@ export class SchedulingModel {
     }
   }
 
+  static async deleteAvailability(payload) {
+    // Required field
+    const requiredFields = ["availability_id"];
+
+    // Check for missing fields
+    const missingFields = requiredFields.filter((field) => !(field in payload));
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        message: "Missing required fields",
+        missingFields,
+        receivedPayload: payload,
+      };
+    }
+
+    try {
+      const [rows] = await pool.query(
+        "CALL delete_availability(?)",
+        [payload.availability_id]
+      );
+      // The SP returns a JSON object as the first row of the first result set
+      if (rows && Array.isArray(rows) && rows.length > 0) {
+        // If the SP returns a JSON object, parse it if needed
+        const result = rows[0];
+        // If result is a stringified JSON, parse it
+        if (typeof result === "object" && result !== null && "success" in result) {
+          return result;
+        } else if (typeof result === "string") {
+          try {
+            return JSON.parse(result);
+          } catch (e) {
+            return { success: false, message: "Malformed response from stored procedure", raw: result };
+          }
+        }
+        return result;
+      }
+      return { success: false, message: "No response from stored procedure" };
+    } catch (error) {
+      return {
+        success: false,
+        message: "Stored procedure execution failed",
+        error: error.message,
+        receivedPayload: payload,
+      };
+    }
+  }
+
   // ========================================================== Appointment Functions ==========================================================
   static async insertAppointment(payload) {
     // Required fields
