@@ -46,10 +46,10 @@ function LoginPageStudent() {
       const response = await apiClient.post("/login-student", data, {
         headers: { "Content-Type": "application/json" },
       });
+
       notifySuccess("Login successful!");
 
       setUser(response.data.user);
-
       const userLevel = response.data?.user.user_level;
       if (userLevel === "STUDENT") {
         navigate("/dashboard");

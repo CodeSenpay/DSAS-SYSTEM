@@ -65,6 +65,7 @@ type TimeRange = {
   pmStart: string;
   pmEnd: string;
   time_window_id?: number;
+  capacity_per_day?: number; // Add for per-window capacity
 };
 
 type CollegeDeparmentsProps = {
@@ -156,6 +157,7 @@ function AddAvailability() {
           amEnd: "12:00",
           pmStart: "13:00",
           pmEnd: "17:00",
+          capacity_per_day: capacity, // Default for add mode
         }))
       );
     }
@@ -168,6 +170,13 @@ function AddAvailability() {
   ) => {
     setTimeRanges((prev) =>
       prev.map((tr, i) => (i === idx ? { ...tr, [field]: value } : tr))
+    );
+  };
+
+  // New: handle per-window capacity change (edit mode)
+  const handleCapacityPerDayChange = (idx: number, value: number) => {
+    setTimeRanges((prev) =>
+      prev.map((tr, i) => (i === idx ? { ...tr, capacity_per_day: value } : tr))
     );
   };
 
@@ -213,6 +222,7 @@ function AddAvailability() {
           pmStart: tw.start_time_pm.slice(0, 5),
           pmEnd: tw.end_time_pm.slice(0, 5),
           time_window_id: tw.time_window_id,
+          capacity_per_day: tw.capacity_per_day,
         }))
       );
     }
@@ -280,7 +290,10 @@ function AddAvailability() {
             end_date: endDateStr,
             time_windows: timeRanges.map((tr) => ({
               time_window_id: tr.time_window_id,
-              capacity_per_day: capacity,
+              capacity_per_day:
+                typeof tr.capacity_per_day === "number"
+                  ? tr.capacity_per_day
+                  : capacity,
               availability_date: tr.date,
               start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
               end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
@@ -500,6 +513,7 @@ function AddAvailability() {
                 onChange={(e) => setCapacity(Number(e.target.value))}
                 inputProps={{ min: 1 }}
                 required
+                disabled={mode === "edit"} // Disable in edit mode, use per-window fields
               />
             </Grid>
 
@@ -648,6 +662,31 @@ function AddAvailability() {
                             />
                           </Stack>
                         </Grid>
+
+                        {/* Per-window capacity field in edit mode */}
+                        {mode === "edit" && (
+                          <Grid>
+                            <TextField
+                              type="number"
+                              size="small"
+                              label="Capacity"
+                              value={
+                                typeof tr.capacity_per_day === "number"
+                                  ? tr.capacity_per_day
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                handleCapacityPerDayChange(
+                                  idx,
+                                  Number(e.target.value)
+                                )
+                              }
+                              inputProps={{ min: 1 }}
+                              required
+                              sx={{ width: 100, ml: 2 }}
+                            />
+                          </Grid>
+                        )}
                       </Grid>
                     </Card>
                   </Grid>

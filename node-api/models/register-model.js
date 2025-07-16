@@ -4,7 +4,6 @@ import logger from "../middleware/logger.js";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function registerUser(payload, req, res) {
-  // Required fields
   const requiredFields = [
     "email",
     "password",
@@ -15,9 +14,8 @@ async function registerUser(payload, req, res) {
   ];
 
   // Check for missing fields
-  const missingFields = requiredFields.filter((field) => !(field in payload));
-  if (missingFields.length > 0) {
-    // Log missing fields
+  const missingFields = requiredFields.filter(field => !(field in payload));
+  if (missingFields.length) {
     await logger(
       {
         action: "register_attempt",
@@ -35,8 +33,8 @@ async function registerUser(payload, req, res) {
     };
   }
 
+  // Validate email format
   if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
-    // Log invalid email format
     await logger(
       {
         action: "register_attempt",
@@ -53,20 +51,15 @@ async function registerUser(payload, req, res) {
     };
   }
 
-  let hashedPassword;
-
+  // Hash password if present
   if (payload.password) {
     try {
       const secretKey = process.env.SECRET_KEY;
-      // Ensure the password is a string before hashing
-      const passwordToHash = String(payload.password);
-      const hashedPassword = crypto
+      payload.password = crypto
         .createHmac("sha256", secretKey)
-        .update(passwordToHash)
+        .update(String(payload.password))
         .digest("hex");
-      payload.password = hashedPassword;
     } catch (error) {
-      // Log password hashing failure
       await logger(
         {
           action: "register_error",
@@ -84,13 +77,11 @@ async function registerUser(payload, req, res) {
       };
     }
   }
-  // console.log("Payload before DB call:", payload);
+
   try {
     const jsondata = JSON.stringify(payload);
-
     const [rows] = await pool.query(`CALL register_user(?)`, [jsondata]);
 
-    // Log successful registration attempt (regardless of DB result)
     await logger(
       {
         action: "register_success",
@@ -102,9 +93,8 @@ async function registerUser(payload, req, res) {
       res
     );
 
-    return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+    return Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
   } catch (error) {
-    // Log DB error
     await logger(
       {
         action: "register_error",
