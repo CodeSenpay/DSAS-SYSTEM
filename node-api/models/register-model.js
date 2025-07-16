@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import argon2 from "argon2";
 import pool from "../config/db.conf.js";
 import logger from "../middleware/logger.js";
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -54,11 +54,8 @@ async function registerUser(payload, req, res) {
   // Hash password if present
   if (payload.password) {
     try {
-      const secretKey = process.env.SECRET_KEY;
-      payload.password = crypto
-        .createHmac("sha256", secretKey)
-        .update(String(payload.password))
-        .digest("hex");
+      // Use argon2 to hash the password
+      payload.password = await argon2.hash(String(payload.password));
     } catch (error) {
       await logger(
         {
