@@ -3,11 +3,7 @@ import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  notifyError,
-  notifyInfo,
-  notifySuccess,
-} from "../components/ToastUtils";
+import { notifyError, notifySuccess } from "../components/ToastUtils";
 import apiClient from "../services/apiClient";
 
 import { IconButton, InputAdornment } from "@mui/material";
@@ -63,10 +59,8 @@ function LoginPageStudent() {
         response?: { status?: number; data?: { message?: string } };
         message?: string;
       };
-      // eslint-disable-next-line no-console
-      console.error(error.response?.status);
       if (error?.response?.status === 401 || error?.response?.status === 403) {
-        notifyInfo(
+        notifyError(
           error?.response?.data?.message ||
             error?.message ||
             "Login failed. Please try again."

@@ -102,7 +102,7 @@ async function loginAdmin(data, req, res) {
 }
 
 
-async function loginStudent(params, req, res) {
+async function loginStudent(params) {
   // Normalize student_id for consistent usage
   const studentId = params.student_id || params.studentId;
   // First, check if the student exists in the local database
