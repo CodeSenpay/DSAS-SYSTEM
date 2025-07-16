@@ -2,10 +2,15 @@ import pool from "../../config/db.conf.js";
 import logger from "../../middleware/logger.js";
 import { sendEmailToStudent } from "../../middleware/mailer.js";
 
+const getMissingFields = (requiredFields, payload) =>
+  requiredFields.filter((field) => !(field in payload));
+
+const getRowsResult = (rows) =>
+  rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+
 export class SchedulingModel {
   // ========================================================== Availability Functions ==========================================================
   static async insertAvailability(payload) {
-    // Required fields
     const requiredFields = [
       "transaction_type_id",
       "college",
@@ -18,8 +23,7 @@ export class SchedulingModel {
       "time_windows",
     ];
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       await logger({
         action: "insertAvailability",
@@ -36,17 +40,14 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL insert_availability(?)`, [
-        jsondata,
-      ]);
+      const [rows] = await pool.query(`CALL insert_availability(?)`, [jsondata]);
       await logger({
         action: "insertAvailability",
         user_id: payload.created_by || null,
         details: "Availability inserted successfully",
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       await logger({
         action: "insertAvailability",
@@ -63,7 +64,6 @@ export class SchedulingModel {
   }
 
   static async updateAvailability(payload) {
-    // Required fields
     const requiredFields = [
       "availability_id",
       "transaction_type_id",
@@ -76,9 +76,7 @@ export class SchedulingModel {
       "time_windows",
     ];
 
-    // console.log("Update availability: ", payload);
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       await logger({
         action: "updateAvailability",
@@ -95,18 +93,14 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL update_availability(?)`, [
-        jsondata,
-      ]);
-
+      const [rows] = await pool.query(`CALL update_availability(?)`, [jsondata]);
       await logger({
         action: "updateAvailability",
         user_id: payload.user_id || null,
         details: "Availability updated successfully",
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       await logger({
         action: "updateAvailability",
@@ -124,20 +118,12 @@ export class SchedulingModel {
 
   static async getAvailability(payload) {
     const { searchkey, college, semester, school_year } = payload || {};
-
-    // Compose the flat object for the SP
-    const spPayload = {
-      searchkey,
-      college,
-      semester,
-      school_year,
-    };
+    const spPayload = { searchkey, college, semester, school_year };
 
     try {
       const jsondata = JSON.stringify(spPayload);
       const [rows] = await pool.query(`CALL get_availability(?)`, [jsondata]);
-      // console.log(rows);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -148,11 +134,8 @@ export class SchedulingModel {
   }
 
   static async deleteAvailability(payload) {
-    // Required field
     const requiredFields = ["availability_id"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         success: false,
@@ -167,11 +150,8 @@ export class SchedulingModel {
         "CALL delete_availability(?)",
         [payload.availability_id]
       );
-      // The SP returns a JSON object as the first row of the first result set
       if (rows && Array.isArray(rows) && rows.length > 0) {
-        // If the SP returns a JSON object, parse it if needed
         const result = rows[0];
-        // If result is a stringified JSON, parse it
         if (typeof result === "object" && result !== null && "success" in result) {
           return result;
         } else if (typeof result === "string") {
@@ -196,7 +176,6 @@ export class SchedulingModel {
 
   // ========================================================== Appointment Functions ==========================================================
   static async insertAppointment(payload) {
-    // Required fields
     const requiredFields = [
       "transaction_type_id",
       "user_id",
@@ -206,8 +185,7 @@ export class SchedulingModel {
       "semester",
     ];
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -218,9 +196,8 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
       const [rows] = await pool.query(`CALL insert_appointment(?)`, [jsondata]);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -231,7 +208,6 @@ export class SchedulingModel {
   }
 
   static async getAppointment(payload) {
-    // Required fields
     const requiredFields = [
       "appointment_id",
       "appointment_status",
@@ -242,8 +218,7 @@ export class SchedulingModel {
       "semester",
     ];
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -254,10 +229,8 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
       const [rows] = await pool.query(`CALL get_appointment(?)`, [jsondata]);
-
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -268,11 +241,8 @@ export class SchedulingModel {
   }
 
   static async getTimewindow(payload) {
-    // Required fields
     const requiredFields = ["available_date"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -283,10 +253,8 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
       const [rows] = await pool.query(`CALL get_timewindow(?)`, [jsondata]);
-
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -304,7 +272,7 @@ export class SchedulingModel {
       "student_email",
     ];
 
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length) {
       await logger({
         action: "approveAppointment",
@@ -321,17 +289,12 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
-        jsondata,
-      ]);
+      const [rows] = await pool.query(`CALL approve_appointment(?)`, [jsondata]);
 
       let emailResult = null;
-      // Only send the email if the stored procedure call is successful
-      // We'll define "success" as the presence of a result field in the first row, and (optionally) a success property in the parsed result
       let spResult = rows?.[0]?.[0]?.result;
 
-      if (spResult.success && payload.student_email) {
-        // console.log("Transaction type: ", spResult?.transaction_type)
+      if (spResult?.success && payload.student_email) {
         let transaction_title = spResult?.transaction_type ?? null;
         emailResult = await sendEmailToStudent(
           payload.student_email,
@@ -364,11 +327,8 @@ export class SchedulingModel {
   }
 
   static async deleteAppointment(payload) {
-    // Required field
     const requiredFields = ["appointment_id", "user_id"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       await logger({
         action: "deleteAppointment",
@@ -393,7 +353,6 @@ export class SchedulingModel {
         details: "Appointment deletion attempted",
         timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       });
-      // The stored procedure returns a result set with a single row containing a 'result' field (JSON string)
       if (rows && Array.isArray(rows) && rows.length > 0 && rows[0].result) {
         try {
           return JSON.parse(rows[0].result);
@@ -401,7 +360,7 @@ export class SchedulingModel {
           return rows[0];
         }
       }
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       await logger({
         action: "deleteAppointment",
@@ -419,11 +378,8 @@ export class SchedulingModel {
 
   // ========================================================== Transaction Type Functions ==========================================================
   static async insertTransactionType(payload) {
-    // Required fields
     const requiredFields = ["transaction_title", "transaction_detail"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       await logger({
         action: "insertTransactionType",
@@ -440,10 +396,7 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [
-        jsondata,
-      ]);
+      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [jsondata]);
       await logger({
         action: "insertTransactionType",
         user_id: payload.user_id || null,
@@ -473,8 +426,7 @@ export class SchedulingModel {
   static async getTransactionType() {
     try {
       const [rows] = await pool.query(`CALL get_transaction_type()`);
-
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -486,7 +438,6 @@ export class SchedulingModel {
   static async getCollegeDeparments() {
     try {
       const [rows] = await pool.query("SELECT * FROM college_departments");
-
       return rows && Array.isArray(rows) && rows.length > 0 ? rows : rows;
     } catch (err) {
       return {
@@ -497,11 +448,8 @@ export class SchedulingModel {
   }
 
   static async updateStudentEmail(payload) {
-    // Required fields
     const requiredFields = ["student_id", "student_email"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -512,12 +460,8 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-
-      const [rows] = await pool.query(`CALL update_student_email(?)`, [
-        jsondata,
-      ]);
-
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      const [rows] = await pool.query(`CALL update_student_email(?)`, [jsondata]);
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -528,11 +472,8 @@ export class SchedulingModel {
   }
 
   // static async uploadProfile(payload) {
-  //   // Required fields
   //   const requiredFields = ["student_id", "student_profile"];
-
-  //   // Check for missing fields
-  //   const missingFields = requiredFields.filter((field) => !(field in payload));
+  //   const missingFields = getMissingFields(requiredFields, payload);
   //   if (missingFields.length > 0) {
   //     return {
   //       message: "Missing required fields",
@@ -540,13 +481,10 @@ export class SchedulingModel {
   //       receivedPayload: payload,
   //     };
   //   }
-
   //   try {
   //     const jsondata = JSON.stringify(payload);
-  //     const [rows] = await pool.query(`CALL upload_student_profile(?)`, [
-  //       jsondata,
-  //     ]);
-  //     return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+  //     const [rows] = await pool.query(`CALL upload_student_profile(?)`, [jsondata]);
+  //     return getRowsResult(rows);
   //   } catch (error) {
   //     return {
   //       message: "Stored procedure execution failed",
@@ -557,11 +495,8 @@ export class SchedulingModel {
   // }
 
   // static async getStudentProfile(payload) {
-  //   // Required field
   //   const requiredFields = ["student_id"];
-
-  //   // Check for missing fields
-  //   const missingFields = requiredFields.filter((field) => !(field in payload));
+  //   const missingFields = getMissingFields(requiredFields, payload);
   //   if (missingFields.length > 0) {
   //     return {
   //       message: "Missing required fields",
@@ -569,29 +504,21 @@ export class SchedulingModel {
   //       receivedPayload: payload,
   //     };
   //   }
-
   //   try {
-  //     // const jsondata = JSON.stringify(payload);
   //     const [rows] = await pool.query(`CALL get_student_profile(?)`, [payload]);
-  //     // The SP returns two result sets: the profile (if found) and the response JSON
-  //     // Find the student_profile if present, otherwise return the response
   //     if (rows && Array.isArray(rows) && rows.length > 0) {
-  //       // rows[0] is the first result set (student_profile if found)
-  //       // rows[1] is the second result set (response JSON)
   //       const profileResult = rows[0] && rows[0][0] && rows[0][0].student_profile
   //         ? { student_profile: rows[0][0].student_profile }
   //         : null;
   //       const responseResult = rows[1] && rows[1][0] && rows[1][0].Response
   //         ? JSON.parse(rows[1][0].Response)
   //         : null;
-
   //       if (profileResult) {
   //         return { success: true, ...profileResult };
   //       } else if (responseResult) {
   //         return responseResult;
   //       }
   //     }
-  //     // Fallback
   //     return { success: false, message: "Unexpected response from stored procedure." };
   //   } catch (error) {
   //     return {
@@ -602,7 +529,6 @@ export class SchedulingModel {
   //   }
   // }
 
-
   static async generateReport(payload) {
     const requiredFields = [
       "transaction_type_id",
@@ -612,8 +538,7 @@ export class SchedulingModel {
       "status",
     ];
 
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -625,7 +550,7 @@ export class SchedulingModel {
     try {
       const jsondata = JSON.stringify(payload);
       const [rows] = await pool.query(`CALL generate_report(?)`, [jsondata]);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (error) {
       return {
         message: "Stored procedure execution failed",
@@ -637,11 +562,8 @@ export class SchedulingModel {
 
   // ========================================================== Fetching Section ====================================================================
   static async fetchTotalSlots(payload) {
-    // Required fields
     const requiredFields = ["transaction_type_id"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -652,7 +574,7 @@ export class SchedulingModel {
 
     try {
       const [rows] = await pool.query('CALL get_total_slots(?)', [payload.transaction_type_id]);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (err) {
       return {
         message: "Fetching total slots failed!",
@@ -662,11 +584,8 @@ export class SchedulingModel {
   }
 
   static async fetchTotalPendings(payload) {
-    // Required fields
     const requiredFields = ["transaction_type_id"];
-
-    // Check for missing fields
-    const missingFields = requiredFields.filter((field) => !(field in payload));
+    const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
       return {
         message: "Missing required fields",
@@ -677,7 +596,7 @@ export class SchedulingModel {
 
     try {
       const [rows] = await pool.query('CALL get_total_pending(?)', [payload.transaction_type_id]);
-      return rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
+      return getRowsResult(rows);
     } catch (err) {
       return {
         message: "Fetching total pendings failed",
