@@ -1,4 +1,3 @@
-import axios from "axios";
 import { lazy, Suspense, useEffect } from "react";
 import {
   createBrowserRouter,
@@ -14,6 +13,7 @@ import LoginPage from "./pages/LoginPage";
 import LoginPageStudent from "./pages/LoginPageStudent";
 import { useUser } from "./services/UserContext";
 import { fetchSemester, fetchShoolYear } from "./services/Utils";
+import apiClient from "./services/apiClient";
 
 const NotFoundPage = lazy(() => import("./components/NotFoundPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -45,11 +45,7 @@ function App() {
         throw new Error("No student_id or user_id found in params");
       }
 
-      const response = await axios.post(
-        `http://localhost:5000/api/auth/get-user-data`,
-        { id },
-        { withCredentials: true }
-      );
+      const response = await apiClient.post(`/auth/get-user-data`, { id });
       // console.log(response.data);
       return response.data.data[0];
     } catch (error) {
@@ -64,9 +60,6 @@ function App() {
 
     setSchoolYear(school_year);
     setSemester(semester);
-
-    // console.log(`Semester: ${semester.semester}`);
-    // console.log(`schoolYear: ${school_year.schoolYear}`);
   };
 
   useEffect(() => {
@@ -76,10 +69,7 @@ function App() {
   useEffect(() => {
     const verifyAndFetchUser = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/auth/verify-jwt",
-          { withCredentials: true }
-        );
+        const res = await apiClient.get("/auth/verify-jwt");
 
         if (res.data.success) {
           const user = res.data.user;
