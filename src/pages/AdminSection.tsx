@@ -6,12 +6,12 @@ import { PageContainer } from "@toolpad/core/PageContainer";
 import type { Navigation, Router } from "@toolpad/core/AppProvider";
 import AddIcon from "@mui/icons-material/Add";
 import ArticleIcon from "@mui/icons-material/Article";
-import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import AutoDeleteIcon from "@mui/icons-material/AutoDelete";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import PreviewIcon from "@mui/icons-material/Preview";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import Modal from "../components/Modal";
@@ -23,61 +23,79 @@ import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
 import DeleteAvailability from "./DeleteAvailability";
 import ManageAdminPasswords from "./ManageAdminPasswords";
+import { useUser } from "../services/UserContext";
 
-const NAVIGATION: Navigation = [
-  { kind: "header", title: "Main items" },
-  {
-    segment: "admin-dashboard",
-    title: "Dashboard",
-    icon: <DashboardIcon />,
-  },
-  {
-    segment: "manage-availability",
-    title: "Manage Availability",
-    icon: <ManageSearchIcon />,
-    children: [
-      {
-        segment: "add-availability",
-        title: "Add Availability",
-        icon: <AddIcon />,
-      },
-      {
-        segment: "view-availability",
-        title: "View Availability",
-        icon: <CalendarViewDayIcon />,
-      },
-      {
-        segment: "delete-availability",
-        title: "Delete Availability",
-        icon: <AutoDeleteIcon />,
-      },
-    ],
-  },
-  { kind: "divider" },
-  { kind: "header", title: "Analytics" },
-  {
-    segment: "approve-transactions",
-    title: "Approve Transactions",
-    icon: <EventAvailableIcon />,
-  },
-  {
-    segment: "report-page",
-    title: "Report",
-    icon: <ArticleIcon />,
-  },
-  { kind: "divider" },
-  { kind: "header", title: "Account" },
-  {
-    segment: "register-admin",
-    title: "Register Admin",
-    icon: <HowToRegIcon />,
-  },
-  {
-    segment: "manage-admin",
-    title: "Manage Admin",
-    icon: <ManageAccountsIcon />,
-  },
-];
+function useCurrentUser() {
+  const { userdata } = useUser();
+
+  return {
+    email: userdata?.email || "",
+    role: userdata?.user_level || "admin",
+  };
+}
+
+function getNavigationForRole(role: string): Navigation {
+  const baseNavigation: Navigation = [
+    { kind: "header", title: "Main items" },
+    {
+      segment: "admin-dashboard",
+      title: "Dashboard",
+      icon: <DashboardIcon />,
+    },
+    {
+      segment: "manage-availability",
+      title: "Manage Availability",
+      icon: <ManageSearchIcon />,
+      children: [
+        {
+          segment: "add-availability",
+          title: "Add Availability",
+          icon: <AddIcon />,
+        },
+        {
+          segment: "view-availability",
+          title: "View Availability",
+          icon: <PreviewIcon />,
+        },
+        {
+          segment: "delete-availability",
+          title: "Delete Availability",
+          icon: <AutoDeleteIcon />,
+        },
+      ],
+    },
+    { kind: "divider" },
+    { kind: "header", title: "Analytics" },
+    {
+      segment: "approve-transactions",
+      title: "Approve Transactions",
+      icon: <EventAvailableIcon />,
+    },
+    {
+      segment: "report-page",
+      title: "Report",
+      icon: <ArticleIcon />,
+    },
+    { kind: "divider" },
+    { kind: "header", title: "Account" },
+    {
+      segment: "register-admin",
+      title: "Register Admin",
+      icon: <HowToRegIcon />,
+    },
+  ];
+
+  // Only add "Manage Admin" if user is sudo
+  if (role === "SUDO") {
+    baseNavigation.push({
+      segment: "manage-admin",
+      title: "Manage Admin",
+      icon: <ManageAccountsIcon />,
+    });
+  }
+
+  return baseNavigation;
+}
 
 const demoTheme = createTheme({
   colorSchemes: { light: true, dark: true },
@@ -99,7 +117,7 @@ function useDemoRouter(initialPath: string): Router {
   );
 }
 
-function renderCurrentPage(pathname: string) {
+function renderCurrentPage(pathname: string, role: string) {
   switch (pathname) {
     case "/admin-dashboard":
       return <AdminDashboard />;
@@ -116,7 +134,12 @@ function renderCurrentPage(pathname: string) {
     case "/register-admin":
       return <RegisterAdminPage />;
     case "/manage-admin":
-      return <ManageAdminPasswords />;
+      // Only render ManageAdminPasswords if user is sudo
+      if (role === "SUDO") {
+        return <ManageAdminPasswords />;
+      } else {
+        return <h2>403 - Forbidden</h2>;
+      }
     default:
       return <h2>404 - Page not found</h2>;
   }
@@ -125,6 +148,12 @@ function renderCurrentPage(pathname: string) {
 export default function AdminDashboardPage() {
   const router = useDemoRouter("/admin-dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const currentUser = useCurrentUser();
+
+  const navigation = useMemo(
+    () => getNavigationForRole(currentUser.role),
+    [currentUser.role]
+  );
 
   const CustomToolbarActions = React.useCallback(
     () => (
@@ -143,7 +172,7 @@ export default function AdminDashboardPage() {
         </Modal>
       )}
       <AppProvider
-        navigation={NAVIGATION}
+        navigation={navigation}
         router={router}
         theme={demoTheme}
         branding={{
@@ -165,7 +194,7 @@ export default function AdminDashboardPage() {
         >
           <DashboardLayout slots={{ toolbarActions: CustomToolbarActions }}>
             <PageContainer title="" breadcrumbs={[]}>
-              {renderCurrentPage(router.pathname)}
+              {renderCurrentPage(router.pathname, currentUser.role)}
             </PageContainer>
           </DashboardLayout>
         </div>
