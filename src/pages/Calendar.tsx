@@ -25,6 +25,7 @@ type timewindowProps = {
   capacity_per_day: number;
   total_slots_left: number;
   college: string;
+  availability_type: string;
 };
 
 type availableDatesProps = {
@@ -55,6 +56,8 @@ function Calendar({
   const [parsedAvailableDates, setParsedAvailableDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedDateAvailability, setSelectedDateAvailability] =
+    useState<timewindowProps>();
 
   const [availableDateInfo, setAvailableDateInfo] = useState<timewindowProps[]>(
     []
@@ -65,10 +68,25 @@ function Calendar({
     setIsOpen(false);
   };
 
+  const checkAvailabilityType = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      const formated = format(selectedDate, "yyyy-MM-dd");
+      console.log(formated);
+
+      const specificAvailability = availableDateInfo.filter(
+        (date) => date.availability_date === formated
+      );
+
+      setSelectedDateAvailability(specificAvailability[0]);
+    }
+  };
+
   const handleDateSelection = (date: Date | undefined) => {
     if (date) {
       setSelected(date);
+      checkAvailabilityType(date);
       setIsOpen(true);
+
       date
         ? setFormattedDate(format(date, "yyyy-MM-dd"))
         : setFormattedDate("");
@@ -79,6 +97,7 @@ function Calendar({
     const availableDates: Date[] = mappedTime
       .map((date) => new Date(date.availability_date))
       .flat();
+
     setParsedAvailableDates(availableDates);
   };
 
@@ -200,8 +219,26 @@ function Calendar({
               required
             >
               <option value="">--Select an option--</option>
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
+              <option
+                value="AM"
+                disabled={
+                  selectedDateAvailability?.availability_type === "half_am"
+                    ? false
+                    : true
+                }
+              >
+                AM
+              </option>
+              <option
+                value="PM"
+                disabled={
+                  selectedDateAvailability?.availability_type === "half_pm"
+                    ? false
+                    : true
+                }
+              >
+                PM
+              </option>
             </select>
           </div>
           <Button variant="contained" onClick={handleCreateAppointment}>
