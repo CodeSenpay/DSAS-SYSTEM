@@ -45,6 +45,7 @@ type TimeWindow = {
   end_time_pm: string;
   capacity_per_day: number;
   total_slots_left: number;
+  availability_type?: AvailabilityType;
 };
 
 type Availability = {
@@ -65,13 +66,16 @@ type TimeRange = {
   pmStart: string;
   pmEnd: string;
   time_window_id?: number;
-  capacity_per_day?: number; // Add for per-window capacity
+  capacity_per_day?: number;
+  availability_type?: AvailabilityType;
 };
 
 type CollegeDeparmentsProps = {
   college: string;
   college_name: string;
 };
+
+type AvailabilityType = "full" | "half_am" | "half_pm";
 
 const API_URL = "/scheduling-system/admin";
 
@@ -105,6 +109,10 @@ function AddAvailability() {
   const [loading, setLoading] = useState(false);
 
   const [clearanceSelected, setClearanceSelected] = useState<boolean>(false);
+
+  // New: Availability type state
+  const [availabilityType, setAvailabilityType] =
+    useState<AvailabilityType>("full");
 
   const getDatesInRange = (start: Dayjs, end: Dayjs) => {
     const dates = [];
@@ -146,6 +154,34 @@ function AddAvailability() {
     }
   };
 
+  // Helper to get default time values based on availability type
+  const getDefaultTimes = (type: AvailabilityType) => {
+    switch (type) {
+      case "half_am":
+        return {
+          amStart: "08:00",
+          amEnd: "12:00",
+          pmStart: "",
+          pmEnd: "",
+        };
+      case "half_pm":
+        return {
+          amStart: "",
+          amEnd: "",
+          pmStart: "13:00",
+          pmEnd: "17:00",
+        };
+      case "full":
+      default:
+        return {
+          amStart: "08:00",
+          amEnd: "12:00",
+          pmStart: "13:00",
+          pmEnd: "17:00",
+        };
+    }
+  };
+
   const handleSetTimeRanges = () => {
     if (dateRange.start && dateRange.end) {
       const dates = getDatesInRange(dateRange.start, dateRange.end);
@@ -153,11 +189,9 @@ function AddAvailability() {
       setTimeRanges(
         dates.map((date) => ({
           date,
-          amStart: "08:00",
-          amEnd: "12:00",
-          pmStart: "13:00",
-          pmEnd: "17:00",
-          capacity_per_day: capacity, // Default for add mode
+          ...getDefaultTimes(availabilityType),
+          capacity_per_day: capacity,
+          availability_type: availabilityType,
         }))
       );
     }
@@ -173,10 +207,26 @@ function AddAvailability() {
     );
   };
 
-  // New: handle per-window capacity change (edit mode)
   const handleCapacityPerDayChange = (idx: number, value: number) => {
     setTimeRanges((prev) =>
       prev.map((tr, i) => (i === idx ? { ...tr, capacity_per_day: value } : tr))
+    );
+  };
+
+  const handleAvailabilityTypeChange = (
+    idx: number,
+    value: AvailabilityType
+  ) => {
+    setTimeRanges((prev) =>
+      prev.map((tr, i) =>
+        i === idx
+          ? {
+              ...tr,
+              availability_type: value,
+              ...getDefaultTimes(value),
+            }
+          : tr
+      )
     );
   };
 
@@ -215,15 +265,41 @@ function AddAvailability() {
       });
       setCapacity(selectedAvailability.time_windows[0].capacity_per_day);
       setTimeRanges(
-        selectedAvailability.time_windows.map((tw) => ({
-          date: tw.availability_date,
-          amStart: tw.start_time_am.slice(0, 5),
-          amEnd: tw.end_time_am.slice(0, 5),
-          pmStart: tw.start_time_pm.slice(0, 5),
-          pmEnd: tw.end_time_pm.slice(0, 5),
-          time_window_id: tw.time_window_id,
-          capacity_per_day: tw.capacity_per_day,
-        }))
+        selectedAvailability.time_windows.map((tw) => {
+          // Use the availability_type directly from the response
+          const type: AvailabilityType =
+            tw.availability_type === "half_am" ||
+            tw.availability_type === "half_pm" ||
+            tw.availability_type === "full"
+              ? tw.availability_type
+              : "full";
+
+          // Helper to extract time string for input fields, per requirements
+          // If the value is "00:00:00" or falsy, use "00:00:00" (for edit mode)
+          const getTimeForEdit = (val: string | undefined | null) => {
+            if (!val || val === "00:00:00") return "00:00:00";
+            // If value is in "HH:mm:ss", return "HH:mm"
+            if (val.length === 8 && val[2] === ":" && val[5] === ":") {
+              return val.slice(0, 5);
+            }
+            // If value is in "HH:mm", return as is
+            if (val.length === 5 && val[2] === ":") {
+              return val;
+            }
+            return val;
+          };
+
+          return {
+            date: tw.availability_date,
+            amStart: getTimeForEdit(tw.start_time_am),
+            amEnd: getTimeForEdit(tw.end_time_am),
+            pmStart: getTimeForEdit(tw.start_time_pm),
+            pmEnd: getTimeForEdit(tw.end_time_pm),
+            time_window_id: tw.time_window_id,
+            capacity_per_day: tw.capacity_per_day,
+            availability_type: type,
+          };
+        })
       );
     }
   }, [selectedAvailability]);
@@ -235,9 +311,23 @@ function AddAvailability() {
     setTimeRanges([]);
     setExistingAvailabilities([]);
     setSelectedAvailability(null);
+    setAvailabilityType("full");
   }, [mode]);
 
   const { userdata } = useUser();
+
+  // Helper to ensure "00:00:00" is sent for AM/PM only slots instead of null/empty string
+  const getTimeOrZero = (
+    value: string | undefined,
+    isActive: boolean
+  ): string => {
+    // If the slot is active (should be sent), send the value (with :00), else send "00:00:00"
+    if (isActive) {
+      return value ? `${value}:00` : "00:00:00";
+    } else {
+      return "00:00:00";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,11 +338,12 @@ function AddAvailability() {
       : "";
     const endDateStr = dateRange.end ? dateRange.end.format("YYYY-MM-DD") : "";
     try {
-      // Use user from UserContext instead of sessionStorage
       const user = userdata;
 
       let payload;
       if (mode === "add") {
+        // For the new SP, we must send availability_type at the root level (not just per time window)
+        // The value should be the global selection (availabilityType)
         payload = {
           model: "schedulesModel",
           function_name: "insertAvailability",
@@ -268,10 +359,24 @@ function AddAvailability() {
             time_windows: timeRanges.map((tr) => ({
               capacity_per_day: capacity,
               availability_date: tr.date,
-              start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
-              end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
-              start_time_pm: tr.pmStart ? `${tr.pmStart}:00` : "",
-              end_time_pm: tr.pmEnd ? `${tr.pmEnd}:00` : "",
+              start_time_am: getTimeOrZero(
+                tr.amStart,
+                availabilityType === "half_am" || availabilityType === "full"
+              ),
+              end_time_am: getTimeOrZero(
+                tr.amEnd,
+                availabilityType === "half_am" || availabilityType === "full"
+              ),
+              start_time_pm: getTimeOrZero(
+                tr.pmStart,
+                availabilityType === "half_pm" || availabilityType === "full"
+              ),
+              end_time_pm: getTimeOrZero(
+                tr.pmEnd,
+                availabilityType === "half_pm" || availabilityType === "full"
+              ),
+              availability_type: tr.availability_type || availabilityType,
+              // Do NOT send per-window availability_type for add mode (SP expects root-level only)
             })),
           },
         };
@@ -295,10 +400,31 @@ function AddAvailability() {
                   ? tr.capacity_per_day
                   : capacity,
               availability_date: tr.date,
-              start_time_am: tr.amStart ? `${tr.amStart}:00` : "",
-              end_time_am: tr.amEnd ? `${tr.amEnd}:00` : "",
-              start_time_pm: tr.pmStart ? `${tr.pmStart}:00` : "",
-              end_time_pm: tr.pmEnd ? `${tr.pmEnd}:00` : "",
+              availability_type: tr.availability_type || availabilityType,
+              start_time_am: getTimeOrZero(
+                tr.amStart,
+                tr.availability_type === "half_am" ||
+                  tr.availability_type === "full" ||
+                  (!tr.availability_type && availabilityType !== "half_pm")
+              ),
+              end_time_am: getTimeOrZero(
+                tr.amEnd,
+                tr.availability_type === "half_am" ||
+                  tr.availability_type === "full" ||
+                  (!tr.availability_type && availabilityType !== "half_pm")
+              ),
+              start_time_pm: getTimeOrZero(
+                tr.pmStart,
+                tr.availability_type === "half_pm" ||
+                  tr.availability_type === "full" ||
+                  (!tr.availability_type && availabilityType !== "half_am")
+              ),
+              end_time_pm: getTimeOrZero(
+                tr.pmEnd,
+                tr.availability_type === "half_pm" ||
+                  tr.availability_type === "full" ||
+                  (!tr.availability_type && availabilityType !== "half_am")
+              ),
             })),
           },
         };
@@ -306,10 +432,11 @@ function AddAvailability() {
       const response = await apiClient.post(API_URL, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      console.log("Add availability: ", response);
+      // console.log("Add availability: ", response);
 
       // --- Custom error handling for AVAILABILITY_RECORD_EXISTS ---
-      // Check for the special error structure in the response
+      // The new SP returns { result: { success: false, error_code: "AVAILABILITY_RECORD_EXISTS", ... } }
+      // But the API wraps it in .data.data[0].result
       if (
         response.data &&
         response.data.success === true &&
@@ -323,14 +450,23 @@ function AddAvailability() {
           response.data.data[0].result.message ||
             "An availability record already exists for the selected transaction type and date range."
         );
-      } else if (response.data.success) {
+      } else if (
+        response.data &&
+        response.data.success === true &&
+        Array.isArray(response.data.data) &&
+        response.data.data.length > 0 &&
+        response.data.data[0].result &&
+        response.data.data[0].result.success === true
+      ) {
         setTimeRanges([]);
         setDateRange({ start: null, end: null });
         setTransactionType("");
         setSelectedAvailability(null);
+        setAvailabilityType("full");
         notifySuccess(
           mode === "add"
-            ? "Availability added successfully"
+            ? response.data.data[0].result.message ||
+                "Availability added successfully"
             : "Availability updated successfully"
         );
       } else {
@@ -373,13 +509,10 @@ function AddAvailability() {
     getTransactionType();
   }, []);
 
-  // --- Helper for Set button enablement ---
   const isSetButtonEnabled = () => {
-    // Required: transactionType, capacity, dateRange.start, dateRange.end
     if (!transactionType) return false;
     if (!dateRange.start || !dateRange.end) return false;
     if (!capacity || capacity < 1) return false;
-    // If clearanceSelected, selectedCollege must be set
     if (clearanceSelected && !selectedCollege) return false;
     return true;
   };
@@ -513,8 +646,29 @@ function AddAvailability() {
                 onChange={(e) => setCapacity(Number(e.target.value))}
                 inputProps={{ min: 1 }}
                 required
-                disabled={mode === "edit"} // Disable in edit mode, use per-window fields
+                disabled={mode === "edit"}
               />
+            </Grid>
+
+            {/* New: Availability Type Select */}
+            <Grid width={"200px"}>
+              <FormControl fullWidth>
+                <InputLabel>Availability Type</InputLabel>
+                <Select
+                  value={availabilityType}
+                  onChange={(e: SelectChangeEvent) => {
+                    setAvailabilityType(e.target.value as AvailabilityType);
+                    setTimeRanges([]);
+                  }}
+                  label="Availability Type"
+                  required
+                  disabled={mode === "edit"}
+                >
+                  <MenuItem value="full">Full Day (AM & PM)</MenuItem>
+                  <MenuItem value="half_am">AM Only</MenuItem>
+                  <MenuItem value="half_pm">PM Only</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -524,7 +678,7 @@ function AddAvailability() {
                   value={dateRange.start}
                   onChange={(newValue) => {
                     setDateRange((prev) => ({ ...prev, start: newValue }));
-                    setTimeRanges([]); // Reset time ranges on change
+                    setTimeRanges([]);
                   }}
                   format="YYYY-MM-DD"
                   slotProps={{
@@ -544,7 +698,7 @@ function AddAvailability() {
                   value={dateRange.end}
                   onChange={(newValue) => {
                     setDateRange((prev) => ({ ...prev, end: newValue }));
-                    setTimeRanges([]); // Reset time ranges on change
+                    setTimeRanges([]);
                   }}
                   format="YYYY-MM-DD"
                   slotProps={{
@@ -574,7 +728,7 @@ function AddAvailability() {
                     minWidth: 100,
                     height: "100%",
                     minHeight: 50,
-                  }} // Ensures button is as wide as DatePicker
+                  }}
                 >
                   Set
                 </Button>
@@ -605,6 +759,32 @@ function AddAvailability() {
                           </Typography>
                         </Grid>
 
+                        {/* Per-window availability type select (edit mode) */}
+                        {mode === "edit" && (
+                          <Grid>
+                            <FormControl
+                              size="small"
+                              sx={{ minWidth: 120, mr: 2 }}
+                            >
+                              <InputLabel>Type</InputLabel>
+                              <Select
+                                value={tr.availability_type || "full"}
+                                label="Type"
+                                onChange={(e: SelectChangeEvent) =>
+                                  handleAvailabilityTypeChange(
+                                    idx,
+                                    e.target.value as AvailabilityType
+                                  )
+                                }
+                              >
+                                <MenuItem value="full">Full Day</MenuItem>
+                                <MenuItem value="half_am">AM Only</MenuItem>
+                                <MenuItem value="half_pm">PM Only</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        )}
+
                         <Grid>
                           <Stack
                             direction="row"
@@ -619,7 +799,18 @@ function AddAvailability() {
                               onChange={(e) =>
                                 handleTimeChange(idx, "amStart", e.target.value)
                               }
-                              required
+                              required={
+                                tr.availability_type === "half_am" ||
+                                tr.availability_type === "full" ||
+                                (!tr.availability_type &&
+                                  availabilityType !== "half_pm")
+                              }
+                              disabled={
+                                (mode === "add" &&
+                                  availabilityType === "half_pm") ||
+                                (mode === "edit" &&
+                                  tr.availability_type === "half_pm")
+                              }
                             />
                             <Typography variant="body2">to</Typography>
                             <TextField
@@ -629,7 +820,18 @@ function AddAvailability() {
                               onChange={(e) =>
                                 handleTimeChange(idx, "amEnd", e.target.value)
                               }
-                              required
+                              required={
+                                tr.availability_type === "half_am" ||
+                                tr.availability_type === "full" ||
+                                (!tr.availability_type &&
+                                  availabilityType !== "half_pm")
+                              }
+                              disabled={
+                                (mode === "add" &&
+                                  availabilityType === "half_pm") ||
+                                (mode === "edit" &&
+                                  tr.availability_type === "half_pm")
+                              }
                             />
                           </Stack>
                         </Grid>
@@ -648,7 +850,18 @@ function AddAvailability() {
                               onChange={(e) =>
                                 handleTimeChange(idx, "pmStart", e.target.value)
                               }
-                              required
+                              required={
+                                tr.availability_type === "half_pm" ||
+                                tr.availability_type === "full" ||
+                                (!tr.availability_type &&
+                                  availabilityType !== "half_am")
+                              }
+                              disabled={
+                                (mode === "add" &&
+                                  availabilityType === "half_am") ||
+                                (mode === "edit" &&
+                                  tr.availability_type === "half_am")
+                              }
                             />
                             <Typography variant="body2">to</Typography>
                             <TextField
@@ -658,7 +871,18 @@ function AddAvailability() {
                               onChange={(e) =>
                                 handleTimeChange(idx, "pmEnd", e.target.value)
                               }
-                              required
+                              required={
+                                tr.availability_type === "half_pm" ||
+                                tr.availability_type === "full" ||
+                                (!tr.availability_type &&
+                                  availabilityType !== "half_am")
+                              }
+                              disabled={
+                                (mode === "add" &&
+                                  availabilityType === "half_am") ||
+                                (mode === "edit" &&
+                                  tr.availability_type === "half_am")
+                              }
                             />
                           </Stack>
                         </Grid>
