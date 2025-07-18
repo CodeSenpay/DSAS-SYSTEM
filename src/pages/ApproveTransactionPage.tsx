@@ -11,6 +11,8 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -48,6 +50,13 @@ function ApproveTransactionPage() {
   const [loadingApproveId, setLoadingApproveId] = useState<string | null>(null);
   const [loadingDeclineId, setLoadingDeclineId] = useState<string | null>(null);
 
+  // For select all
+  const [selectedAppointments, setSelectedAppointments] = useState<string[]>(
+    []
+  );
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const { userdata, semester, schoolYear } = useUser();
   const [transactionTypes, setTransactionTypes] = useState<
     transactionTypeProps[]
@@ -80,8 +89,12 @@ function ApproveTransactionPage() {
           notifyError("Failed to approve appointment.");
         }
       })
-      .catch((err: any) => {
-        console.error(err.message);
+      .catch((err: unknown) => {
+        if (err instanceof Error) {
+          console.error(err.message);
+        } else {
+          console.error(err);
+        }
         notifyError("An error occurred while approving the appointment.");
       })
       .finally(() => {
@@ -116,8 +129,12 @@ function ApproveTransactionPage() {
       } else {
         notifyError("Failed to decline appointment.");
       }
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(err);
+      }
     } finally {
       setLoadingDeclineId(null);
     }
@@ -149,9 +166,15 @@ function ApproveTransactionPage() {
         headers: { "Content-Type": "application/json" },
       });
       setFilteredAppointments(response.data.data);
-      // setAppointments();
-    } catch (err: any) {
-      console.log(err.message);
+      // Reset selection on new search
+      setSelectedAppointments([]);
+      setSelectAll(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(err);
+      }
     }
   };
 
@@ -176,8 +199,90 @@ function ApproveTransactionPage() {
       });
 
       setTransactionTypes(response.data.data);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(err);
+      }
+    }
+  };
+
+  // Select all logic
+  const handleSelectAllChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const checked = event.target.checked;
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedAppointments(
+        filteredAppointments.map((appt) => appt.appointment_id)
+      );
+    } else {
+      setSelectedAppointments([]);
+    }
+  };
+
+  const handleSelectOne = (appointmentId: string) => {
+    setSelectedAppointments((prev) => {
+      if (prev.includes(appointmentId)) {
+        return prev.filter((id) => id !== appointmentId);
+      } else {
+        return [...prev, appointmentId];
+      }
+    });
+  };
+
+  useEffect(() => {
+    // Keep selectAll in sync with selectedAppointments
+    if (
+      filteredAppointments.length > 0 &&
+      selectedAppointments.length === filteredAppointments.length
+    ) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selectedAppointments, filteredAppointments]);
+
+  // Bulk Approve
+  const handleBulkApprove = async () => {
+    if (selectedAppointments.length === 0) {
+      notifyError("No appointments selected.");
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      // Approve all selected appointments in parallel
+      await Promise.all(
+        filteredAppointments
+          .filter((appt) => selectedAppointments.includes(appt.appointment_id))
+          .map((appt) =>
+            apiClient.post(
+              "/scheduling-system/admin",
+              {
+                model: "schedulesModel",
+                function_name: "approveAppointment",
+                payload: {
+                  approved_by: userdata?.user_id,
+                  appointment_id: appt.appointment_id,
+                  appointment_status: "Approved",
+                  student_email: appt.student_email,
+                },
+              },
+              {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+              }
+            )
+          )
+      );
+      notifySuccess("Selected appointments approved successfully.");
+      handleSearch();
+    } catch {
+      notifyError("Failed to approve selected appointments.");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -188,7 +293,7 @@ function ApproveTransactionPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4">
+    <div className="w-full mx-auto py-10 px-4" style={{ maxWidth: "100%" }}>
       <Paper
         elevation={3}
         className="p-8 rounded-xl bg-white shadow-lg"
@@ -244,10 +349,52 @@ function ApproveTransactionPage() {
             Search
           </Button>
         </div>
+        <div className="flex items-center mb-4 gap-4">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectAll}
+                onChange={handleSelectAllChange}
+                indeterminate={
+                  selectedAppointments.length > 0 &&
+                  selectedAppointments.length < filteredAppointments.length
+                }
+                disabled={filteredAppointments.length === 0}
+              />
+            }
+            label="Select All"
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleBulkApprove}
+            disabled={
+              selectedAppointments.length === 0 ||
+              loadingApproveId !== null ||
+              loadingDeclineId !== null ||
+              bulkLoading
+            }
+            sx={{ minWidth: 160 }}
+            loading={bulkLoading}
+          >
+            Approve Selected
+          </Button>
+        </div>
         <Paper className="overflow-x-auto">
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectAll}
+                    onChange={handleSelectAllChange}
+                    indeterminate={
+                      selectedAppointments.length > 0 &&
+                      selectedAppointments.length < filteredAppointments.length
+                    }
+                    disabled={filteredAppointments.length === 0}
+                  />
+                </TableCell>
                 <TableCell className="font-semibold">Type</TableCell>
                 <TableCell className="font-semibold">Date</TableCell>
                 <TableCell className="font-semibold">User ID</TableCell>
@@ -255,18 +402,32 @@ function ApproveTransactionPage() {
                 <TableCell className="font-semibold">Semester</TableCell>
                 <TableCell className="font-semibold">School-Year</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAppointments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={9} align="center">
                     No appointments found.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredAppointments.map((appt) => (
                   <TableRow key={appt.appointment_id}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedAppointments.includes(
+                          appt.appointment_id
+                        )}
+                        onChange={() => handleSelectOne(appt.appointment_id)}
+                        disabled={
+                          loadingApproveId !== null ||
+                          loadingDeclineId !== null ||
+                          bulkLoading
+                        }
+                      />
+                    </TableCell>
                     <TableCell className="capitalize">
                       {appt.transaction_title}
                     </TableCell>
@@ -301,7 +462,8 @@ function ApproveTransactionPage() {
                             variant="contained"
                             disabled={
                               loadingApproveId !== null ||
-                              loadingDeclineId !== null
+                              loadingDeclineId !== null ||
+                              bulkLoading
                             }
                           >
                             Approve
@@ -316,7 +478,8 @@ function ApproveTransactionPage() {
                             onClick={() => handleDecline(appt)}
                             disabled={
                               loadingApproveId !== null ||
-                              loadingDeclineId !== null
+                              loadingDeclineId !== null ||
+                              bulkLoading
                             }
                           >
                             Decline
