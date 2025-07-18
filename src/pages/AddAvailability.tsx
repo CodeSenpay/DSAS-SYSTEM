@@ -522,7 +522,7 @@ function AddAvailability() {
       <Card
         sx={{
           width: "100%",
-          maxWidth: "900px",
+          maxWidth: "100%",
           p: 4,
           borderRadius: 2,
           boxShadow: 2,
