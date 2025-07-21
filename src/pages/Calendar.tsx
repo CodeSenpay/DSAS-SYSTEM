@@ -71,12 +71,12 @@ function Calendar({
   const checkAvailabilityType = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       const formated = format(selectedDate, "yyyy-MM-dd");
-      console.log(formated);
 
       const specificAvailability = availableDateInfo.filter(
         (date) => date.availability_date === formated
       );
 
+      console.log(specificAvailability[0]);
       setSelectedDateAvailability(specificAvailability[0]);
     }
   };
