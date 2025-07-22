@@ -1,12 +1,20 @@
 import cors from "cors";
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 import router from "./routes.js";
 // import rateLimit from 'express-rate-limit';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
+});
 const allowed = ["http://localhost:3000", "http://localhost:5173"];
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -20,6 +28,19 @@ app.use(
   })
 );
 
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.emit("welcome", "Hello From WebSocket Server");
+
+  socket.on("message", (data) => {
+    console.log("Received Message: ", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
 // Define the rate limiter
 // const limiter = rateLimit({
 //   windowMs: 15 * 60 * 1000, // 15 minutes

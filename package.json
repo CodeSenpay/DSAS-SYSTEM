@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "all": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd node-api && nodemon index.js",
     "client": "npm run dev"
   },
@@ -42,6 +42,8 @@
     "react-router-dom": "^7.6.2",
     "react-toastify": "^11.0.5",
     "sharp": "^0.34.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "yup": "^1.6.1"
   },
   "devDependencies": {

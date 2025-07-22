@@ -24,6 +24,8 @@ type timewindowProps = {
   availability_date: string;
   capacity_per_day: number;
   total_slots_left: number;
+  total_am_appointments: number;
+  total_pm_appointments: number;
   college: string;
   availability_type: string;
 };
@@ -222,8 +224,16 @@ function Calendar({
               <option
                 value="AM"
                 disabled={
-                  selectedDateAvailability?.availability_type === "half_am"
-                    ? false
+                  selectedDateAvailability
+                    ? selectedDateAvailability?.capacity_per_day / 2 ===
+                      selectedDateAvailability?.total_am_appointments
+                      ? true
+                      : selectedDateAvailability?.availability_type === "full"
+                        ? false
+                        : selectedDateAvailability?.availability_type ===
+                            "half_am"
+                          ? false
+                          : true
                     : true
                 }
               >
@@ -232,8 +242,16 @@ function Calendar({
               <option
                 value="PM"
                 disabled={
-                  selectedDateAvailability?.availability_type === "half_pm"
-                    ? false
+                  selectedDateAvailability
+                    ? selectedDateAvailability?.capacity_per_day / 2 ===
+                      selectedDateAvailability?.total_pm_appointments
+                      ? true
+                      : selectedDateAvailability?.availability_type === "full"
+                        ? false
+                        : selectedDateAvailability?.availability_type ===
+                            "half_pm"
+                          ? false
+                          : true
                     : true
                 }
               >
