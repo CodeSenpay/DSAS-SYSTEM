@@ -1,7 +1,9 @@
 import { Check, Close, Search } from "@mui/icons-material";
 import {
   Button,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Paper,
@@ -11,8 +13,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Checkbox,
-  FormControlLabel,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -22,7 +22,6 @@ import { useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "../components/ToastUtils";
 import { useUser } from "../services/UserContext";
 import apiClient from "../services/apiClient";
-
 type transactionTypeProps = {
   transaction_type_id: number;
   transaction_title: string;
@@ -71,6 +70,7 @@ function ApproveTransactionPage() {
         appointment_id: data.appointment_id,
         appointment_status: "Approved",
         student_email: data.student_email,
+        student_id: data.user_id,
       },
     };
 

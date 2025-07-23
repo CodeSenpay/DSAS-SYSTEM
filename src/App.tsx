@@ -62,33 +62,34 @@ function App() {
     setSemester(semester);
   };
 
+  const verifyAndFetchUser = async () => {
+    try {
+      const res = await apiClient.get("/auth/verify-jwt");
+
+      if (res.data.success) {
+        const user = res.data.user;
+        // Try to get student_id, if not present, try userId
+        const params: { student_id?: string; user_id?: string } = {};
+        if (user?.student_id) {
+          params.student_id = user.student_id;
+        } else if (user?.userId) {
+          params.user_id = user.userId;
+        }
+        const userData = await getUserData(params);
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     setSchoolYearAndSemester();
   }, []);
 
   useEffect(() => {
-    const verifyAndFetchUser = async () => {
-      try {
-        const res = await apiClient.get("/auth/verify-jwt");
-
-        if (res.data.success) {
-          const user = res.data.user;
-          // Try to get student_id, if not present, try userId
-          const params: { student_id?: string; user_id?: string } = {};
-          if (user?.student_id) {
-            params.student_id = user.student_id;
-          } else if (user?.userId) {
-            params.user_id = user.userId;
-          }
-          const userData = await getUserData(params);
-          setUser(userData);
-        } else {
-          setUser(null);
-        }
-      } catch {
-        setUser(null);
-      }
-    };
     verifyAndFetchUser();
   }, [setUser]);
 

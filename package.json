@@ -13,6 +13,11 @@
     "server": "cd node-api && nodemon index.js",
     "client": "npm run dev"
   },
+  "react-dotenv": {
+    "whitelist": [
+      "BASE_URL"
+    ]
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",

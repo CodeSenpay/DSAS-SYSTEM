@@ -1,9 +1,12 @@
 import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import router from "./routes.js";
 // import rateLimit from 'express-rate-limit';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -11,9 +14,12 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
+  cors: { origin: process.env.ORIGIN_URL, methods: ["GET", "POST"] },
 });
-const allowed = ["http://localhost:3000", "http://localhost:5173"];
+
+app.use(express.json());
+
+const allowed = [process.env.URL_2, process.env.URL_1];
 
 app.use(
   cors({
@@ -28,19 +34,23 @@ app.use(
   })
 );
 
+app.use("/", router);
+
+app.set("socketio", io);
+
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  socket.emit("welcome", "Hello From WebSocket Server");
-
-  socket.on("message", (data) => {
-    console.log("Received Message: ", data);
+  socket.on("registerUser", (userId) => {
+    socket.join(userId?.toString());
+    console.log(`User joined their Room: ${userId}`);
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log(`Socket disconnected: ${socket.id}`);
   });
 });
+
 // Define the rate limiter
 // const limiter = rateLimit({
 //   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -51,9 +61,6 @@ io.on("connection", (socket) => {
 // // Apply the rate limiter to all requests
 // app.use(limiter);
 
-app.use(express.json());
-app.use("/", router);
-
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

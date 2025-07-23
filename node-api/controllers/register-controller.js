@@ -22,7 +22,10 @@ async function register(req, res) {
       // If response is not as expected, return a 500 error
       return res
         .status(500)
-        .json({ success: false, message: "Unexpected response from registerUser." });
+        .json({
+          success: false,
+          message: "Unexpected response from registerUser.",
+        });
     }
   } catch (error) {
     console.error("Register error:", error);

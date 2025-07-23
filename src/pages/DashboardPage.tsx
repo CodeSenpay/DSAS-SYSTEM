@@ -1,16 +1,18 @@
-import { useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar";
-import { useUser } from "../services/UserContext";
-import * as React from "react";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
-
+import * as React from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar";
+import { notifyInfo } from "../components/ToastUtils";
+import { useUser } from "../services/UserContext";
+import { socket } from "../socket";
 const DONT_SHOW_EMAIL_DIALOG_KEY = "dashboard_dont_show_email_dialog";
 
 export default function DashboardPage() {
@@ -72,6 +74,14 @@ export default function DashboardPage() {
       setHideEmailDialog(false);
     }
   };
+
+  useEffect(() => {
+    socket.emit("registerUser", userdata?.student_details?.student_id);
+
+    socket.on("appointmentUpdate", (appointment) => {
+      notifyInfo(appointment.message);
+    });
+  }, []);
 
   return (
     <>

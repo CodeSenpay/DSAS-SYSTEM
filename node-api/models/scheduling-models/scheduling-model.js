@@ -11,7 +11,7 @@ const getRowsResult = (rows) =>
 
 export class SchedulingModel {
   // ========================================================== Availability Functions ==========================================================
-  static async insertAvailability(payload) {
+  static async insertAvailability(payload, socket) {
     const requiredFields = [
       "transaction_type_id",
       "college",
@@ -41,7 +41,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL insert_availability(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL insert_availability(?)`, [
+        jsondata,
+      ]);
       await logger({
         action: "insertAvailability",
         user_id: payload.created_by || null,
@@ -64,7 +66,7 @@ export class SchedulingModel {
     }
   }
 
-  static async updateAvailability(payload) {
+  static async updateAvailability(payload, socket) {
     const requiredFields = [
       "availability_id",
       "transaction_type_id",
@@ -94,7 +96,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL update_availability(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL update_availability(?)`, [
+        jsondata,
+      ]);
       await logger({
         action: "updateAvailability",
         user_id: payload.user_id || null,
@@ -117,7 +121,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getAvailability(payload) {
+  static async getAvailability(payload, socket) {
     const { searchkey, college, semester, school_year } = payload || {};
     const spPayload = { searchkey, college, semester, school_year };
 
@@ -134,7 +138,7 @@ export class SchedulingModel {
     }
   }
 
-  static async deleteAvailability(payload) {
+  static async deleteAvailability(payload, socket) {
     const requiredFields = ["availability_id"];
     const missingFields = getMissingFields(requiredFields, payload);
     if (missingFields.length > 0) {
@@ -147,19 +151,26 @@ export class SchedulingModel {
     }
 
     try {
-      const [rows] = await pool.query(
-        "CALL delete_availability(?)",
-        [payload.availability_id]
-      );
+      const [rows] = await pool.query("CALL delete_availability(?)", [
+        payload.availability_id,
+      ]);
       if (rows && Array.isArray(rows) && rows.length > 0) {
         const result = rows[0];
-        if (typeof result === "object" && result !== null && "success" in result) {
+        if (
+          typeof result === "object" &&
+          result !== null &&
+          "success" in result
+        ) {
           return result;
         } else if (typeof result === "string") {
           try {
             return JSON.parse(result);
           } catch (e) {
-            return { success: false, message: "Malformed response from stored procedure", raw: result };
+            return {
+              success: false,
+              message: "Malformed response from stored procedure",
+              raw: result,
+            };
           }
         }
         return result;
@@ -176,7 +187,7 @@ export class SchedulingModel {
   }
 
   // ========================================================== Appointment Functions ==========================================================
-  static async insertAppointment(payload) {
+  static async insertAppointment(payload, socket) {
     const requiredFields = [
       "transaction_type_id",
       "user_id",
@@ -208,7 +219,7 @@ export class SchedulingModel {
     }
   }
 
-  static async getAppointment(payload) {
+  static async getAppointment(payload, socket) {
     const requiredFields = [
       "appointment_id",
       "appointment_status",
@@ -265,12 +276,13 @@ export class SchedulingModel {
     }
   }
 
-  static async approveAppointment(payload) {
+  static async approveAppointment(payload, req) {
     const requiredFields = [
       "appointment_id",
       "approved_by",
       "appointment_status",
       "student_email",
+      "student_id",
     ];
 
     const missingFields = getMissingFields(requiredFields, payload);
@@ -290,7 +302,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL approve_appointment(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL approve_appointment(?)`, [
+        jsondata,
+      ]);
 
       let emailResult = null;
       let spResult = rows?.[0]?.[0]?.result;
@@ -303,7 +317,11 @@ export class SchedulingModel {
           transaction_title
         );
       }
-
+      const io = req.app.get("socketio");
+      io.to(payload.student_id.toString()).emit("appointmentUpdate", {
+        message: `Your Appointment ${payload.appointment_id} has been ${payload.appointment_status}`,
+        status: payload.appointment_status,
+      });
       await logger({
         action: "approveAppointment",
         user_id: payload.approved_by ?? null,
@@ -397,7 +415,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL insert_transaction_type(?)`, [
+        jsondata,
+      ]);
       await logger({
         action: "insertTransactionType",
         user_id: payload.user_id || null,
@@ -461,7 +481,9 @@ export class SchedulingModel {
 
     try {
       const jsondata = JSON.stringify(payload);
-      const [rows] = await pool.query(`CALL update_student_email(?)`, [jsondata]);
+      const [rows] = await pool.query(`CALL update_student_email(?)`, [
+        jsondata,
+      ]);
       return getRowsResult(rows);
     } catch (error) {
       return {
@@ -574,7 +596,9 @@ export class SchedulingModel {
     }
 
     try {
-      const [rows] = await pool.query('CALL get_total_slots(?)', [payload.transaction_type_id]);
+      const [rows] = await pool.query("CALL get_total_slots(?)", [
+        payload.transaction_type_id,
+      ]);
       return getRowsResult(rows);
     } catch (err) {
       return {
@@ -596,7 +620,9 @@ export class SchedulingModel {
     }
 
     try {
-      const [rows] = await pool.query('CALL get_total_pending(?)', [payload.transaction_type_id]);
+      const [rows] = await pool.query("CALL get_total_pending(?)", [
+        payload.transaction_type_id,
+      ]);
       return getRowsResult(rows);
     } catch (err) {
       return {
@@ -635,7 +661,9 @@ export class SchedulingModel {
       });
 
       // Call the stored procedure
-      const [rows] = await pool.query('CALL update_admin_password(?)', [jsondata]);
+      const [rows] = await pool.query("CALL update_admin_password(?)", [
+        jsondata,
+      ]);
 
       // The result is always in rows[0][0].result (because SELECT returns a result set)
       let result;
@@ -647,9 +675,10 @@ export class SchedulingModel {
         rows[0][0].result
       ) {
         // rows[0][0].result is a JSON string
-        result = typeof rows[0][0].result === "string"
-          ? JSON.parse(rows[0][0].result)
-          : rows[0][0].result;
+        result =
+          typeof rows[0][0].result === "string"
+            ? JSON.parse(rows[0][0].result)
+            : rows[0][0].result;
       } else {
         result = {
           success: false,

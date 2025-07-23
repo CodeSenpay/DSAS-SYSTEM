@@ -8,6 +8,7 @@ import NavBar from "../components/NavBar";
 import { notifyError } from "../components/ToastUtils";
 import apiClient from "../services/apiClient";
 import { useUser } from "../services/UserContext";
+import { socket } from "../socket";
 import Calendar from "./Calendar";
 type appointmentProps = {
   appointment_id: string;
@@ -83,6 +84,16 @@ function SubsidyPayoutPage() {
   useEffect(() => {
     fetchTransactionsByType();
   }, [isOpenCalendar]);
+
+  useEffect(() => {
+    socket.on("appointments", (dataApprove) => {
+      console.log("Data from WebSocket", dataApprove);
+    });
+
+    return () => {
+      socket.off("update");
+    };
+  }, []);
 
   return (
     <>

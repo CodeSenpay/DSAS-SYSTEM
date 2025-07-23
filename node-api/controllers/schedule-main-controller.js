@@ -36,10 +36,10 @@ const handle_schedule = async (req, res) => {
       );
     }
 
-    const result = await fn(payload);
+    const result = await fn(payload, req);
 
     if (!res.headersSent) {
-      return res.status(200).json({ success: true, data: result });
+      res.status(200).json({ success: true, data: result });
     }
   } catch (err) {
     console.error("Schedule Controller Error:", err);
