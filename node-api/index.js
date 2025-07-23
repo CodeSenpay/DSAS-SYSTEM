@@ -9,7 +9,7 @@ import router from "./routes.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 
@@ -19,23 +19,23 @@ const io = new Server(server, {
 
 app.use(express.json());
 
-const allowed = [process.env.URL_2, process.env.URL_1];
+const allowed = [process.env.URL_2, process.env.URL_1, process.env.URL_3];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowed.includes(origin)) {
-        callback(null, origin);
-      } else {
-        callback(new Error("CORS blocked by origin"));
-      }
-    },
-    credentials: true,
-  })
-);
 
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin || allowed.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS blocked by origin'));
+    }
+  },
+  credentials: true, // if you use cookies/sessions
+};
+app.use(cors(corsOptions));
+app.use(express.json());
 app.use("/", router);
-
 app.set("socketio", io);
 
 io.on("connection", (socket) => {
@@ -51,16 +51,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Define the rate limiter
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 50, // Limit each IP to 50 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.'
-// });
-
-// // Apply the rate limiter to all requests
-// app.use(limiter);
-
-server.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

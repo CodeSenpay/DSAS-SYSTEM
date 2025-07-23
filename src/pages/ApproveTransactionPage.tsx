@@ -81,7 +81,7 @@ function ApproveTransactionPage() {
         withCredentials: true,
       })
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         if (response.data.success) {
           notifySuccess("Appointment approved successfully.");
           handleSearch();

@@ -1,0 +1,117 @@
+# 1. ImageStream: using nginx-unprivileged base
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: my-webapp-frontend
+  labels:
+    app: my-webapp-frontend
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: nginxinc/nginx-unprivileged:stable-alpine
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Source
+
+---
+# 2. Deployment with ConfigMap mount using subPath
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-webapp-frontend
+  labels:
+    app: my-webapp-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-webapp-frontend
+  template:
+    metadata:
+      labels:
+        app: my-webapp-frontend
+    spec:
+      containers:
+        - name: my-webapp-frontend
+          image: my-webapp-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/conf.d/nginx-webapp.conf
+              subPath: nginx-webapp.conf
+              readOnly: true
+            - name: nginx-cache-volume
+              mountPath: /var/cache/nginx
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config
+            items:
+              - key: nginx-webapp.conf
+                path: nginx-webapp.conf
+        - name: nginx-cache-volume
+          emptyDir: {}
+
+---
+# 3. Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-webapp-frontend
+  labels:
+    app: my-webapp-frontend
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: my-webapp-frontend
+
+---
+# 4. Route
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-webapp-frontend
+  labels:
+    app: my-webapp-frontend
+spec:
+  to:
+    kind: Service
+    name: my-webapp-frontend
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

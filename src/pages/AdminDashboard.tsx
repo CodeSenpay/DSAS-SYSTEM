@@ -4,7 +4,6 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useUser } from "../services/UserContext";
 import { notifyError } from "../components/ToastUtils";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { BarChart } from "@mui/x-charts";
@@ -15,6 +14,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import DashboardIcon from "@mui/icons-material/Dashboard"; // For overall dashboard title
+import apiClient from "../services/apiClient";
 
 // TypeScript interfaces for API responses
 interface TransactionType {
@@ -44,14 +44,10 @@ function AdminDashboard() {
       payload: {},
     };
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/admin", data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
       if (response.data.success && Array.isArray(response.data.data)) {
         setTransactionTypes(response.data.data);
       } else {
@@ -75,14 +71,10 @@ function AdminDashboard() {
       },
     };
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/scheduling-system/admin",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.post("/scheduling-system/admin", data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
 
       let slots = 0;
       if (
@@ -132,8 +124,8 @@ function AdminDashboard() {
         payload: { transaction_type_id: type.transaction_type_id },
       };
       try {
-        const response = await axios.post(
-          "http://localhost:5000/api/scheduling-system/admin",
+        const response = await apiClient.post(
+          "/scheduling-system/admin",
           data,
           {
             headers: { "Content-Type": "application/json" },

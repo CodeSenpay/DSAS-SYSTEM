@@ -10,11 +10,11 @@ import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../services/UserContext";
 import { notifyError, notifySuccess } from "./ToastUtils";
+import apiClient from "../services/apiClient";
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
@@ -26,8 +26,8 @@ function NavBar() {
     try {
       const student_id = userdata?.student_id;
       // console.log("Student ID: ", typeof student_id);
-      await axios.post(
-        "http://localhost:5000/api/logout/student",
+      await apiClient.post(
+        "/logout/student",
         { student_id },
         {
           headers: { "Content-Type": "application/json" },

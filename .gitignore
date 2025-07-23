@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 .env
-dsas-system-db-latest.sql
+*.sql
