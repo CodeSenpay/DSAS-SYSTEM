@@ -4,11 +4,11 @@ import { createTheme } from "@mui/material/styles";
 import { Account, AccountPreview, SignOutButton } from "@toolpad/core/Account";
 import { AppProvider, type Session } from "@toolpad/core/AppProvider";
 import { ThemeSwitcher } from "@toolpad/core/DashboardLayout";
-import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { notifyError, notifySuccess } from "./ToastUtils";
 import { useUser } from "../services/UserContext";
+import apiClient from "../services/apiClient";
 
 // Move getSessionFromStorage inside the component and remove the useUser() call from outside a hook/component
 export default function AccountCustomSlotProps() {
@@ -56,8 +56,8 @@ export default function AccountCustomSlotProps() {
       // Get user_id from UserContext
       const user_id = userdata?.user_id ?? null;
 
-      await axios.post(
-        "http://localhost:5000/api/logout/user",
+      await apiClient.post(
+        "/logout/user",
         { user_id }, // Pass user_id in the request body
         {
           headers: { "Content-Type": "application/json" },
