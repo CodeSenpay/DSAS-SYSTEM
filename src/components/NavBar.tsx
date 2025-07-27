@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "../services/UserContext";
 import { notifyError, notifySuccess } from "./ToastUtils";
 import apiClient from "../services/apiClient";
+import { Notifications } from "@mui/icons-material";
+
 
 const pages = ["VMGO", "About Us", "Dashboard"];
 const settings = ["Profile", "Dashboard", "Logout"];
@@ -169,7 +171,11 @@ function NavBar() {
                 </Button>
               ))}
             </Box>
-            <Box sx={{ flexGrow: 0 }}>
+            <Box sx={{ flexGrow: 0 , display: { xs: "flex"}, gap:5 }}>
+
+             <IconButton>
+                <Notifications sx={{ color: "white" }} />
+              </IconButton>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar alt="Remy Sharp" src="/profile.png" />
