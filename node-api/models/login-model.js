@@ -144,6 +144,7 @@ async function loginStudent(params) {
       success: true,
       message: "Login successful (local database)",
       user: localResult.user || {},
+      is_allowed: localResult.is_allowed
     };
   }
 
@@ -238,6 +239,7 @@ async function loginStudent(params) {
           success: true,
           message: "Login successful (ARMS API, student inserted locally)",
           user: insertResult.student || studentDetails,
+          is_allowed: insertResult.is_allowed
         }
         : {
           success: false,
@@ -290,8 +292,16 @@ async function registerToArmsToken() {
   }
 }
 
-async function logoutUser(res) {
+async function logoutUser(res, user_id) {
   try {
+    // Update is_active to 0 for the user in users_tbl
+    if (user_id) {
+      await pool.query(
+        "UPDATE users_tbl SET is_active = 0 WHERE user_id = ?",
+        [user_id]
+      );
+    }
+
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -366,6 +376,8 @@ async function checkStudentExists(params) {
         success: true,
         message: spResult.message,
         user,
+        is_allowed: spResult.is_allowed
+
       };
     } else {
       return {
@@ -428,6 +440,7 @@ async function insertStudent(params) {
         success: true,
         message: spResult.message,
         student,
+        is_allowed: spResult.is_allowed
       };
     } else {
       return {

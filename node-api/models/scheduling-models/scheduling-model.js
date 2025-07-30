@@ -711,4 +711,149 @@ export class SchedulingModel {
       };
     }
   }
+
+  static async getCollegeYearLevels() {
+    try {
+      const [rows] = await pool.query("CALL get_college_year_level()");
+      // The result of a CALL is always in rows[0]
+      return {
+        success: true,
+        data: Array.isArray(rows[0]) ? rows[0] : [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "Failed to fetch college and year level data",
+        error: error.message,
+      };
+    }
+  }
+
+
+  static async updateAllowedLogin(payload) {
+    try {
+      // The payload is expected to have { updates: [ { college, year_level, is_allowed }, ... ] }
+      // Validate and prepare the JSON for the stored procedure
+      let updates = Array.isArray(payload?.updates)
+        ? payload.updates
+        : [];
+
+      // If the frontend sent a single update as {college, year_level, is_allowed}, wrap it in an array
+      if (
+        updates.length === 0 &&
+        payload &&
+        typeof payload === "object" &&
+        payload.college &&
+        payload.year_level &&
+        typeof payload.is_allowed !== "undefined"
+      ) {
+        updates = [
+          {
+            college: payload.college,
+            year_level: payload.year_level,
+            is_allowed: payload.is_allowed,
+          },
+        ];
+      }
+
+      const jsondata = JSON.stringify({ updates });
+
+      // Call the stored procedure
+      const [rows] = await pool.query("CALL update_allowed_login(?)", [jsondata]);
+
+      // Debug logging
+
+      // The result of a CALL is always in rows[0]
+      let result;
+      if (rows && Array.isArray(rows[0]) && rows[0].length > 0) {
+        // Check if the result is in the first row
+        const firstRow = rows[0][0];
+        if (firstRow && firstRow.result) {
+          try {
+            result = JSON.parse(firstRow.result);
+          } catch (e) {
+            // If parsing fails, check if it's already an object
+            if (typeof firstRow.result === 'object') {
+              result = firstRow.result;
+            } else {
+              result = {
+                status: "error",
+                message: "Malformed response from update_allowed_login",
+                raw: firstRow.result,
+              };
+            }
+          }
+        } else {
+          // If no 'result' field, the entire row might be the result
+          try {
+            result = JSON.parse(JSON.stringify(firstRow));
+          } catch (e) {
+            result = {
+              status: "error",
+              message: "Unexpected response structure from update_allowed_login",
+              raw: firstRow,
+            };
+          }
+        }
+      } else {
+        result = {
+          status: "error",
+          message: "Unexpected response from update_allowed_login",
+          raw: rows,
+        };
+      }
+
+      // Log the request and response
+      await logger({
+        action: "updateAllowedLogin",
+        user_id: payload?.updated_by || null,
+        details: {
+          request: { updates },
+          response: result,
+          rawRows: rows,
+        },
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      });
+
+      // Return the result in a format expected by the frontend
+      // (frontend expects { success: true/false, data: ... } or { success: false, message: ... })
+      if (result.status === "success" || result.status === "partial_success") {
+        return {
+          success: true,
+          data: {
+            status: result.status,
+            total: result.total,
+            successful_updates: result.successful,
+            failed_updates: result.failed,
+          },
+        };
+      } else {
+        return {
+          success: false,
+          message: result.message || "Failed to update allowed login",
+          data: {
+            status: result.status,
+            total: result?.total,
+            successful_updates: result?.successful,
+            failed_updates: result?.failed,
+          },
+        };
+      }
+    } catch (error) {
+      await logger({
+        action: "updateAllowedLogin",
+        user_id: payload?.updated_by || null,
+        details: {
+          request: payload,
+          error: error.message,
+        },
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      });
+      return {
+        success: false,
+        message: "Failed to update allowed login",
+        error: error.message,
+      };
+    }
+  }
 }

@@ -76,6 +76,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    if (!userdata || userdata.user_level !== "STUDENT") {
+      navigate("/login", { replace: true });
+      return;
+    }
     socket.emit("registerUser", userdata?.student_details?.student_id);
 
     socket.on("appointmentUpdate", (appointment) => {
