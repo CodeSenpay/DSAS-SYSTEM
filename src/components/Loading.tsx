@@ -1,6 +1,15 @@
 export default function Loading() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-transparent bg-opacity-80">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{
+        background: "rgba(255,255,255,0.35)",
+        backdropFilter: "blur(16px) saturate(180%)",
+        WebkitBackdropFilter: "blur(16px) saturate(180%)",
+        // fallback for browsers that don't support backdrop-filter
+        // backgroundColor: "rgba(255,255,255,0.7)",
+      }}
+    >
       <div className="relative w-32 h-32 flex items-center justify-center">
         {/* Spinning colored rings */}
         <div className="absolute inset-0 animate-spin-slow">

@@ -78,6 +78,39 @@ function LoginPageStudent() {
     }
   };
 
+  // Function to filter input for Student ID (format: 21-A-01720)
+  const filterStudentIdInput = (value: string) => {
+    // Allow only format: 2 digits, dash, 1 uppercase letter, dash, 5 digits
+    // Remove invalid characters and enforce uppercase for the letter
+    let filtered = value
+      .replace(/[^0-9A-Za-z-]/g, "") // Remove non-alphanumeric and non-dash
+      .toUpperCase();
+
+    // Enforce the format step by step
+    // 1. Only allow up to 2 digits at the start
+    filtered = filtered.replace(/^(\d{0,2}).*$/, "$1" + filtered.slice(2));
+
+    // 2. Add dash after 2 digits if not present
+    if (filtered.length > 2 && filtered[2] !== "-") {
+      filtered =
+        filtered.slice(0, 2) + "-" + filtered.slice(2).replace(/^-*/, "");
+    }
+
+    // 3. Only allow 1 uppercase letter after dash
+    filtered = filtered.replace(/^(\d{2}-)([A-Z]?)[A-Z]*/, "$1$2");
+
+    // 4. Add dash after the letter if not present
+    if (filtered.length > 4 && filtered[4] !== "-") {
+      filtered =
+        filtered.slice(0, 4) + "-" + filtered.slice(4).replace(/^-*/, "");
+    }
+
+    // 5. Only allow up to 5 digits after the second dash
+    filtered = filtered.replace(/^(\d{2}-[A-Z]-)(\d{0,5}).*$/, "$1$2");
+
+    return filtered;
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
@@ -97,7 +130,13 @@ function LoginPageStudent() {
           onSubmit={handleSubmit(handleLogin)}
         >
           <img src="/LogoPNG.png" alt="logo" className="w-20 h-20" />
-          <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
+          <h1 className="text-2xl font-bold mb-4 text-center">
+            <span className="font-bold">
+              DSAS
+              <br />
+              Scheduling System
+            </span>
+          </h1>
           <TextField
             label="Student ID"
             variant="outlined"
@@ -105,6 +144,11 @@ function LoginPageStudent() {
             required
             className="w-full max-w-sm"
             {...register("studentId")}
+            inputProps={{ style: { textTransform: "uppercase" } }}
+            onInput={(e) => {
+              const input = e.target as HTMLInputElement;
+              input.value = filterStudentIdInput(input.value);
+            }}
           />
           <TextField
             label="Password"

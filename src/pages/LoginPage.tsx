@@ -1,5 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, CircularProgress, TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +10,11 @@ import {
   notifySuccess,
 } from "../components/ToastUtils";
 import apiClient from "../services/apiClient.ts";
-
 import { IconButton, InputAdornment } from "@mui/material";
 import { useUser } from "../services/UserContext.ts";
 import { verifyToken } from "../services/verifyToken.ts";
+import Loading from "../components/Loading";
+
 function LoginPage() {
   type dataProps = {
     email: string;
@@ -144,13 +145,20 @@ function LoginPage() {
       }}
     >
       <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
+        {loading && <Loading />}
         <form
           className="flex flex-col justify-center items-center gap-4"
           style={{ padding: "30px" }}
           onSubmit={handleSubmit(handleLogin)}
         >
           <img src="/LogoPNG.png" alt="logo" className="w-20 h-20" />
-          <h1 className="text-2xl font-bold mb-4">DSASSchedule-System</h1>
+          <h1 className="text-2xl font-bold mb-4 text-center">
+            <span className="font-bold">
+              DSAS
+              <br />
+              Scheduling System
+            </span>
+          </h1>
           <p>ADMIN</p>
           <TextField
             label="Admin Email"
@@ -186,9 +194,7 @@ function LoginPage() {
             type="submit"
             className="w-full max-w-sm"
             disabled={loading}
-            startIcon={
-              loading ? <CircularProgress size={20} color="inherit" /> : null
-            }
+            // Remove CircularProgress, use Loading overlay instead
           >
             {loading ? "Logging in..." : "Login"}
           </Button>

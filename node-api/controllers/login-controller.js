@@ -76,10 +76,19 @@ async function loginStudentController(req, res) {
     const response = await loginStudent({ studentId, password });
 
     // console.log("Login Response:", response);
+    // Check if login was unsuccessful
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
         message: response.message || "Invalid credentials.",
+      });
+    }
+
+    // Check if is_allowed is 0 (not allowed to login)
+    if (typeof response.is_allowed !== "undefined" && response.is_allowed === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to login at this time.",
       });
     }
 
@@ -129,7 +138,7 @@ async function logoutUserController(req, res) {
       req
     );
     // Now send the response
-    await logoutUser(res);
+    await logoutUser(res, req.body.user_id);
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {

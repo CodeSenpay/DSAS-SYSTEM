@@ -14,6 +14,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import PreviewIcon from "@mui/icons-material/Preview";
 import AccountCustomSlotProps from "../components/AccountCustomSlotProps";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import PeopleIcon from "@mui/icons-material/People";
 import Modal from "../components/Modal";
 import AddAvailability from "./AddAvailability";
 import AdminDashboard from "./AdminDashboard";
@@ -23,6 +24,7 @@ import ReportPage from "./ReportPage";
 import ViewAvailability from "./ViewAvailability";
 import DeleteAvailability from "./DeleteAvailability";
 import ManageAdminPasswords from "./ManageAdminPasswords";
+import ManageAccountLoginPage from "./ManageAccountLoginPage";
 import { useUser } from "../services/UserContext";
 
 function useCurrentUser() {
@@ -83,6 +85,11 @@ function getNavigationForRole(role: string): Navigation {
       title: "Register Admin",
       icon: <HowToRegIcon />,
     },
+    {
+      segment: "manage-account-login",
+      title: "Manage Account Access",
+      icon: <PeopleIcon />,
+    },
   ];
 
   // Only add "Manage Admin" if user is sudo
@@ -133,6 +140,8 @@ function renderCurrentPage(pathname: string, role: string) {
       return <ReportPage />;
     case "/register-admin":
       return <RegisterAdminPage />;
+    case "/manage-account-login":
+      return <ManageAccountLoginPage />;
     case "/manage-admin":
       // Only render ManageAdminPasswords if user is sudo
       if (role === "SUDO") {
