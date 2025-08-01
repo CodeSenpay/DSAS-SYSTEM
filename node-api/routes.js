@@ -13,7 +13,6 @@ import {
 import { register } from "./controllers/register-controller.js";
 import { handle_schedule } from "./controllers/schedule-main-controller.js";
 import { authenticate } from "./middleware/middleware.js";
-import { isAlreadyLoggedIn } from "./middleware/session-middleware.js";
 import {
   generateSchoolYear,
   generateSemester,
@@ -25,7 +24,7 @@ const router = Router();
 router.use(cookieParser());
 
 // ==================== AUTH ROUTES ====================
-router.post("/api/login-admin", isAlreadyLoggedIn, loginAdminController);
+router.post("/api/login-admin", loginAdminController);
 router.post("/api/login-student", loginStudentController);
 router.post("/api/logout/user", logoutUserController);
 router.post("/api/logout/student", logoutStudentController);

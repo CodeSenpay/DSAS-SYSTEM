@@ -57,7 +57,6 @@ async function loginAdminController(req, res) {
       maxAge: 8 * 60 * 60 * 1000, // 8 hours
     });
 
-    req.session.user = { id: userId, userLevel };
 
     return res.json({ success: true, user: response.user });
   } catch (error) {
@@ -143,15 +142,8 @@ async function logoutUserController(req, res) {
       req
     );
 
-    if (req.session && req.session.user) {
-      await pool.query("UPDATE users_tbl SET is_active = 0 WHERE user_id = ?", [req.session.user.id]);
-      req.session.destroy(() => {
-        res.clearCookie("token");
-        return res.json({ success: true, message: "Logged out successfully." });
-      });
-    } else {
-      return res.json({ success: true, message: "Logged out successfully." });
-    }
+    // Use the logoutUser function from the model
+    return await logoutUser(res, req.body.user_id || null);
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {

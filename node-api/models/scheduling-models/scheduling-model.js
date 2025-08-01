@@ -311,10 +311,12 @@ export class SchedulingModel {
 
       if (spResult?.success && payload.student_email) {
         let transaction_title = spResult?.transaction_type ?? null;
+        let appointment_details = spResult?.appointment_details ?? null;
         emailResult = await sendEmailToStudent(
           payload.student_email,
           payload.appointment_status,
-          transaction_title
+          transaction_title,
+          appointment_details
         );
       }
       const io = req.app.get("socketio");
