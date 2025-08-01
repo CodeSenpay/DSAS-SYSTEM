@@ -355,8 +355,8 @@ async function checkStudentExists(params) {
         }
       }
       // If password is provided, compare with stored hash
-      if (params.password && user && user.password) {
-        const isMatch = await argon2.verify(user.password, params.password);
+      if (params.password && user && user.student_password) {
+        const isMatch = await argon2.verify(user.student_password, params.password);
         if (!isMatch) {
           return {
             success: false,
