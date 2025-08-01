@@ -4,7 +4,6 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 import router from "./routes.js";
-import { sessionMiddleware } from "./middleware/session-middleware.js";
 // import rateLimit from 'express-rate-limit';
 
 // Load environment variables
@@ -37,7 +36,6 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(sessionMiddleware);
 app.use("/", router);
 
 // Create HTTP server

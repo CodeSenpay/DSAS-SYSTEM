@@ -23,10 +23,7 @@ async function loginAdmin(data, req, res) {
           action: "login_attempt",
           user_id: email || null,
           details: `Failed login for email: ${email}`,
-          timestamp: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 19),
+          timestamp: new Date().toISOString().replace("T", " ").substring(0, 19)
         },
         req,
         res
@@ -69,7 +66,7 @@ async function loginAdmin(data, req, res) {
         action: "login_success",
         user_id: email || null,
         details: `User logged in: ${email}`,
-        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+        mtimestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
       },
       req,
       res
