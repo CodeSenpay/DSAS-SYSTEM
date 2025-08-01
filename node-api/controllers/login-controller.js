@@ -229,7 +229,6 @@ const verifyJwt = async (req, res) => {
       message: "Unauthorized access. No token provided.",
     });
   }
-  // use id from token to disable is_active
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
