@@ -249,15 +249,6 @@ const verifyJwt = async (req, res) => {
       message: "Unauthorized access. No token provided.",
     });
   }
-
-  // Check for session user
-  if (!req.session || !req.session.user) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized access. No active session.",
-    });
-  }
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     return res.json({ success: true, user: decoded });

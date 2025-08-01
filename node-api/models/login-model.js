@@ -294,13 +294,6 @@ async function registerToArmsToken() {
 
 async function logoutUser(res, user_id) {
   try {
-    // Update is_active to 0 for the user in users_tbl
-    if (user_id) {
-      await pool.query(
-        "UPDATE users_tbl SET is_active = 0 WHERE user_id = ?",
-        [user_id]
-      );
-    }
 
     res.clearCookie("token", {
       httpOnly: true,
