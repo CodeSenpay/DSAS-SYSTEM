@@ -103,6 +103,7 @@ function LoginPage() {
       // eslint-disable-next-line no-console
       console.error(error.response?.status);
       if (error?.response?.status === 401 || error?.response?.status === 403) {
+        // Only show OTP modal for 401/403 (OTP/verification issues)
         notifyInfo(
           error?.response?.data?.message ||
             error?.message ||
@@ -110,13 +111,24 @@ function LoginPage() {
         );
         sendOtpToEmail(data);
         openModal();
+      } else if (
+        error?.response?.status === 409 ||
+        error?.response?.status === 404
+      ) {
+        // Show info for already logged in or not registered, but do NOT open OTP modal
+        notifyInfo(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Login failed. Please try again."
+        );
+        // Do not call sendOtpToEmail or openModal
       } else {
         notifyError(
           error?.response?.data?.message ||
             error?.message ||
             "Login failed. Please try again."
         );
-        // Do not open the modal for non-401 errors
+        // Do not open the modal for non-401/403/409/404 errors
       }
     } finally {
       setLoading(false);

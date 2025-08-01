@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import logger from "../middleware/logger.js";
+import pool from "../config/db.conf.js";
 import {
   getUserData,
   loginAdmin,
@@ -23,7 +24,10 @@ async function loginAdminController(req, res) {
     const { email, password } = req.body;
     const response = await loginAdmin({ email, password });
 
-    // console.log("Login Response:", response);
+    // If the SP returns a status and it's not 200, handle accordingly
+    if (response.user && response.user.status && response.user.status !== 200) {
+      return res.status(response.user.status).json({ success: false, message: response.user.message });
+    }
     if (!response.success) {
       return res.status(response.status || 401).json({
         success: false,
@@ -52,6 +56,8 @@ async function loginAdminController(req, res) {
       sameSite: "strict",
       maxAge: 8 * 60 * 60 * 1000, // 8 hours
     });
+
+    req.session.user = { id: userId, userLevel };
 
     return res.json({ success: true, user: response.user });
   } catch (error) {
@@ -127,7 +133,6 @@ async function loginStudentController(req, res) {
 
 async function logoutUserController(req, res) {
   try {
-    // Log before sending the response
     logger(
       {
         action: "logout",
@@ -137,8 +142,16 @@ async function logoutUserController(req, res) {
       },
       req
     );
-    // Now send the response
-    await logoutUser(res, req.body.user_id);
+
+    if (req.session && req.session.user) {
+      await pool.query("UPDATE users_tbl SET is_active = 0 WHERE user_id = ?", [req.session.user.id]);
+      req.session.destroy(() => {
+        res.clearCookie("token");
+        return res.json({ success: true, message: "Logged out successfully." });
+      });
+    } else {
+      return res.json({ success: true, message: "Logged out successfully." });
+    }
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {
@@ -151,7 +164,14 @@ async function logoutUserController(req, res) {
 
 async function logoutStudentController(req, res) {
   try {
-    await logoutStudent(res);
+    if (req.session && req.session.user) {
+      await pool.query("UPDATE students_tbl SET is_active = 0 WHERE student_id = ?", [req.session.user.id]);
+      req.session.destroy(() => {
+        return logoutStudent(res);
+      });
+    } else {
+      return logoutStudent(res);
+    }
   } catch (error) {
     console.error("Logout error:", error);
     if (!res.headersSent) {
@@ -229,13 +249,31 @@ const verifyJwt = async (req, res) => {
       message: "Unauthorized access. No token provided.",
     });
   }
-  // use id from token to disable is_active
+
+  // Check for session user
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized access. No active session.",
+    });
+  }
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
     return res.json({ success: true, user: decoded });
   } catch (error) {
-    // console.error("JWT verification error:", error);
+    // If token is expired, update is_active to 0 in the database
+    if (error.name === "TokenExpiredError") {
+      try {
+        // Decode the token without verifying signature to get userId
+        const decoded = jwt.decode(token);
+        if (decoded && decoded.userId) {
+          await pool.query("UPDATE users_tbl SET is_active = 0 WHERE user_id = ?", [decoded.userId]);
+        }
+      } catch (dbError) {
+        // Optionally log dbError
+      }
+    }
     return res.status(401).json({
       success: false,
       message: "Unauthorized access. Invalid token.",

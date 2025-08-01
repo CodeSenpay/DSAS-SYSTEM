@@ -26,17 +26,15 @@ import axios from "axios";
 import dayjs, { Dayjs } from "dayjs";
 import React, { useEffect, useRef, useState } from "react";
 import apiClient from "../services/apiClient";
-import LogoPNG from "../../public/LogoPNG.png"; // Make sure this import is at the top of your file
+import LogoPNG from "../../public/LogoPNG.png";
 
 const API_URL = "/scheduling-system/admin";
-
 const appointmentStatuses = [
   { value: "", label: "All" },
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "declined", label: "Declined" },
 ];
-
 const semesters = [
   { value: "", label: "All" },
   { value: "1st", label: "1st Semester" },
@@ -44,41 +42,37 @@ const semesters = [
   { value: "midyear", label: "Midyear" },
 ];
 
+type Appointment = {
+  id: number;
+  student_id: number;
+  transaction_type_id: number;
+  appointment_status: string;
+  appointment_date: string;
+  [key: string]: unknown;
+};
+
+type TransactionType = {
+  transaction_type_id: number;
+  transaction_title: string;
+  transaction_details: string;
+};
+
 function ReportPage() {
-  // Filter states
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [transactionTypes, setTransactionTypes] = useState<
-    {
-      transaction_type_id: number;
-      transaction_title: string;
-      transaction_details: string;
-    }[]
-  >([]);
-  const [transactionTypeId, setTransactionTypeId] = useState<string>("");
-  const [appointmentStatus, setAppointmentStatus] = useState<string>("");
-  const [schoolYear, setSchoolYear] = useState<string>("");
-  const [semester, setSemester] = useState<string>("");
-
-  // Data states
-  type Appointment = {
-    id: number;
-    student_id: number;
-    transaction_type_id: number;
-    appointment_status: string;
-    appointment_date: string;
-    [key: string]: unknown; // Use unknown instead of any for better type safety
-  };
-
+  const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>(
+    []
+  );
+  const [transactionTypeId, setTransactionTypeId] = useState("");
+  const [appointmentStatus, setAppointmentStatus] = useState("");
+  const [schoolYear, setSchoolYear] = useState("");
+  const [semester, setSemester] = useState("");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Ref for print area
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Fetch transaction types for filter dropdown
   useEffect(() => {
-    async function fetchTransactionTypes() {
+    const fetchTransactionTypes = async () => {
       try {
         const res = await apiClient.post(
           API_URL,
@@ -86,58 +80,43 @@ function ReportPage() {
             model: "schedulesModel",
             function_name: "getTransactionType",
           },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
+          { headers: { "Content-Type": "application/json" } }
         );
         if (res.data?.data) {
-          // The API returns transaction_type_id, transaction_title, transaction_details
           setTransactionTypes(res.data.data);
         }
       } catch {
-        // fallback: empty
         setTransactionTypes([]);
       }
-    }
+    };
     fetchTransactionTypes();
   }, []);
 
-  // Generate school year options (e.g., 2022-2023, 2023-2024, ...)
   const getSchoolYearOptions = () => {
     const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear + 1; i >= currentYear - 5; i--) {
-      years.push(`${i - 1}-${i}`);
-    }
+    const years = Array.from(
+      { length: 7 },
+      (_, i) => `${currentYear - i - 1}-${currentYear - i}`
+    );
     return [
       { value: "", label: "All" },
       ...years.map((y) => ({ value: y, label: y })),
     ];
   };
 
-  // Fetch appointments with filters
   const fetchReports = async () => {
     setLoading(true);
     setFetchError(null);
     setAppointments([]);
     try {
-      // Always send all params, even if empty
-      const payload: {
-        school_year: string;
-        semester: string;
-        date: string;
-        transaction_type_id: string;
-        appointment_status: string;
-        status: string; // <-- added status
-      } = {
+      const payload = {
         school_year: schoolYear || "",
         semester: semester || "",
         date: date ? dayjs(date).format("YYYY-MM-DD") : "",
         transaction_type_id: transactionTypeId || "",
         appointment_status: appointmentStatus || "",
-        status: appointmentStatus || "", // <-- add status, using appointmentStatus as value
+        status: appointmentStatus || "",
       };
-
       const res = await apiClient.post(
         API_URL,
         {
@@ -145,42 +124,29 @@ function ReportPage() {
           function_name: "generateReport",
           payload,
         },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-
-      if (res.data?.data && Array.isArray(res.data.data)) {
-        setAppointments(res.data.data);
-      } else {
-        setAppointments([]);
-      }
+      setAppointments(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) {
       let errorMsg = "Failed to fetch reports. Please try again.";
-      if (axios.isAxiosError(err)) {
+      if (axios.isAxiosError(err))
         errorMsg = err.response?.data?.error || err.message || errorMsg;
-      } else if (err instanceof Error) {
-        errorMsg = err.message;
-      }
+      else if (err instanceof Error) errorMsg = err.message;
       setFetchError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // UX: fetch on mount with no filters (show all)
   useEffect(() => {
     fetchReports();
-    // eslint-disable-next-line
   }, []);
 
-  // UX: handle filter submit
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
     fetchReports();
   };
 
-  // UX: handle reset
   const handleReset = () => {
     setDate(null);
     setTransactionTypeId("");
@@ -190,12 +156,9 @@ function ReportPage() {
     fetchReports();
   };
 
-  // Print handler
   const handlePrint = () => {
     if (!printRef.current) return;
     const printContents = printRef.current.innerHTML;
-    // Get the logo as a data URL if imported, otherwise fallback to path
-    const logoSrc = LogoPNG;
     const printWindow = window.open("", "_blank", "width=900,height=650");
     if (printWindow) {
       printWindow.document.writeln(`
@@ -214,8 +177,8 @@ function ReportPage() {
           </head>
           <body>
             <div class="print-header">
-              <img src="${logoSrc}" alt="Logo" class="print-logo" />
-            <p>Dean of Student Affairs Services</p>
+              <img src="${LogoPNG}" alt="Logo" class="print-logo" />
+              <p>Dean of Student Affairs Services</p>
               <h2>Appointment Reports</h2>
             </div>
             <div class="print-meta">
